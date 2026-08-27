@@ -1,0 +1,286 @@
+/* ============================================================
+   БЛІЦ — Colors & Type
+   Single source of truth for brand tokens and semantic styles.
+   ============================================================ */
+
+/* ---- Web fonts ---------------------------------------------- */
+/* Substitution: Montserrat replaces an unknown custom Cyrillic
+   display face seen on the billboards. Pending client approval. */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;0,900;1,400;1,700;1,900&family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  /* ---- Brand palette --------------------------------------- */
+  /* Sampled from the master logo gradient (Logo_blitz_chyste.png).
+     Gradient runs LEFT (deep) → RIGHT (amber). */
+  --blitz-orange-900: #C04408;   /* darkest, for press states */
+  --blitz-orange-800: #D14C09;   /* hover on light surfaces */
+  --blitz-orange-700: #EA580C;   /* gradient START (deep orange) */
+  --blitz-orange-600: #EF7700;   /* gradient MID */
+  --blitz-orange-500: #F39200;   /* gradient bright */
+  --blitz-orange-400: #F8A900;   /* gradient END (amber) */
+  --blitz-orange-300: #FFC04D;   /* tints (lighter accent) */
+  --blitz-orange-200: #FFE0B0;
+  --blitz-orange-100: #FFF1DC;   /* very light wash, hover on white */
+  --blitz-orange-50:  #FFF8EE;
+
+  /* Brand gradient — the single most-used visual element. */
+  --blitz-gradient:        linear-gradient(95deg, #EA580C 0%, #EF7700 38%, #F39200 70%, #F8A900 100%);
+  --blitz-gradient-soft:   linear-gradient(95deg, #EF7700 0%, #F8A900 100%);
+  --blitz-gradient-photo:  linear-gradient(180deg, transparent 0%, rgba(234,88,12,0) 50%, rgba(234,88,12,0.55) 88%, rgba(239,119,0,0.85) 100%);
+
+  /* ---- FM accent track --------------------------------------
+     ONLY for the БЛІЦ ФМ radio surface (blits-fm.ua).
+     Do not introduce these into the РА site. */
+  --fm-pink:        #FF2D7E;
+  --fm-pink-2:      #E91B6C;
+  --fm-yellow:      #F0F900;
+  --fm-yellow-2:    #DEE600;
+  --fm-black:       #0E0E0E;   /* the heavy editorial block colour */
+  --fm-gold-glow:   radial-gradient(120% 90% at 50% 30%, #FFD24D 0%, #B6730A 50%, #1A0E00 100%);
+
+  /* ---- Neutrals -------------------------------------------- */
+  --blitz-ink:       #1A1A1A;   /* primary text on white */
+  --blitz-ink-2:     #404040;   /* secondary text */
+  --blitz-ink-3:     #6B6B6B;   /* tertiary / meta */
+  --blitz-ink-4:     #9B9B9B;   /* disabled / placeholder */
+  --blitz-line:      #E8E5E0;   /* hairline divider */
+  --blitz-line-2:    #F1EEE9;
+  --blitz-paper:     #FFFFFF;   /* default surface */
+  --blitz-paper-2:   #FAF8F4;   /* warm off-white panel */
+
+  /* ---- Semantic foreground/background ---------------------- */
+  --fg-1:            var(--blitz-ink);
+  --fg-2:            var(--blitz-ink-2);
+  --fg-3:            var(--blitz-ink-3);
+  --fg-inverse:      #FFFFFF;          /* text on orange */
+  --fg-accent:       var(--blitz-orange-700);
+  --bg-1:            var(--blitz-paper);
+  --bg-2:            var(--blitz-paper-2);
+  --bg-accent:       var(--blitz-gradient);
+  --bg-accent-flat:  var(--blitz-orange-700);
+
+  /* ---- Type families -------------------------------------- */
+  --font-display:    'Montserrat', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-body:       'Montserrat', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono:       ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, monospace;
+
+  /* ---- Type scale ----------------------------------------- */
+  --fs-display:      clamp(56px, 7vw, 96px);  /* tagline billboards */
+  --fs-h1:           clamp(40px, 5vw, 64px);
+  --fs-h2:           clamp(28px, 3.6vw, 44px);
+  --fs-h3:           22px;
+  --fs-h4:           18px;
+  --fs-lead:         20px;
+  --fs-body:         16px;
+  --fs-small:        14px;
+  --fs-meta:         12px;
+  --fs-eyebrow:      12px;
+
+  /* ---- Line heights --------------------------------------- */
+  --lh-tight:        0.95;
+  --lh-display:      1.02;
+  --lh-heading:      1.15;
+  --lh-body:         1.5;
+  --lh-loose:        1.65;
+
+  /* ---- Weights -------------------------------------------- */
+  --fw-regular:      400;
+  --fw-medium:       500;
+  --fw-semibold:     600;
+  --fw-bold:         700;
+  --fw-black:        900;
+
+  /* ---- Spacing (4px base) --------------------------------- */
+  --sp-1:  4px;
+  --sp-2:  8px;
+  --sp-3:  12px;
+  --sp-4:  16px;
+  --sp-5:  24px;
+  --sp-6:  32px;
+  --sp-7:  48px;
+  --sp-8:  64px;
+  --sp-9:  96px;
+  --sp-10: 128px;
+
+  /* ---- Radius --------------------------------------------- */
+  --radius-sm:   8px;
+  --radius-md:   16px;
+  --radius-lg:   24px;     /* default card radius */
+  --radius-xl:   32px;
+  --radius-pill: 9999px;
+
+  /* ---- Shadows (single warm shadow system) ---------------- */
+  --shadow-sm:   0 1px 2px rgba(234,88,12,0.08);
+  --shadow-md:   0 4px 12px rgba(234,88,12,0.10);
+  --shadow-lg:   0 8px 24px rgba(234,88,12,0.14);
+  --shadow-xl:   0 16px 48px rgba(234,88,12,0.18);
+  --shadow-focus:0 0 0 4px rgba(234,88,12,0.25);
+
+  /* ---- Motion --------------------------------------------- */
+  --ease-default:  cubic-bezier(0.4, 0.0, 0.2, 1);
+  --ease-out:      cubic-bezier(0.0, 0.0, 0.2, 1);
+  --ease-in:       cubic-bezier(0.4, 0.0, 1.0, 1);
+  --dur-fast:      120ms;
+  --dur-base:      180ms;
+  --dur-slow:      280ms;
+}
+
+/* ============================================================
+   Semantic style classes — use these instead of raw vars where
+   you can; they encode the brand's voice (italic chunky caps).
+   ============================================================ */
+
+.blitz-display {
+  font-family: var(--font-display);
+  font-weight: var(--fw-black);
+  font-style: italic;
+  font-size: var(--fs-display);
+  line-height: var(--lh-display);
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  color: var(--fg-inverse);
+}
+
+.blitz-h1 {
+  font-family: var(--font-display);
+  font-weight: var(--fw-black);
+  font-style: italic;
+  font-size: var(--fs-h1);
+  line-height: var(--lh-heading);
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  color: var(--fg-1);
+}
+
+.blitz-h2 {
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+  font-style: italic;
+  font-size: var(--fs-h2);
+  line-height: var(--lh-heading);
+  text-transform: uppercase;
+  color: var(--fg-1);
+}
+
+.blitz-h3 {
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-h3);
+  line-height: var(--lh-heading);
+  color: var(--fg-1);
+}
+
+.blitz-h4 {
+  font-family: var(--font-display);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-h4);
+  line-height: var(--lh-heading);
+  color: var(--fg-1);
+}
+
+/* The signature: an orange ALL-CAPS keyword inside a headline. */
+.blitz-accent-word {
+  color: var(--fg-accent);
+  font-weight: var(--fw-black);
+  text-transform: uppercase;
+  font-style: italic;
+}
+
+/* The "house formula" stack — three-line verb / RED-WORD / object. */
+.blitz-headline-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.05em;
+  line-height: var(--lh-heading);
+}
+.blitz-headline-stack .verb {
+  font-family: var(--font-display);
+  font-weight: var(--fw-semibold);
+  font-style: italic;
+  font-size: clamp(28px, 3.4vw, 44px);
+  text-transform: none;
+  color: var(--fg-1);
+}
+.blitz-headline-stack .keyword {
+  font-family: var(--font-display);
+  font-weight: var(--fw-black);
+  font-style: italic;
+  font-size: clamp(40px, 5.2vw, 68px);
+  text-transform: uppercase;
+  color: var(--fg-accent);
+  letter-spacing: -0.005em;
+  line-height: 1;
+}
+.blitz-headline-stack .object {
+  font-family: var(--font-display);
+  font-weight: var(--fw-medium);
+  font-style: italic;
+  font-size: clamp(20px, 2.4vw, 30px);
+  text-transform: none;
+  color: var(--fg-1);
+}
+
+.blitz-lead {
+  font-family: var(--font-body);
+  font-weight: var(--fw-medium);
+  font-size: var(--fs-lead);
+  line-height: var(--lh-body);
+  color: var(--fg-2);
+}
+
+.blitz-body {
+  font-family: var(--font-body);
+  font-weight: var(--fw-regular);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  color: var(--fg-1);
+}
+
+.blitz-small {
+  font-family: var(--font-body);
+  font-weight: var(--fw-regular);
+  font-size: var(--fs-small);
+  line-height: var(--lh-body);
+  color: var(--fg-2);
+}
+
+.blitz-meta {
+  font-family: var(--font-body);
+  font-weight: var(--fw-medium);
+  font-size: var(--fs-meta);
+  line-height: var(--lh-heading);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+
+.blitz-eyebrow {
+  font-family: var(--font-body);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-eyebrow);
+  line-height: 1;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--fg-accent);
+}
+
+.blitz-mono {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: var(--lh-body);
+  color: var(--fg-2);
+}
+
+/* ============================================================
+   The bubble — brand's container shape.
+   Use as a clip-path on photos, or as a filled badge.
+   ============================================================ */
+.blitz-bubble-bg {
+  background: var(--blitz-gradient);
+}
+
+/* Simplified bubble silhouette as a CSS clip-path (no notches).
+   For the full notched silhouette, use assets/bubble.svg as a mask. */
+.blitz-bubble-clip {
+  clip-path: path('M 200,40 C 80,40 20,110 20,200 C 20,290 90,360 220,360 C 290,360 340,330 380,290 C 420,330 470,360 540,360 C 670,360 740,290 740,200 C 740,110 680,40 560,40 C 490,40 440,70 400,110 C 360,70 310,40 200,40 Z');
+}
