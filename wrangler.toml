@@ -1,1 +1,5 @@
-name = "blitz-site" compatibility_date = "2026-01-01" [assets] directory = "./"
+name = "blitz-site"
+compatibility_date = "2026-01-01"
+
+[assets]
+directory = "./"
