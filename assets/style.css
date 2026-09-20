@@ -197,3 +197,39 @@ section { padding: var(--sp-9) 0; }
 }
 
 .badge-moon { color: var(--fg-accent); margin-right: 6px; }
+
+
+/* ---- Uspacy embedded form override ---- */
+#uspacy-forms {
+  max-width: 480px !important;
+  margin: 0 auto !important;
+}
+#uspacy-forms .MuiButton-containedPrimary,
+#uspacy-forms button[type="submit"] {
+  background: var(--blitz-gradient) !important;
+  color: #fff !important;
+  border-radius: var(--radius-pill) !important;
+  text-transform: none !important;
+  font-family: var(--font-display) !important;
+  font-weight: 700 !important;
+}
+#uspacy-forms .MuiOutlinedInput-root,
+#uspacy-forms .MuiInputBase-root {
+  border-radius: var(--radius-md) !important;
+}
+#uspacy-forms .Mui-focused .MuiOutlinedInput-notchedOutline,
+#uspacy-forms .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: var(--fg-accent) !important;
+}
+#uspacy-forms .MuiCheckbox-root.Mui-checked {
+  color: var(--fg-accent) !important;
+}
+#uspacy-forms a {
+  color: var(--fg-accent) !important;
+}
+.cta-band #uspacy-forms {
+  background: #fff;
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  box-shadow: var(--shadow-md);
+}
