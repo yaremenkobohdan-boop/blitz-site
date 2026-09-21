@@ -42,3 +42,24 @@ document.addEventListener('DOMContentLoaded', function () {
   setTimeout(patch, 1000);
   setTimeout(patch, 3000);
 })();
+
+
+// Move Uspacy embedded widget into its intended container (widget always self-appends to <body> end otherwise)
+(function () {
+  function relocate() {
+    var target = document.getElementById('contact-form-target');
+    var widget = document.getElementById('uspacy-forms');
+    if (target && widget && widget.parentElement !== target) {
+      target.appendChild(widget);
+      return true;
+    }
+    return false;
+  }
+  if (relocate()) return;
+  var tries = 0;
+  var timer = setInterval(function () {
+    tries++;
+    if (relocate() || tries > 40) clearInterval(timer);
+  }, 250);
+  document.addEventListener('DOMContentLoaded', relocate);
+})();
