@@ -191,7 +191,27 @@
     </div>
   </div>
 </section>
-<script type="text/javascript" src="https://forms-cdn.uspa.cy/6a/60/6a60cd562704e3c3a69dd0f2/forms.js?v=1787862875698"></script>
+<!-- Форма Uspacy (id 6a60cd562704e3c3a69dd0f2) вантажиться динамічно з cache-busting параметром
+     (?v=Date.now()), щоб CDN ніколи не віддавав застарілу закешовану конфігурацію — інакше заявки
+     переставали долітати в CRM. Віджет монтується в кінець <body>, тому скрипт переносить його
+     (#uspacy-forms) назад у #radio-order-form-mount через MutationObserver. -->
+<div id="radio-order-form-mount" style="max-width:600px; margin:24px auto 0;"></div>
+<script>
+(function(){
+  var mount = document.getElementById('radio-order-form-mount');
+  if (!mount) return;
+  var observer = new MutationObserver(function(){
+    var w = document.getElementById('uspacy-forms');
+    if (w && w.parentNode !== mount) { mount.appendChild(w); }
+  });
+  observer.observe(document.body, {childList:true, subtree:true});
+  var s = document.createElement('script');
+  s.type = 'text/javascript';
+  s.async = true;
+  s.src = 'https://forms-cdn.uspa.cy/6a/60/6a60cd562704e3c3a69dd0f2/forms.js?v=' + Date.now();
+  document.head.appendChild(s);
+})();
+</script>
 
 <footer class="site-footer">
   <div class="wrap">
