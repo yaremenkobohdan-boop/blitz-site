@@ -133,18 +133,32 @@ section { padding: var(--sp-9) 0; }
 .product-card .qty { font-size: 11px; color: var(--fg-4, var(--blitz-ink-4)); text-align: right; }
 .product-card .thumb, .product-card h4 { cursor: pointer; }
 .product-card h4:hover { color: var(--fg-accent); }
+/* Company logos (as opposed to real product/host photos) must never be cropped —
+   match by filename convention (logo-*.png) and show them fully with a light matte. */
+.product-card .thumb img[src*="logo-"] { object-fit: contain; padding: 16px; background: #fff; }
 
 /* ---- Radio catalog: grouped by city ---- */
-.radio-city-block { margin-bottom: 40px; }
+.radio-city-block { margin-bottom: 48px; }
 .radio-city-block:last-child { margin-bottom: 0; }
 .radio-city-title {
-  font-family: var(--font-display); font-weight: 800; font-size: 19px; text-transform: uppercase;
-  letter-spacing: -0.005em; color: var(--fg-accent); margin: 0 0 16px; padding-bottom: 10px;
-  border-bottom: 2px solid var(--blitz-line);
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  font-family: var(--font-display); font-weight: 900; font-style: italic; font-size: 20px;
+  text-transform: uppercase; letter-spacing: -0.005em; color: #fff;
+  background: var(--blitz-gradient);
+  margin: 0 0 20px; padding: 14px 24px;
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-sm);
+}
+.radio-city-count {
+  font-family: var(--font-body); font-weight: 600; font-style: normal; font-size: 12.5px;
+  text-transform: none; letter-spacing: normal; color: #fff;
+  background: rgba(255,255,255,0.22);
+  padding: 4px 12px; border-radius: var(--radius-pill); margin-left: auto;
 }
 
 /* ---- Radio station detail modal ---- */
 .radio-modal { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.radio-modal[hidden] { display: none; }
 .radio-modal-backdrop { position: absolute; inset: 0; background: rgba(20,15,10,0.55); }
 .radio-modal-box {
   position: relative; background: #fff; border-radius: var(--radius-lg); padding: 28px;
