@@ -133,9 +133,6 @@ section { padding: var(--sp-9) 0; }
 .product-card .qty { font-size: 11px; color: var(--fg-4, var(--blitz-ink-4)); text-align: right; }
 .product-card .thumb, .product-card h4 { cursor: pointer; }
 .product-card h4:hover { color: var(--fg-accent); }
-/* Company logos (as opposed to real product/host photos) must never be cropped —
-   match by filename convention (logo-*.png) and show them fully with a light matte. */
-.product-card .thumb img[src*="logo-"] { object-fit: contain; padding: 16px; background: #fff; }
 
 /* ---- Radio catalog: grouped by city ---- */
 .radio-city-block { margin-bottom: 48px; }
@@ -155,6 +152,17 @@ section { padding: var(--sp-9) 0; }
   background: rgba(255,255,255,0.22);
   padding: 4px 12px; border-radius: var(--radius-pill); margin-left: auto;
 }
+/* Every station image in this catalog is a logo/branded mark, not a free-crop photo —
+   always show it in full on a light matte instead of cover-cropping it. */
+.radio-city-block .product-card .thumb img { object-fit: contain; padding: 16px; background: #fff; }
+
+/* ---- Radio order form: hidden until requested, closable once open ---- */
+#radio-order-section[hidden] { display: none; }
+.radio-order-close {
+  display: block; margin: 0 auto 8px; background: none; border: none; cursor: pointer;
+  font-size: 13px; color: var(--fg-3); text-align: right; width: 100%; max-width: 600px;
+}
+.radio-order-close:hover { color: var(--fg-accent); }
 
 /* ---- Radio station detail modal ---- */
 .radio-modal { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; }
