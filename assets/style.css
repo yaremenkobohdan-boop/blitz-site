@@ -315,3 +315,10 @@ span.freq-chip--pending { cursor: default; }
   padding: 28px;
   box-shadow: var(--shadow-md);
 }
+
+/* ---- City landing links (radio catalog) ---- */
+.radio-city-title .city-link { color: inherit; text-decoration: none; border-bottom: 2px solid rgba(255,255,255,.45); }
+.radio-city-title .city-link:hover { border-bottom-color: #fff; }
+.page-hero .city-link { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.page-hero .city-link:hover { text-decoration-thickness: 2px; }
+.radio-city-block .thumb .thumb-link { display: block; width: 100%; height: 100%; cursor: pointer; }
