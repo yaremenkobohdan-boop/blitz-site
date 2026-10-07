@@ -1,0 +1,18 @@
+name = "blitz-cities"
+main = "src/index.js"
+compatibility_date = "2026-01-01"
+
+[assets]
+directory = "./sites"
+binding = "ASSETS"
+run_worker_first = true
+
+routes = [
+  { pattern = "bila-tserkva.blitz.com.ua", custom_domain = true },
+  { pattern = "fastiv.blitz.com.ua", custom_domain = true },
+  { pattern = "uman.blitz.com.ua", custom_domain = true },
+  { pattern = "smila.blitz.com.ua", custom_domain = true },
+  { pattern = "bohuslav.blitz.com.ua", custom_domain = true },
+  { pattern = "rokytne.blitz.com.ua", custom_domain = true },
+  { pattern = "stavyshche.blitz.com.ua", custom_domain = true },
+]

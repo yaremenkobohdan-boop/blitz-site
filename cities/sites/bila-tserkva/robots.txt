@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://bila-tserkva.blitz.com.ua/sitemap.xml

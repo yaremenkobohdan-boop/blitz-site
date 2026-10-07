@@ -184,3 +184,12 @@ schema.org (`url`, `sameAs`), перелінковка з головного с�
   українською, неформально, коротко, по суті. Назва компанії скорочено — РІА «БЛІЦ» (завжди),
   повна — Рекламно-Інформаційне Агентство «БЛІЦ». Лого — завжди з файлу проєкту
   (`Logo_blitz_2020_3.pdf`), не перемальовувати.
+
+
+## Лендінги міст ({місто}.blitz.com.ua)
+
+- Папка `cities/`: `city.tpl.html` (шаблон), `build.js` (генератор: `PLAYWRIGHT_PATH=... CHROMIUM_PATH=... node cities/build.js`), `sites/<slug>/` (згенеровані сторінки, robots, sitemap), `src/index.js` + `wrangler.toml` (один Worker `blitz-cities`, піддомен -> папка).
+- Ціни тільки в `assets/radio-prices.js` (єдине джерело). Після зміни цін або шаблону запустити `build.js` і закомітити `cities/sites/`.
+- Кореневий `.assetsignore` ховає `cities/` від основного сайту (щоб не було дублів).
+- Приклади роликів: `assets/radio-examples/*.mp3`. Форма заявки — Uspacy `6a60cd562704e3c3a69dd0f2`; кнопка «Надіслати запит» вставляє розрахунок у поле «Суть запиту» (contenteditable).
+- Деплой: Cloudflare Workers Builds, Root directory `cities`.
