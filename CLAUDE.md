@@ -189,7 +189,7 @@ schema.org (`url`, `sameAs`), перелінковка з головного с�
 ## Лендінги міст ({місто}.blitz.com.ua)
 
 - Папка `cities/`: `city.tpl.html` (шаблон), `build.js` (генератор: `PLAYWRIGHT_PATH=... CHROMIUM_PATH=... node cities/build.js`), `sites/<slug>/` (згенеровані сторінки, robots, sitemap), `src/index.js` + `wrangler.toml` (один Worker `blitz-cities`, піддомен -> папка).
-- Ціни тільки в `assets/radio-prices.js` (єдине джерело). Після зміни цін або шаблону запустити `build.js` і закомітити `cities/sites/`.
+- Ціни редагуються в калькуляторі: calc.blitz.com.ua → Налаштування → «Ціни на радіо» (зберігаються в Cloudflare KV, віддаються як `https://calc.blitz.com.ua/prices.js`). Лендінги міст і `poslugy/radio.html` читають їх звідти. `assets/radio-prices.js` — лише запасна копія (на випадок недоступності калькулятора) і джерело для prerender у `build.js`; після великої зміни цін синхронізувати її з калькулятором. Після зміни шаблону запустити `build.js` і закомітити `cities/sites/`.
 - Кореневий `.assetsignore` ховає `cities/` від основного сайту (щоб не було дублів).
 - Приклади роликів: `assets/radio-examples/*.mp3`. Форма заявки — Uspacy `6a60cd562704e3c3a69dd0f2`; кнопка «Надіслати запит» вставляє розрахунок у поле «Суть запиту» (contenteditable).
 - Деплой: Cloudflare Workers Builds, Root directory `cities`.

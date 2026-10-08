@@ -13,7 +13,7 @@ const root=path.join(__dirname,'..'),tpl=fs.readFileSync(path.join(__dirname,'ci
   const html=tpl.replace(/__CITYN__/g,n).replace(/__CITYL__/g,l).replace(/__HOST__/g,host).replace(/__CITY__/g,k);
   const p=await b.newPage();
   await p.route('**/*',r=>{const u=r.request().url();
-   if(u.endsWith('/assets/radio-prices.js'))return r.fulfill({contentType:'application/javascript',body:prices});
+   if(u.endsWith('/assets/radio-prices.js')||u==='https://calc.blitz.com.ua/prices.js')return r.fulfill({contentType:'application/javascript',body:prices});
    if(u.startsWith('about:')||u.startsWith('data:'))return r.continue();
    if(u==='https://'+host+'/')return r.fulfill({contentType:'text/html',body:html});
    return r.abort()});

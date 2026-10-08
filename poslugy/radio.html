@@ -427,6 +427,23 @@
   </div>
 </footer>
 <div class="mobile-call"><a href="tel:+380672804030">📞 Замовити дзвінок</a></div>
+<script>
+/* Ціни беруться з калькулятора (Налаштування → Ціни на радіо); якщо недоступний — запасний файл assets/radio-prices.js */
+(function(){
+  function fmt(n){return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,'\u00a0');}
+  function apply(){
+    var P=window.RADIO_PRICES; if(!P) return;
+    var reg={}; P.regions.forEach(function(r){reg[r.id]=r.v;});
+    var map={'blic-fm-fastiv':reg.fs[0],'perets-fm-fastiv':reg.fs[1],'blic-fm-uman':reg.um[0],'perets-fm-uman':reg.um[1],'blic-fm-smila':reg.sm[0],'blic-fm-boguslav':reg.bg[0],'blic-fm-rokytne':reg.rk[0],'perets-fm-stavysche':reg.st[0]};
+    document.querySelectorAll('.product-card').forEach(function(c){
+      var v=map[c.id]; var n=v?v[1][0]:(/-bila-tserkva$|^bayraktar-bila-tserkva$|^roks-bila-tserkva$/.test(c.id)?P.bc.byCount[1][0]:null);
+      if(n==null) return; var t=fmt(n)+' грн'; c.dataset.price=t; var el=c.querySelector('.price'); if(el) el.textContent=t;
+    });
+  }
+  function load(src,cb,fail){var s=document.createElement('script');s.src=src;s.onload=cb;s.onerror=fail;document.head.appendChild(s);}
+  load('https://calc.blitz.com.ua/prices.js',apply,function(){load('../assets/radio-prices.js',apply);});
+})();
+</script>
 <script src="../assets/main.js"></script>
 </body>
 </html>
