@@ -114,6 +114,12 @@ footer h4{margin:0 0 8px;color:var(--fg)}footer a{color:var(--acc);text-decorati
 .faq summary::after{content:"+";color:var(--acc);font-size:22px;line-height:1}
 .faq details[open] summary::after{content:"–"}
 .faq p{padding:0 0 16px;color:var(--fg2);margin:0}
+.reach{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:26px}
+.reach .card{border:1px solid var(--line);border-radius:20px;background:var(--bg);padding:22px}
+.reach .card.main{background:var(--grad);color:#fff;border-color:transparent;box-shadow:var(--shadow)}
+.reach .num{display:block;font-size:clamp(30px,4.4vw,44px);font-weight:900;font-style:italic;line-height:1.1;color:var(--acc)}.reach .main .num{color:#fff}
+.reach .card h3{font-size:16px;margin:6px 0 4px}.reach .card p{margin:0;font-size:14px;color:var(--fg2)}.reach .main p{color:#fff;opacity:.92}
+.reach-note{font-size:12.5px;color:var(--fg3);margin-top:12px;max-width:80ch}
 .why .card{border:1px solid var(--line);border-radius:20px;background:var(--bg2);padding:22px}
 .why .card h3{font-size:18px;margin:0 0 8px}.why .card p{margin:0;color:var(--fg2)}
 .why .card .big{display:block;font-size:30px;font-weight:900;font-style:italic;color:var(--acc);margin-bottom:6px}
@@ -152,7 +158,8 @@ footer h4{margin:0 0 8px;color:var(--fg)}footer a{color:var(--acc);text-decorati
 <div class="map"><iframe id="mapFrame" title="Карта покриття" loading="lazy" referrerpolicy="no-referrer-when-downgrade" style="width:100%;height:100%;min-height:420px;border:0;border-radius:18px" allowfullscreen="" src="https://www.google.com/maps/d/embed?mid=1cQyeuIJJoSDFAB7o1tSBVu4vMeFD-do"></iframe></div>
 <div><ul class="towns" id="towns"><li>Богуслав <span>центр</span></li><li>Миронівка <span>у зоні</span></li><li>Тараща <span>у зоні</span></li><li>Кагарлик <span>у зоні</span></li><li>Корсунь-Шевченківський <span>у зоні</span></li><li>Канів <span>у зоні</span></li><li>Звенигородка <span>у зоні</span></li><li>Ржищів <span>у зоні</span></li><li>Лисянка <span>у зоні</span></li><li>Городище <span>у зоні</span></li><li>Ставище <span>у зоні</span></li></ul>
 <p class="note" id="mapNote">Точне покриття й перелік населених пунктів дивіться на інтерактивній карті станції. Якщо вашого села немає в списку, запитайте менеджера: сигнал залежить від місцевості.</p></div>
-</div></div></section>
+</div>
+<div class="reach" id="reach"><div class="card"><span class="num">≈ 182 тис.</span><h3>Мешканців у зоні покриття</h3><p>Населення населених пунктів, де стабільно чути станцію у Богуславі.</p></div><div class="card"><span class="num">≈ 63 тис.</span><h3>Слухають радіо щотижня</h3><p>Кожен другий дорослий (18–70 років) слухає радіо щонайменше раз на тиждень.</p></div><div class="card main"><span class="num">≈ 53 тис.</span><h3>Чують рекламу</h3><p>Ті, хто не перемикає під час реклами або повертається на станцію.</p></div></div><p class="reach-note" id="reachNote">Розрахунок: населення зони покриття × частка дорослих 18–70 років (68%) × щотижнева аудиторія радіо (51%) × ті, хто чує рекламу (84%). Джерело частки: дослідження Info Sapiens / Суспільне Медіа, березень 2025, 4 293 респонденти по Україні. Цифри орієнтовні й показують радіо загалом, а не лише нашу станцію.</p></div></section>
 
 <section id="price"><div class="wrap">
 <h2>Базова вартість ефірного часу</h2>
@@ -224,6 +231,19 @@ var TOWNS={bt:['Фастів','Узин','Рокитне','Кагарлик','Т
 var TABS=[['bc','Пакет станцій (Біла Церква)'],['reg','Регіональний пакет'],['net','Мережа БЛІЦ-ФМ по містах'],['spo','Спонсорство програми'],['vid','Виготовлення ролика']];
 var cur=(document.body.dataset.city)||'bt',S={};
 function $(id){return document.getElementById(id)}
+/* ===== Охоплення: населення зони покриття (Wikidata; невідомі села по 500; Черкаси для Сміли ×0,5) × 0,68 × 0,51 × 0,84. Дослідження Info Sapiens / Суспільне Медіа, березень 2025 ===== */
+var ZONE_POP={bt:292000,fs:69000,um:147000,sm:267000,bg:182000,rk:42000,st:101000};
+function reachRound(n){return n>=100000?Math.round(n/1000)+' тис.':Math.round(n/1000)+' тис.'}
+function renderReach(){
+ var c=CITIES[cur],pop=ZONE_POP[cur];if(!pop){$('reach').innerHTML='';return}
+ var listeners=pop*0.68*0.51,hear=listeners*0.84;
+ $('reach').innerHTML=
+  '<div class="card"><span class="num">≈ '+reachRound(pop)+'</span><h3>Мешканців у зоні покриття</h3><p>Населення населених пунктів, де стабільно чути станцію '+c.l+'.</p></div>'+
+  '<div class="card"><span class="num">≈ '+reachRound(listeners)+'</span><h3>Слухають радіо щотижня</h3><p>Кожен другий дорослий (18–70 років) слухає радіо щонайменше раз на тиждень.</p></div>'+
+  '<div class="card main"><span class="num">≈ '+reachRound(hear)+'</span><h3>Чують рекламу</h3><p>Ті, хто не перемикає під час реклами або повертається на станцію.</p></div>';
+ $('reachNote').textContent='Розрахунок: населення зони покриття × частка дорослих 18–70 років (68%) × щотижнева аудиторія радіо (51%) × ті, хто чує рекламу (84%). Джерело частки: дослідження Info Sapiens / Суспільне Медіа, березень 2025, 4 293 респонденти по Україні. Цифри орієнтовні й показують радіо загалом, а не лише нашу станцію.'+(cur==='fs'?' БЛІЦ-ФМ 95,0 — єдина місцева станція Фастова, тому реклама на ній не конкурує з місцевими станціями.':'');
+}
+
 /* Ставище: власна карта, коло 30 км навколо передавача Перець ФМ 89,2 (не входить у карту БЛІЦ-ФМ) */
 function stMap(){
  var fr=$('mapFrame');fr.style.display='none';
@@ -361,6 +381,7 @@ function fillTexts(){
   '<div class="card"><h3>Ваш покупець слухає місцевий ефір</h3><p>Ролик у місцевому ефірі звучить для тих, хто живе й купує поруч: можна назвати вашу вулицю, район, акцію чи ціну. Це не загальнонаціональна реклама, яка розчиняється, а розмова зі своїм містом.</p></div>'+
   '<div class="card"><span class="big">'+outs+' виходів</span><h3>Повторення, яке запам\'ятовується</h3><p>Стандартний пакет: ролик 20 секунд, '+PRICES.minSec.spots+' виходів на день, '+PRICES.packDays[0]+' днів. Разом '+outs+' контактів з вашим повідомленням на кожній станції (ефір '+fmt(pk)+' секунд).</p></div>'+
   '<div class="card"><span class="big">≈ '+fmt(per)+' грн</span><h3>Вартість одного виходу</h3><p>Пакет на одну станцію '+c.g+' коштує '+money(one)+' за '+PRICES.packDays[0]+' днів. Це приблизно '+fmt(per)+' грн за один вихід ролика в ефір. Ціна без податку, залежно від станції й міста.</p></div>';
+ renderReach();
  if(cur==='st')stMap();else $('mapFrame').src='https://www.google.com/maps/d/embed?mid='+c.m;
  $('mapLead').textContent='Коло навколо передавача показує, де сигнал '+(st.length>1?'наших станцій':'станції')+' стабільний. Населені пункти всередині кола входять в охоплення: ваша реклама звучить і там.';
  $('mapNote').textContent='Точне покриття й перелік населених пунктів дивіться на інтерактивній карті станції. Якщо вашого села немає в списку, запитайте менеджера: сигнал залежить від місцевості.';
