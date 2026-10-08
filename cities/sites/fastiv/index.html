@@ -218,12 +218,31 @@ var CITIES={
  bg:{n:'Богуслав',m:'1cQyeuIJJoSDFAB7o1tSBVu4vMeFD-do',l:'у Богуславі',h:'bohuslav',g:'Богуслава',st:'БЛІЦ ФМ',f:'94,4',tab:'net'},
  rk:{n:'Рокитне',m:'1sxJA86BCO18rkikKkn1G35QKQbo5yFA',l:'у Рокитному',h:'rokytne',g:'Рокитного',st:'БЛІЦ ФМ',f:'100,3',tab:'net'},
  sm:{n:'Сміла',m:'107_7CFZU8wMLCE2kM9GJi0tW9PqUoOs',l:'у Смілі',h:'smila',g:'Сміли',st:'БЛІЦ ФМ',f:'102,0',tab:'net'},
- st:{n:'Ставище',m:'1zgtLTyDTzrgOKXzNBPIXUkUoZFBEG5k',l:'у Ставищі',h:'stavyshche',g:'Ставища',st:'Перець ФМ',f:'89,2',tab:'net'}
+ st:{n:'Ставище',m:'1zgtLTyDTzrgOKXzNBPIXUkUoZFBEG5k',l:'у Ставищі',h:'stavyshche',g:'Ставища',st:'Перець ФМ',f:'89,2',tab:'reg'}
 };
-var TOWNS={bt:['Фастів','Узин','Рокитне','Кагарлик','Тараща','Ковалівка','Володарка','Сквира','Миронівка','Ставище'],fs:['Васильків','Боярка','Ірпінь','Обухів','Макарів','Калинівка','Брусилів','Попільня','Кожанка','Сквира'],um:['Христинівка','Монастирище','Теплик','Тальне','Маньківка','Новоархангельськ','Голованівськ','Гайворон','Жашків'],bg:['Миронівка','Тараща','Кагарлик','Корсунь-Шевченківський','Канів','Звенигородка','Ржищів','Лисянка','Городище','Ставище'],rk:['Узин','Тараща','Біла Церква','Кагарлик','Богуслав','Миронівка','Ставище','Володарка','Обухів','Ржищів','Жашків'],sm:['Черкаси','Городище','Шпола','Корсунь-Шевченківський','Кам’янка','Ірдинь','Вільшана'],st:['Жашків','Тараща','Рокитне']};
+var TOWNS={bt:['Фастів','Узин','Рокитне','Кагарлик','Тараща','Ковалівка','Володарка','Сквира','Миронівка','Ставище'],fs:['Васильків','Боярка','Ірпінь','Обухів','Макарів','Калинівка','Брусилів','Попільня','Кожанка','Сквира'],um:['Христинівка','Монастирище','Теплик','Тальне','Маньківка','Новоархангельськ','Голованівськ','Гайворон','Жашків'],bg:['Миронівка','Тараща','Кагарлик','Корсунь-Шевченківський','Канів','Звенигородка','Ржищів','Лисянка','Городище','Ставище'],rk:['Узин','Тараща','Біла Церква','Кагарлик','Богуслав','Миронівка','Ставище','Володарка','Обухів','Ржищів','Жашків'],sm:['Черкаси','Городище','Шпола','Корсунь-Шевченківський','Кам’янка','Ірдинь','Вільшана'],st:['Жашків','Тараща','Володарка','Озерна',"П'ятигори"]};
 var TABS=[['bc','Пакет станцій (Біла Церква)'],['reg','Регіональний пакет'],['net','Мережа БЛІЦ-ФМ по містах'],['spo','Спонсорство програми'],['vid','Виготовлення ролика']];
 var cur=(document.body.dataset.city)||'bt',S={};
 function $(id){return document.getElementById(id)}
+/* Ставище: власна карта, коло 30 км навколо передавача Перець ФМ 89,2 (не входить у карту БЛІЦ-ФМ) */
+function stMap(){
+ var fr=$('mapFrame');fr.style.display='none';
+ var box=fr.parentNode,el=document.getElementById('stMap');
+ if(!el){el=document.createElement('div');el.id='stMap';el.setAttribute('role','img');el.setAttribute('aria-label','Карта покриття Перець ФМ 89,2, Ставище, радіус 30 км');el.style.cssText='width:100%;height:100%;min-height:420px;border-radius:18px';box.appendChild(el)}
+ if(el.dataset.ready)return;
+ function init(){
+  if(!window.L||el.dataset.ready)return;el.dataset.ready='1';
+  var ll=[49.3833,30.1833],m=L.map(el,{scrollWheelZoom:false}).setView(ll,9);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:17,attribution:'© OpenStreetMap'}).addTo(m);
+  var circ=L.circle(ll,{radius:30000,color:'#ff6a00',weight:3,fillColor:'#ff8a1f',fillOpacity:.18}).addTo(m);
+  L.marker(ll).addTo(m).bindPopup('Ставище · Перець ФМ 89,2');
+  m.fitBounds(circ.getBounds(),{padding:[10,10]});
+ }
+ if(window.L){init();return}
+ var css=document.createElement('link');css.rel='stylesheet';css.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css';document.head.appendChild(css);
+ var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js';s.onload=init;document.head.appendChild(s);
+}
+
 function fmt(n){return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ')}
 function fmt2(n){return n.toFixed(2).replace('.',',')}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
@@ -234,7 +253,7 @@ function resetState(){
  if(cur==='fs'||cur==='um')S.regSel[cur+'-0']=true;
  if(['bg','rk','sm','st'].indexOf(cur)>=0){}
  S.netSel[cur==='st'?'':cur]=true;
- if(cur==='st'){S.netSel={};S.tab='net';}
+ if(cur==='st'){S.netSel={};S.tab='reg';S.regSel['st-0']=true;}
 }
 function chip(label,on,attr,isCur){return '<button type="button" class="chip'+(isCur?' cur':'')+'" aria-pressed="'+(on?'true':'false')+'" '+attr+'>'+esc(label)+(isCur?'<span class="here">ваше місто</span>':'')+'</button>'}
 function daysBlock(){
@@ -342,7 +361,7 @@ function fillTexts(){
   '<div class="card"><h3>Ваш покупець слухає місцевий ефір</h3><p>Ролик у місцевому ефірі звучить для тих, хто живе й купує поруч: можна назвати вашу вулицю, район, акцію чи ціну. Це не загальнонаціональна реклама, яка розчиняється, а розмова зі своїм містом.</p></div>'+
   '<div class="card"><span class="big">'+outs+' виходів</span><h3>Повторення, яке запам\'ятовується</h3><p>Стандартний пакет: ролик 20 секунд, '+PRICES.minSec.spots+' виходів на день, '+PRICES.packDays[0]+' днів. Разом '+outs+' контактів з вашим повідомленням на кожній станції (ефір '+fmt(pk)+' секунд).</p></div>'+
   '<div class="card"><span class="big">≈ '+fmt(per)+' грн</span><h3>Вартість одного виходу</h3><p>Пакет на одну станцію '+c.g+' коштує '+money(one)+' за '+PRICES.packDays[0]+' днів. Це приблизно '+fmt(per)+' грн за один вихід ролика в ефір. Ціна без податку, залежно від станції й міста.</p></div>';
- $('mapFrame').src='https://www.google.com/maps/d/embed?mid='+c.m;
+ if(cur==='st')stMap();else $('mapFrame').src='https://www.google.com/maps/d/embed?mid='+c.m;
  $('mapLead').textContent='Коло навколо передавача показує, де сигнал '+(st.length>1?'наших станцій':'станції')+' стабільний. Населені пункти всередині кола входять в охоплення: ваша реклама звучить і там.';
  $('mapNote').textContent='Точне покриття й перелік населених пунктів дивіться на інтерактивній карті станції. Якщо вашого села немає в списку, запитайте менеджера: сигнал залежить від місцевості.';
  $('howLead').textContent='Від заявки до першого виходу в ефір '+c.l+': вам потрібно лише обрати станції й розповісти про бізнес.';
