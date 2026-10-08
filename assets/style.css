@@ -322,3 +322,29 @@ span.freq-chip--pending { cursor: default; }
 .page-hero .city-link { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
 .page-hero .city-link:hover { text-decoration-thickness: 2px; }
 .radio-city-block .thumb .thumb-link { display: block; width: 100%; height: 100%; cursor: pointer; }
+
+/* ---- Radio catalog: audience portraits (cards + modal) ---- */
+.rp { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.rp-tag { align-self: flex-start; font-size: 11.5px; font-weight: var(--fw-bold); color: #fff; background: var(--blitz-gradient);
+  padding: 3px 12px; border-radius: var(--radius-pill); line-height: 1.5; }
+.rp-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.rp-chips span { font-size: 11px; font-weight: var(--fw-semibold); line-height: 1.4; padding: 2px 9px; border-radius: var(--radius-pill);
+  background: var(--blitz-orange-100); color: var(--blitz-orange-800); }
+.rp-chips .rp-reach { background: #fff; border: 1.5px solid var(--blitz-orange-700); color: var(--blitz-orange-700); }
+.rp-short { font-size: 12.5px; line-height: 1.45; color: var(--fg-2); }
+.rp-more[hidden] { display: none; }
+.rp-more { display: flex; flex-direction: column; gap: 8px; text-align: left; }
+.rp-more p { font-size: 13.5px; line-height: 1.5; color: var(--fg-2); }
+.rp-more h5 { font-family: var(--font-display); font-weight: 800; font-style: italic; font-size: 13.5px; color: var(--fg-accent); margin-top: 4px; }
+.rp-fit { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px; }
+.rp-fit li { font-size: 13.5px; line-height: 1.4; color: var(--fg-2); }
+.rp-fit li::before { content: "\1F318"; margin-right: 8px; }
+.rp-src { font-size: 11.5px !important; color: var(--fg-3) !important; }
+.rp-modal { margin-bottom: 14px; align-items: stretch; }
+.rp-modal[hidden] { display: none; }
+.rp-modal .rp-tag { align-self: center; }
+.rp-modal .rp-chips { justify-content: center; }
+.rp-footnote { margin-top: 16px; font-size: 12.5px; line-height: 1.5; color: var(--fg-3); }
+.radio-modal-box { max-width: 520px; }
+.radio-city-block .product-card .desc { flex: 0 0 auto; }
+.radio-city-block .product-card .rp { flex: 1; }
