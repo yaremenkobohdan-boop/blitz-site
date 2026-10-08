@@ -348,3 +348,10 @@ span.freq-chip--pending { cursor: default; }
 .radio-modal-box { max-width: 520px; }
 .radio-city-block .product-card .desc { flex: 0 0 auto; }
 .radio-city-block .product-card .rp { flex: 1; }
+
+/* modal: логотипи показуємо повністю, без обрізання */
+.radio-modal-thumb { background: #fff; border: 1px solid var(--blitz-line); }
+.radio-modal-thumb img { object-fit: contain; padding: 10px; }
+.rp-zone { font-weight: var(--fw-semibold); }
+.rp-more b { color: var(--fg-1); }
+.radio-modal-box { max-height: 90vh; }

@@ -124,6 +124,18 @@ footer h4{margin:0 0 8px;color:var(--fg)}footer a{color:var(--acc);text-decorati
 .why .card{border:1px solid var(--line);border-radius:20px;background:var(--bg2);padding:22px}
 .why .card h3{font-size:18px;margin:0 0 8px}.why .card p{margin:0;color:var(--fg2)}
 .why .card .big{display:block;font-size:30px;font-weight:900;font-style:italic;color:var(--acc);margin-bottom:6px}
+.aud{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px}
+.aud .ac{border:1px solid var(--line);border-radius:24px;background:var(--bg);padding:24px;display:flex;flex-direction:column;gap:10px;box-shadow:var(--shadow)}
+.aud .ac .tag{align-self:flex-start;background:var(--grad);color:#fff;font-weight:700;font-size:13px;border-radius:9999px;padding:4px 14px}
+.aud .ac h3{font-size:24px;font-style:italic;font-weight:900;margin:2px 0 0}
+.aud .ac .fm{font-size:13px;color:var(--fg3);font-weight:600}
+.aud .chipsr{display:flex;gap:6px;flex-wrap:wrap}.aud .chipsr span{font-size:12.5px;font-weight:600;padding:3px 11px;border-radius:9999px;background:var(--accsoft);color:var(--acc)}
+.aud .chipsr span.r{background:var(--bg);border:1.5px solid var(--acc)}
+.aud .ac p{margin:0;color:var(--fg2);font-size:14.5px;line-height:1.5}.aud .ac p b{color:var(--fg)}
+.aud .ac h4{margin:6px 0 0;font-size:14px;font-style:italic;font-weight:800;color:var(--acc)}
+.aud .ac ul{list-style:none;margin:0;padding:0;display:grid;gap:3px}.aud .ac li{font-size:14.5px;color:var(--fg2)}.aud .ac li:before{content:"\1F318";margin-right:8px}
+.aud .ac .zone{font-weight:600;color:var(--fg)}
+.aud-note{font-size:12.5px;color:var(--fg3);margin-top:14px;max-width:90ch}
 </style>
 </head>
 <body data-city="__CITY__">
@@ -131,7 +143,7 @@ footer h4{margin:0 0 8px;color:var(--fg)}footer a{color:var(--acc);text-decorati
 
 <header class="top"><div class="wrap">
 <img src="https://blitz.com.ua/assets/logo-blitz-ria.png" alt="РІА БЛІЦ">
-<nav class="nav"><a href="#map">Покриття</a><a href="#price">Ціни</a><a href="#calc">Калькулятор</a><a href="#how">Як працюємо</a><a href="#order">Заявка</a></nav>
+<nav class="nav"><a href="#map">Покриття</a><a href="#audience">Аудиторія</a><a href="#price">Ціни</a><a href="#calc">Калькулятор</a><a href="#how">Як працюємо</a><a href="#order">Заявка</a></nav>
 <a class="phone" href="tel:+380672804030">+380 67 280 40 30</a>
 </div></header>
 
@@ -161,6 +173,13 @@ footer h4{margin:0 0 8px;color:var(--fg)}footer a{color:var(--acc);text-decorati
 <p class="note" id="mapNote"></p></div>
 </div>
 <div class="reach" id="reach"></div><p class="reach-note" id="reachNote"></p></div></section>
+
+<section id="audience"><div class="wrap">
+<h2 id="audH">Аудиторія наших станцій</h2>
+<p class="lead" id="audLead"></p>
+<div class="aud" id="aud"></div>
+<p class="aud-note" id="audNote"></p>
+</div></section>
 
 <section id="price"><div class="wrap">
 <h2>Базова вартість ефірного часу</h2>
@@ -236,6 +255,25 @@ function $(id){return document.getElementById(id)}
 /* ===== Охоплення: населення зони покриття (Wikidata; невідомі села по 500; Черкаси для Сміли ×0,5) × 0,68 × 0,51 × 0,84. Дослідження Info Sapiens / Суспільне Медіа, березень 2025 ===== */
 var ZONE_POP={bt:292000,fs:69000,um:147000,sm:267000,bg:182000,rk:42000,st:101000,mz:946000};
 function reachRound(n){return n>=100000?Math.round(n/1000)+' тис.':Math.round(n/1000)+' тис.'}
+
+/* ===== Портрети аудиторії станцій (оцінка РІА «БЛІЦ»; охоплення — МедіаТрек 2025, для БЛІЦ-FM — дані РІА «БЛІЦ») ===== */
+var PORTRAITS={"hit": {"name": "Хіт FM", "tag": "Масовий сучасник", "age": "25–44", "mix": "жінки й чоловіки", "reach": 37, "short": "Сучасні хіти для активних дорослих 25–44 років. Найширша аудиторія серед наших станцій.", "core": "25–44, чоловіки й жінки: працюють, ведуть дім, щодня їздять містом", "why": "Впізнавані сучасні хіти й знайомі треки 2000-х: настрій без зусиль", "full": "Хіт FM — радіо сучасної популярної музики, яке люблять за впізнавані хіти й легкий настрій. Станція не вимагає від слухача особливого смаку, тому підходить для масових пропозицій.", "fit": ["супермаркети й ТЦ", "кафе й ресторани", "побутова техніка", "послуги для дому"]}, "lux": {"name": "Люкс FM", "tag": "Компанія в ефірі", "age": "18–65", "mix": "широка аудиторія", "reach": 26, "short": "Музика, ведучі й гумор. Радіо, яке слухають заради настрою й компанії.", "core": "Станція заявляє широкий діапазон 18–65 років", "why": "Ведучі, гумор, розважальні шоу, відчуття компанії", "full": "Люкс FM поєднує сучасну й знайому попмузику з розважальними шоу та живим спілкуванням. Формат добре працює для інтеграцій і конкурсів, де слухач бере участь.", "fit": ["салони краси", "кафе", "івенти", "роздріб і акції з розіграшами"]}, "kiss": {"name": "KISS FM", "tag": "Активні 20–45", "age": "20–45", "mix": "більше чоловіків", "reach": 11, "short": "Танцювальна музика й енергія для активних 20–45 років.", "core": "20–45, більше чоловіків; активний спосіб життя, слухають в авто", "why": "Клубна танцювальна музика, енергія й драйв", "full": "KISS FM — радіо клубної танцювальної музики. Його обирають за темп і драйв: музика, під яку приємно їхати в авто й жити активним життям.", "fit": ["авто й СТО", "фітнес", "бари й клуби", "івенти й молодіжні бренди"]}, "mel": {"name": "Мелодія FM", "tag": "Ностальгія 35–55", "age": "35–55", "mix": "жінки й чоловіки", "reach": 11, "short": "Хіти 1990-х і 2000-х для дорослих 35–55 років. Музика, яка повертає в спогади.", "core": "35–55, чоловіки й жінки: сім'я, робота, близьке коло", "why": "Хіти 1990-х і 2000-х, музика прив'язана до особистих спогадів", "full": "Мелодія FM грає пісні, з якими пов'язані особисті спогади. Хороший контекст для повідомлень про побут, сімейні потреби й практичну користь.", "fit": ["меблі й будматеріали", "медицина й аптеки", "освіта", "фінпослуги й нерухомість"]}, "roks": {"name": "Radio ROKS", "tag": "Рок-ідентичність", "age": "25–54", "mix": "переважно чоловіки", "reach": 9, "short": "Класичний рок і виразний музичний смак. Станція для дорослих 25–54 років.", "core": "25–54, переважно чоловіки", "why": "Західний рок, переважно класика: «це моя музика»", "full": "Radio ROKS грає західний рок, переважно класику, і збирає слухачів із чітким музичним смаком. Реклама тут працює, коли звучить природно й поважає смак слухача.", "fit": ["авто й інструменти", "будівництво й техніка", "бари й заклади", "бізнес-послуги"]}, "bay": {"name": "Радіо Байрактар", "tag": "Спільність через сенс", "age": "різний вік", "mix": "об'єднані цінностями", "reach": 7, "short": "Українська музика й підтримка бойового духу. Радіо для тих, кому важливий зміст.", "core": "Вік і статус різні; об'єднує ідейна складова", "why": "Українська музика, підтримка бойового духу військових і цивільних", "full": "Радіо Байрактар об'єднує слухачів різного віку спільними цінностями: українською музикою та підтримкою країни. Реклама тут має бути чесною й предметною.", "fit": ["локальні бренди з чесною позицією", "волонтерські кампанії", "соціальні проєкти", "товари для військових і родин"]}, "per": {"name": "Перець FM", "tag": "Гумор і хіти", "age": "25–50", "mix": "жінки й чоловіки", "reach": 5, "short": "Гумор і знайомі хіти для активних дорослих 25–50 років.", "core": "25–50. Опис на сайті РІА: позитивні, амбітні, енергійні люди — фахівці, керівники, службовці", "why": "Гумористичні рубрики й знайомі хіти: відволіктися й посміятися", "full": "Перець FM поєднує популярну музику з гумористичними рубриками. Така подача добре сприймає просту розмовну рекламу: побутові ситуації, жарт, зрозумілий на слух.", "fit": ["роздріб", "послуги й акції", "локальні магазини", "проста розмовна подача"]}, "fm": {"name": "БЛІЦ-FM", "tag": "Головне радіо міста", "age": "25–44", "mix": "60% жінки · 40% чоловіки", "reach": 19, "short": "Головне радіо міста. Хіти з драйвом і все, що відбувається в Білій Церкві.", "core": "25–44; 60% жінки, 40% чоловіки", "why": "Хіти з драйвом плюс місцеві новини, афіша, конкурси, знайомі голоси", "full": "БЛІЦ-FM — наше місцеве радіо: сучасні хіти з енергією, місцеві новини, афіша міста, конкурси та знайомі голоси. Більшість слухачів — жінки, які вирішують, куди піти й що купити в місті.", "fit": ["краса й барбершопи", "діти й освіта", "продукти й ТЦ", "медицина, кафе, авто, будівництво"]}};
+function portraitKey(n){var s=n.toLowerCase();var m=[['бліц','fm'],['перець','per'],['хіт','hit'],['люкс','lux'],['kiss','kiss'],['мелодія','mel'],['байрактар','bay'],['roks','roks']];for(var i=0;i<m.length;i++)if(s.indexOf(m[i][0])>=0)return m[i][1]}
+function renderAudience(){
+ var c=CITIES[cur],st=cityStations(cur),seen={},h='';
+ st.forEach(function(n){var k=portraitKey(n);if(!k||seen[k])return;seen[k]=1;var p=PORTRAITS[k];var fq=(n.match(/\d+[.,]\d+/)||[''])[0];
+  var chips='<span>'+esc(p.age)+'</span><span>'+esc(p.mix)+'</span>';
+  if(cur==='bt')chips+='<span class="r">охоплення '+p.reach+'%</span>';
+  h+='<article class="ac"><span class="tag">'+esc(p.tag)+'</span><h3>'+esc(p.name)+'</h3>'+(fq?'<div class="fm">'+fq+' FM · '+esc(c.n)+'</div>':'')+
+   '<div class="chipsr">'+chips+'</div>'+
+   '<p><b>Ядро аудиторії.</b> '+esc(p.core)+'</p><p><b>Чому обирають.</b> '+esc(p.why)+'</p><p>'+esc(p.full)+'</p>'+
+   '<h4>Реклама підходить для</h4><ul>'+p.fit.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul></article>'});
+ var pop=ZONE_POP[cur];
+ $('audH').textContent=cur==='mz'?'Аудиторія БЛІЦ-FM':'Аудиторія станцій '+c.g;
+ $('audLead').textContent='Хто слухає '+(Object.keys(seen).length>1?'наші станції ':'нашу станцію ')+c.l+' і кому вони підходять.'+(pop?' У зоні покриття ≈ '+reachRound(pop)+' мешканців, з них ≈ '+reachRound(pop*0.68*0.51)+' слухають радіо щотижня.':'');
+ $('aud').innerHTML=h;
+ $('audNote').textContent='Портрети станцій — оцінка РІА «БЛІЦ». '+(cur==='bt'?'Охоплення — МедіаТрек 2025 (тижневе охоплення серед слухачів радіо, всеукраїнські дані); для БЛІЦ-FM — дані РІА «БЛІЦ». ':'')+'Населення зони й кількість слухачів — орієнтовний розрахунок (Info Sapiens / Суспільне Медіа, 2025).';
+}
 function renderReach(){
  var c=CITIES[cur],pop=ZONE_POP[cur];if(!pop){$('reach').innerHTML='';return}
  var listeners=pop*0.68*0.51,hear=listeners*0.84;
@@ -393,7 +431,7 @@ function fillTexts(){
   '<div class="card"><h3>Ваш покупець слухає місцевий ефір</h3><p>Ролик у місцевому ефірі звучить для тих, хто живе й купує поруч: можна назвати вашу вулицю, район, акцію чи ціну. Це не загальнонаціональна реклама, яка розчиняється, а розмова зі своїм містом.</p></div>'+
   '<div class="card"><span class="big">'+outs+' виходів</span><h3>Повторення, яке запам\'ятовується</h3><p>Стандартний пакет: ролик 20 секунд, '+PRICES.minSec.spots+' виходів на день, '+PRICES.packDays[0]+' днів. Разом '+outs+' контактів з вашим повідомленням на кожній станції (ефір '+fmt(pk)+' секунд).</p></div>'+
   '<div class="card"><span class="big">≈ '+fmt(per)+' грн</span><h3>Вартість одного виходу</h3><p>'+(cur==='mz'?'Пакет на всю мережу з 6 станцій БЛІЦ-ФМ':'Пакет на одну станцію '+c.g)+' коштує '+money(one)+' за '+PRICES.packDays[0]+' днів. Це приблизно '+fmt(per)+' грн за один вихід ролика в ефір. Ціна без податку, залежно від станції й міста.</p></div>';
- renderReach();
+ renderReach();renderAudience();
  if(cur==='st')leafMap();else $('mapFrame').src='https://www.google.com/maps/d/embed?mid='+c.m;
  if(cur==='mz'){$('mapLead').textContent='Шість передавачів БЛІЦ-ФМ перекривають центр і південь Київщини та північ Черкащини. Кола на карті показують зони стабільного прийому; там, де вони перетинаються, слухач чує кілька наших станцій. Ставище (Перець ФМ 89,2) до мережі БЛІЦ-ФМ не входить.'}else $('mapLead').textContent='Коло навколо передавача показує, де сигнал '+(st.length>1?'наших станцій':'станції')+' стабільний. Населені пункти всередині кола входять в охоплення: ваша реклама звучить і там.';
  if(cur==='mz'){$('mapNote').textContent='Кола показують орієнтовну зону стабільного прийому кожного передавача, позначки — населені пункти. Точний перелік сіл у зоні підкаже менеджер: сигнал залежить від місцевості.'}else $('mapNote').textContent='Точне покриття й перелік населених пунктів дивіться на інтерактивній карті станції. Якщо вашого села немає в списку, запитайте менеджера: сигнал залежить від місцевості.';
