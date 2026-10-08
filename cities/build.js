@@ -3,7 +3,7 @@
 // (тексти, FAQ, ціни вже в коді сторінки для пошукових систем). Ціни беруться з ../assets/radio-prices.js.
 const fs=require('fs'),path=require('path');
 const {chromium}=require(process.env.PLAYWRIGHT_PATH||'playwright');
-const CITIES=[['bt','bila-tserkva','Біла Церква','у Білій Церкві'],['fs','fastiv','Фастів','у Фастові'],['um','uman','Умань','в Умані'],['sm','smila','Сміла','у Смілі'],['bg','bohuslav','Богуслав','у Богуславі'],['rk','rokytne','Рокитне','у Рокитному'],['st','stavyshche','Ставище','у Ставищі']];
+const CITIES=[['bt','bila-tserkva','Біла Церква','у Білій Церкві'],['fs','fastiv','Фастів','у Фастові'],['um','uman','Умань','в Умані'],['sm','smila','Сміла','у Смілі'],['bg','bohuslav','Богуслав','у Богуславі'],['rk','rokytne','Рокитне','у Рокитному'],['st','stavyshche','Ставище','у Ставищі'],['mz','merezha','Вся мережа','у мережі БЛІЦ-ФМ']];
 const root=path.join(__dirname,'..'),tpl=fs.readFileSync(path.join(__dirname,'city.tpl.html'),'utf8'),prices=fs.readFileSync(path.join(root,'assets','radio-prices.js'),'utf8');
 (async()=>{
  const b=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||undefined});

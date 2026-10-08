@@ -140,7 +140,7 @@ footer h4{margin:0 0 8px;color:var(--fg)}footer a{color:var(--acc);text-decorati
 <h1 class="stack"><span class="v">Розміщуємо</span><span class="k">рекламу</span><span class="o" id="heroCity">на радіо Білої Церкви</span></h1>
 <p class="lead" style="margin-bottom:0">Пакетні ціни, прозорий калькулятор і звіт про виходи в ефір. Замовити можна на будь-які станції мережі, не лише в цьому місті.</p>
 <div class="cta"><a class="btn" href="#order">Замовити</a><a class="btn ghost" href="#calc">Порахувати вартість</a></div>
-<div class="lab" style="margin-top:22px">Реклама на радіо в інших містах</div><div class="cities" id="cityLinks"><a class="cityl on" data-k="bt" href="https://bila-tserkva.blitz.com.ua/">Біла Церква</a><a class="cityl" data-k="fs" href="https://fastiv.blitz.com.ua/">Фастів</a><a class="cityl" data-k="um" href="https://uman.blitz.com.ua/">Умань</a><a class="cityl" data-k="bg" href="https://bohuslav.blitz.com.ua/">Богуслав</a><a class="cityl" data-k="rk" href="https://rokytne.blitz.com.ua/">Рокитне</a><a class="cityl" data-k="sm" href="https://smila.blitz.com.ua/">Сміла</a><a class="cityl" data-k="st" href="https://stavyshche.blitz.com.ua/">Ставище</a></div>
+<div class="lab" style="margin-top:22px">Реклама на радіо в інших містах</div><div class="cities" id="cityLinks"><a class="cityl on" data-k="bt" href="https://bila-tserkva.blitz.com.ua/">Біла Церква</a><a class="cityl" data-k="fs" href="https://fastiv.blitz.com.ua/">Фастів</a><a class="cityl" data-k="um" href="https://uman.blitz.com.ua/">Умань</a><a class="cityl" data-k="bg" href="https://bohuslav.blitz.com.ua/">Богуслав</a><a class="cityl" data-k="rk" href="https://rokytne.blitz.com.ua/">Рокитне</a><a class="cityl" data-k="sm" href="https://smila.blitz.com.ua/">Сміла</a><a class="cityl" data-k="st" href="https://stavyshche.blitz.com.ua/">Ставище</a><a class="cityl" data-k="mz" href="https://merezha.blitz.com.ua/">Вся мережа</a></div>
 </div>
 <div class="freq"><div class="fq-top"><img src="https://blitz.com.ua/assets/logo-blitz-fm.png" alt="БЛІЦ ФМ"><div><small id="fqLabel">Частота мовлення</small><strong id="fqCity">БЛІЦ ФМ · Біла Церква</strong></div></div><div class="fq-num"><b id="fqNum">103,3</b><span>FM</span></div><div class="fq-slogan">Головне радіо міста!</div></div>
 </div></section>
@@ -208,7 +208,7 @@ footer h4{margin:0 0 8px;color:var(--fg)}footer a{color:var(--acc);text-decorati
 <footer><div class="wrap">
 <div><h4>РІА «БЛІЦ»</h4>вул. Млинова, 5, оф. 22<br>Біла Церква<br>Пн–Пт 9:00–17:00</div>
 <div><h4>Телефони</h4>+380 67 280 40 30<br>+380 50 469 33 66<br>+380 50 732 22 22</div>
-<div><h4>Інші міста</h4><span id="footCities"><a data-k="bt" href="https://bila-tserkva.blitz.com.ua/">Біла Церква</a> · <a data-k="fs" href="https://fastiv.blitz.com.ua/">Фастів</a> · <a data-k="um" href="https://uman.blitz.com.ua/">Умань</a> · <a data-k="bg" href="https://bohuslav.blitz.com.ua/">Богуслав</a> · <a data-k="rk" href="https://rokytne.blitz.com.ua/">Рокитне</a> · <a data-k="sm" href="https://smila.blitz.com.ua/">Сміла</a> · <a data-k="st" href="https://stavyshche.blitz.com.ua/">Ставище</a></span></div>
+<div><h4>Інші міста</h4><span id="footCities"><a data-k="bt" href="https://bila-tserkva.blitz.com.ua/">Біла Церква</a> · <a data-k="fs" href="https://fastiv.blitz.com.ua/">Фастів</a> · <a data-k="um" href="https://uman.blitz.com.ua/">Умань</a> · <a data-k="bg" href="https://bohuslav.blitz.com.ua/">Богуслав</a> · <a data-k="rk" href="https://rokytne.blitz.com.ua/">Рокитне</a> · <a data-k="sm" href="https://smila.blitz.com.ua/">Сміла</a> · <a data-k="st" href="https://stavyshche.blitz.com.ua/">Ставище</a> · <a data-k="mz" href="https://merezha.blitz.com.ua/">Вся мережа</a></span></div>
 <div><h4>Основний сайт</h4><a href="https://blitz.com.ua" target="_blank" rel="noopener">blitz.com.ua</a></div>
 </div></footer>
 
@@ -225,38 +225,48 @@ var CITIES={
  bg:{n:'Богуслав',m:'1cQyeuIJJoSDFAB7o1tSBVu4vMeFD-do',l:'у Богуславі',h:'bohuslav',g:'Богуслава',st:'БЛІЦ ФМ',f:'94,4',tab:'net'},
  rk:{n:'Рокитне',m:'1sxJA86BCO18rkikKkn1G35QKQbo5yFA',l:'у Рокитному',h:'rokytne',g:'Рокитного',st:'БЛІЦ ФМ',f:'100,3',tab:'net'},
  sm:{n:'Сміла',m:'107_7CFZU8wMLCE2kM9GJi0tW9PqUoOs',l:'у Смілі',h:'smila',g:'Сміли',st:'БЛІЦ ФМ',f:'102,0',tab:'net'},
- st:{n:'Ставище',m:'1zgtLTyDTzrgOKXzNBPIXUkUoZFBEG5k',l:'у Ставищі',h:'stavyshche',g:'Ставища',st:'Перець ФМ',f:'89,2',tab:'reg'}
+ st:{n:'Ставище',m:'1zgtLTyDTzrgOKXzNBPIXUkUoZFBEG5k',l:'у Ставищі',h:'stavyshche',g:'Ставища',st:'Перець ФМ',f:'89,2',tab:'reg'},
+ mz:{n:'Вся мережа',m:'',l:'у мережі БЛІЦ-ФМ',h:'merezha',g:'мережі',st:'БЛІЦ ФМ',f:'6',tab:'net'}
 };
 var TOWNS={bt:['Фастів','Узин','Рокитне','Кагарлик','Тараща','Ковалівка','Володарка','Сквира','Миронівка','Ставище'],fs:['Васильків','Боярка','Ірпінь','Обухів','Макарів','Калинівка','Брусилів','Попільня','Кожанка','Сквира'],um:['Христинівка','Монастирище','Теплик','Тальне','Маньківка','Новоархангельськ','Голованівськ','Гайворон','Жашків'],bg:['Миронівка','Тараща','Кагарлик','Корсунь-Шевченківський','Канів','Звенигородка','Ржищів','Лисянка','Городище','Ставище'],rk:['Узин','Тараща','Біла Церква','Кагарлик','Богуслав','Миронівка','Ставище','Володарка','Обухів','Ржищів','Жашків'],sm:['Черкаси','Городище','Шпола','Корсунь-Шевченківський','Кам’янка','Ірдинь','Вільшана'],st:['Жашків','Тараща','Володарка','Озерна',"П'ятигори"]};
 var TABS=[['bc','Пакет станцій (Біла Церква)'],['reg','Регіональний пакет'],['net','Мережа БЛІЦ-ФМ по містах'],['spo','Спонсорство програми'],['vid','Виготовлення ролика']];
 var cur=(document.body.dataset.city)||'bt',S={};
 function $(id){return document.getElementById(id)}
 /* ===== Охоплення: населення зони покриття (Wikidata; невідомі села по 500; Черкаси для Сміли ×0,5) × 0,68 × 0,51 × 0,84. Дослідження Info Sapiens / Суспільне Медіа, березень 2025 ===== */
-var ZONE_POP={bt:292000,fs:69000,um:147000,sm:267000,bg:182000,rk:42000,st:101000};
+var ZONE_POP={bt:292000,fs:69000,um:147000,sm:267000,bg:182000,rk:42000,st:101000,mz:946000};
 function reachRound(n){return n>=100000?Math.round(n/1000)+' тис.':Math.round(n/1000)+' тис.'}
 function renderReach(){
  var c=CITIES[cur],pop=ZONE_POP[cur];if(!pop){$('reach').innerHTML='';return}
  var listeners=pop*0.68*0.51,hear=listeners*0.84;
  $('reach').innerHTML=
-  '<div class="card"><span class="num">≈ '+reachRound(pop)+'</span><h3>Мешканців у зоні покриття</h3><p>Населення населених пунктів, де стабільно чути станцію '+c.l+'.</p></div>'+
+  '<div class="card"><span class="num">≈ '+reachRound(pop)+'</span><h3>Мешканців у зоні покриття</h3><p>'+(cur==='mz'?'Населення зон шести станцій БЛІЦ-ФМ. Там, де зони перетинаються, мешканців рахуємо один раз.':'Населення населених пунктів, де стабільно чути станцію '+c.l+'.')+'</p></div>'+
   '<div class="card"><span class="num">≈ '+reachRound(listeners)+'</span><h3>Слухають радіо щотижня</h3><p>Кожен другий дорослий (18–70 років) слухає радіо щонайменше раз на тиждень.</p></div>'+
   '<div class="card main"><span class="num">≈ '+reachRound(hear)+'</span><h3>Чують рекламу</h3><p>Ті, хто не перемикає під час реклами або повертається на станцію.</p></div>';
- $('reachNote').textContent='Розрахунок: населення зони покриття × частка дорослих 18–70 років (68%) × щотижнева аудиторія радіо (51%) × ті, хто чує рекламу (84%). Джерело частки: дослідження Info Sapiens / Суспільне Медіа, березень 2025, 4 293 респонденти по Україні. Цифри орієнтовні й показують радіо загалом, а не лише нашу станцію.'+(['bt','fs','rk','st','sm'].indexOf(cur)>=0?' '+c.st+' '+c.f+' — єдина місцева станція '+c.g+': решта мовників у місті мережеві, тому місцевий рекламодавець не конкурує з ними за увагу слухача.':' '+c.st+' '+c.f+' — одна з місцевих станцій '+c.g+'.');
+ $('reachNote').textContent='Розрахунок: населення зони покриття × частка дорослих 18–70 років (68%) × щотижнева аудиторія радіо (51%) × ті, хто чує рекламу (84%). Джерело частки: дослідження Info Sapiens / Суспільне Медіа, березень 2025, 4 293 респонденти по Україні. Цифри орієнтовні й показують радіо загалом, а не лише нашу станцію.'+(cur==='mz'?' Перець ФМ 89,2 у Ставищі до мережі БЛІЦ-ФМ не входить і дає окремо ще ≈ 22 тис. тих, хто чує рекламу (зона ≈ 75 тис. мешканців поза зонами БЛІЦ-ФМ).':['bt','fs','rk','st','sm'].indexOf(cur)>=0?' '+c.st+' '+c.f+' — єдина місцева станція '+c.g+': решта мовників у місті мережеві, тому місцевий рекламодавець не конкурує з ними за увагу слухача.':' '+c.st+' '+c.f+' — одна з місцевих станцій '+c.g+'.');
 }
 
-/* Ставище: власна карта, коло 30 км навколо передавача Перець ФМ 89,2 (не входить у карту БЛІЦ-ФМ) */
-function stMap(){
+/* Власні карти (Leaflet): Ставище — коло 30 км; «Вся мережа» — шість зон БЛІЦ-ФМ + Ставище окремо */
+function leafMap(){
  var fr=$('mapFrame');fr.style.display='none';
  var box=fr.parentNode,el=document.getElementById('stMap');
- if(!el){el=document.createElement('div');el.id='stMap';el.setAttribute('role','img');el.setAttribute('aria-label','Карта покриття Перець ФМ 89,2, Ставище, радіус 30 км');el.style.cssText='width:100%;height:100%;min-height:420px;border-radius:18px';box.appendChild(el)}
+ if(!el){el=document.createElement('div');el.id='stMap';el.setAttribute('role','img');el.setAttribute('aria-label',cur==='mz'?'Карта покриття мережі БЛІЦ-ФМ':'Карта покриття Перець ФМ 89,2, Ставище, радіус 30 км');el.style.cssText='width:100%;height:100%;min-height:420px;border-radius:18px';box.appendChild(el)}
  if(el.dataset.ready)return;
  function init(){
   if(!window.L||el.dataset.ready)return;el.dataset.ready='1';
-  var ll=[49.3833,30.1833],m=L.map(el,{scrollWheelZoom:false}).setView(ll,9);
+  var st=[49.3833,30.1833],m=L.map(el,{scrollWheelZoom:false}).setView(st,9);
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:17,attribution:'© OpenStreetMap'}).addTo(m);
-  var circ=L.circle(ll,{radius:30000,color:'#ff6a00',weight:3,fillColor:'#ff8a1f',fillOpacity:.18}).addTo(m);
-  L.marker(ll).addTo(m).bindPopup('Ставище · Перець ФМ 89,2');
-  m.fitBounds(circ.getBounds(),{padding:[10,10]});
+  var all=[];
+  if(cur==='mz'){
+   [['Біла Церква','103,3',49.7956,30.1167,30,'#EA580C'],['Фастів','95,0',50.0747,29.9181,45,'#2563EB'],['Умань','90,6',48.75,30.2167,45,'#9333EA'],['Сміла','102,0',49.2167,31.8667,40,'#0F9D7A'],['Богуслав','94,4',49.55,30.8833,55,'#D97706'],['Рокитне','100,3',49.6897,30.4751,40,'#DC2626']].forEach(function(x){
+    var c=L.circle([x[2],x[3]],{radius:x[4]*1000,color:x[5],weight:2,fillColor:x[5],fillOpacity:.12}).addTo(m);all.push(c);
+    L.marker([x[2],x[3]]).addTo(m).bindTooltip(x[0]+' · БЛІЦ-ФМ '+x[1]);});
+   var s=L.circle(st,{radius:30000,color:'#6B6B6B',weight:2,dashArray:'6 6',fillColor:'#6B6B6B',fillOpacity:.08}).addTo(m);all.push(s);
+   L.marker(st).addTo(m).bindTooltip('Ставище · Перець ФМ 89,2 (окремо)');
+  }else{
+   var c1=L.circle(st,{radius:30000,color:'#ff6a00',weight:3,fillColor:'#ff8a1f',fillOpacity:.18}).addTo(m);all.push(c1);
+   L.marker(st).addTo(m).bindPopup('Ставище · Перець ФМ 89,2');
+  }
+  m.fitBounds(L.featureGroup(all).getBounds(),{padding:[10,10]});
  }
  if(window.L){init();return}
  var css=document.createElement('link');css.rel='stylesheet';css.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css';document.head.appendChild(css);
@@ -274,6 +284,7 @@ function resetState(){
  if(['bg','rk','sm','st'].indexOf(cur)>=0){}
  S.netSel[cur==='st'?'':cur]=true;
  if(cur==='st'){S.netSel={};S.tab='reg';S.regSel['st-0']=true;}
+ if(cur==='mz'){S.netSel={};S.netPreset=true;}
 }
 function chip(label,on,attr,isCur){return '<button type="button" class="chip'+(isCur?' cur':'')+'" aria-pressed="'+(on?'true':'false')+'" '+attr+'>'+esc(label)+(isCur?'<span class="here">ваше місто</span>':'')+'</button>'}
 function daysBlock(){
@@ -365,12 +376,12 @@ function sendRequest(){
 function money(n){return fmt(n)+' грн'}
 function cityStations(k){
  if(k==='bt')return PRICES.bc.stations.map(function(s){return s[0]+' '+s[1]});
- var m={fs:['БЛІЦ-ФМ 95,0','Перець ФМ 99,6'],um:['БЛІЦ-ФМ 90,6','Перець ФМ 105,7'],bg:['БЛІЦ-ФМ 94,4'],rk:['БЛІЦ-ФМ 100,3'],sm:['БЛІЦ-ФМ 102,0'],st:['Перець ФМ 89,2']};
+ var m={fs:['БЛІЦ-ФМ 95,0','Перець ФМ 99,6'],um:['БЛІЦ-ФМ 90,6','Перець ФМ 105,7'],bg:['БЛІЦ-ФМ 94,4'],rk:['БЛІЦ-ФМ 100,3'],sm:['БЛІЦ-ФМ 102,0'],st:['Перець ФМ 89,2'],mz:['БЛІЦ-ФМ 103,3 (Біла Церква)','БЛІЦ-ФМ 95,0 (Фастів)','БЛІЦ-ФМ 90,6 (Умань)','БЛІЦ-ФМ 102,0 (Сміла)','БЛІЦ-ФМ 94,4 (Богуслав)','БЛІЦ-ФМ 100,3 (Рокитне)']};
  return m[k]}
-function cityOne(k){var n=PRICES.network.filter(function(x){return x[0]===k})[0];if(n)return n[3][0];var r=PRICES.regions.filter(function(x){return x.id===k})[0];return r.v[0][1][0]}
-function cityAll(k){if(k==='bt')return PRICES.bc.byCount[8][0];var r=PRICES.regions.filter(function(x){return x.id===k})[0];return r.v[r.v.length>2?2:0][1][0]}
+function cityOne(k){if(k==='mz')return PRICES.networkPreset[0];var n=PRICES.network.filter(function(x){return x[0]===k})[0];if(n)return n[3][0];var r=PRICES.regions.filter(function(x){return x.id===k})[0];return r.v[0][1][0]}
+function cityAll(k){if(k==='mz')return PRICES.networkPreset[0];if(k==='bt')return PRICES.bc.byCount[8][0];var r=PRICES.regions.filter(function(x){return x.id===k})[0];return r.v[r.v.length>2?2:0][1][0]}
 function fillTexts(){
- var c=CITIES[cur],st=cityStations(cur),one=cityOne(cur),pk=PRICES.minSec.base*PRICES.minSec.spots*PRICES.packDays[0],outs=PRICES.minSec.spots*PRICES.packDays[0],per=Math.round(one/outs);
+ var c=CITIES[cur],st=cityStations(cur),one=cityOne(cur),pk=PRICES.minSec.base*PRICES.minSec.spots*PRICES.packDays[0],outs=PRICES.minSec.spots*PRICES.packDays[0],per=Math.round(one/outs/(cur==='mz'?6:1));
  var sNames=st.length>1?st.slice(0,-1).join(', ')+' та '+st[st.length-1]:st[0];
  document.title='Реклама на радіо '+c.l+' — ціни, станції, калькулятор | РІА «БЛІЦ»';
  var md=document.querySelector('meta[name=description]');if(!md){md=document.createElement('meta');md.name='description';document.head.appendChild(md)}
@@ -380,16 +391,16 @@ function fillTexts(){
  $('why').innerHTML=
   '<div class="card"><h3>Ваш покупець слухає місцевий ефір</h3><p>Ролик у місцевому ефірі звучить для тих, хто живе й купує поруч: можна назвати вашу вулицю, район, акцію чи ціну. Це не загальнонаціональна реклама, яка розчиняється, а розмова зі своїм містом.</p></div>'+
   '<div class="card"><span class="big">'+outs+' виходів</span><h3>Повторення, яке запам\'ятовується</h3><p>Стандартний пакет: ролик 20 секунд, '+PRICES.minSec.spots+' виходів на день, '+PRICES.packDays[0]+' днів. Разом '+outs+' контактів з вашим повідомленням на кожній станції (ефір '+fmt(pk)+' секунд).</p></div>'+
-  '<div class="card"><span class="big">≈ '+fmt(per)+' грн</span><h3>Вартість одного виходу</h3><p>Пакет на одну станцію '+c.g+' коштує '+money(one)+' за '+PRICES.packDays[0]+' днів. Це приблизно '+fmt(per)+' грн за один вихід ролика в ефір. Ціна без податку, залежно від станції й міста.</p></div>';
+  '<div class="card"><span class="big">≈ '+fmt(per)+' грн</span><h3>Вартість одного виходу</h3><p>'+(cur==='mz'?'Пакет на всю мережу з 6 станцій БЛІЦ-ФМ':'Пакет на одну станцію '+c.g)+' коштує '+money(one)+' за '+PRICES.packDays[0]+' днів. Це приблизно '+fmt(per)+' грн за один вихід ролика в ефір. Ціна без податку, залежно від станції й міста.</p></div>';
  renderReach();
- if(cur==='st')stMap();else $('mapFrame').src='https://www.google.com/maps/d/embed?mid='+c.m;
- $('mapLead').textContent='Коло навколо передавача показує, де сигнал '+(st.length>1?'наших станцій':'станції')+' стабільний. Населені пункти всередині кола входять в охоплення: ваша реклама звучить і там.';
- $('mapNote').textContent='Точне покриття й перелік населених пунктів дивіться на інтерактивній карті станції. Якщо вашого села немає в списку, запитайте менеджера: сигнал залежить від місцевості.';
+ if(cur==='st'||cur==='mz')leafMap();else $('mapFrame').src='https://www.google.com/maps/d/embed?mid='+c.m;
+ if(cur==='mz'){$('mapLead').textContent='Шість передавачів БЛІЦ-ФМ перекривають центр і південь Київщини та північ Черкащини. Кола на карті показують зони стабільного прийому; там, де вони перетинаються, слухач чує кілька наших станцій. Ставище (Перець ФМ 89,2) показано окремо.'}else $('mapLead').textContent='Коло навколо передавача показує, де сигнал '+(st.length>1?'наших станцій':'станції')+' стабільний. Населені пункти всередині кола входять в охоплення: ваша реклама звучить і там.';
+ if(cur==='mz'){$('mapNote').textContent='Кола показують орієнтовну зону стабільного прийому кожного передавача. Точний перелік сіл у зоні підкаже менеджер: сигнал залежить від місцевості.'}else $('mapNote').textContent='Точне покриття й перелік населених пунктів дивіться на інтерактивній карті станції. Якщо вашого села немає в списку, запитайте менеджера: сигнал залежить від місцевості.';
  $('howLead').textContent='Від заявки до першого виходу в ефір '+c.l+': вам потрібно лише обрати станції й розповісти про бізнес.';
  $('steps').innerHTML=[
   ['Заявка','Ви обираєте станції та термін у калькуляторі й надсилаєте запит. Розрахунок автоматично потрапляє до менеджера.'],
   ['Текст і озвучка','Пишемо сценарій, озвучуємо й записуємо ролик у нашій студії. Можна принести готовий ролик.'],
-  ['Ефір','Ролик виходить за узгодженим графіком, на '+(st.length>1?'обраних станціях':'станції')+' '+c.n+' та на інших станціях мережі, якщо їх додано.'],
+  ['Ефір','Ролик виходить за узгодженим графіком, на '+(st.length>1?'обраних станціях':'станції')+' '+(cur==='mz'?'мережі БЛІЦ-ФМ.':c.n+' та на інших станціях мережі, якщо їх додано.')],
   ['Звіт','Після розміщення ви отримуєте звіт про виходи в ефір: дати, час і кількість.']
  ].map(function(s,i){return '<div class="step"><h3>'+(i+1)+'. '+s[0]+'</h3><p>'+s[1]+'</p></div>'}).join('');
  $('howNote').textContent='Оплата: 100% передоплата. Ціни вказані без податку; для ЄП 2 групи +2%, ЄП 3 групи +7%, з ПДВ +20%. Терміни виготовлення ролика узгоджує менеджер під вашу дату старту.';
@@ -399,7 +410,7 @@ function fillTexts(){
  $('fmts').innerHTML=v.map(function(x){return '<div class="card"><h3>'+x[0]+'</h3><p>'+(desc[x[0]]||'')+'</p><p style="margin-top:10px"><b>Сценарій '+money(x[1])+' + ролик '+money(x[2])+'</b></p></div>'}).join('');
  $('faqH').textContent='Часті питання про рекламу на радіо '+c.l;
  var q=[];
- q.push(['Скільки коштує реклама на радіо '+c.l+'?','Пакет на одну станцію '+c.g+' коштує '+money(one)+' за '+PRICES.packDays[0]+' днів'+(st.length>1?', на всі станції міста '+money(cityAll(cur))+'':'')+'. Для швидшого розрахунку скористайтеся калькулятором: він враховує станції, термін, фіксовану позицію й податки.']);
+ q.push(['Скільки коштує реклама на радіо '+c.l+'?',''+(cur==='mz'?'Пакет на всю мережу з 6 станцій БЛІЦ-ФМ':'Пакет на одну станцію '+c.g)+' коштує '+money(one)+' за '+PRICES.packDays[0]+' днів'+(st.length>1&&cur!=='mz'?', на всі станції міста '+money(cityAll(cur))+'':'')+'. Для швидшого розрахунку скористайтеся калькулятором: він враховує станції, термін, фіксовану позицію й податки.']);
  q.push(['Що входить у пакет?','Ролик 20 секунд, '+PRICES.minSec.spots+' виходів на день, '+PRICES.packDays[0]+' днів, разом '+fmt(pk)+' секунд ефіру. Якщо ролик довший або виходів більше, оплата рахується за фактичні секунди.']);
  q.push(['Чи можна розмістити рекламу одразу в кількох містах?','Так. Мережа БЛІЦ-ФМ охоплює 7 міст, усього 16 станцій. У калькуляторі можна обрати будь-які станції та міста, ціни підсумуються, а для великих комбінацій діють пакетні знижки.']);
  q.push(['Хто робить рекламний ролик?','Ми: пишемо сценарій, озвучуємо й записуємо. Вартість виготовлення від '+money(v[0][1]+v[0][2])+' за інформаційний ролик. Готовий ролик можна принести свій.']);
@@ -415,9 +426,9 @@ function fillStatic(){
  fillTexts();
  var c=CITIES[cur];
  $('crumbs').textContent='blitz.com.ua / Реклама на радіо / '+c.n;
- $('heroCity').textContent='на радіо '+c.g;
- $('fqLabel').textContent='Частота мовлення';$('fqCity').textContent=c.st+' · '+c.n;$('fqNum').textContent=c.f;
- $('towns').innerHTML='<li>'+c.n+' <span>центр</span></li>'+(TOWNS[cur]||[]).map(function(t){return '<li>'+t+' <span>у зоні</span></li>'}).join('');
+ $('heroCity').textContent=cur==='mz'?'у мережі БЛІЦ-ФМ':'на радіо '+c.g;
+ $('fqLabel').textContent=cur==='mz'?'Мережа мовлення':'Частота мовлення';$('fqCity').textContent=cur==='mz'?'БЛІЦ ФМ · 6 міст':c.st+' · '+c.n;$('fqNum').textContent=c.f;
+ if(cur==='mz')$('towns').innerHTML=[['Біла Церква','103,3'],['Фастів','95,0'],['Умань','90,6'],['Сміла','102,0'],['Богуслав','94,4'],['Рокитне','100,3']].map(function(x){return '<li>'+x[0]+' <span>БЛІЦ-ФМ '+x[1]+'</span></li>'}).join('')+'<li>Ставище <span>Перець ФМ 89,2 (окремо)</span></li>';else $('towns').innerHTML='<li>'+c.n+' <span>центр</span></li>'+(TOWNS[cur]||[]).map(function(t){return '<li>'+t+' <span>у зоні</span></li>'}).join('');
  var rows='<tr class="city'+(cur==='bt'?' cur':'')+'"><td colspan="2"><a class="cl cityl2" data-k="bt" href="https://bila-tserkva.blitz.com.ua/">Біла Церква</a>'+(cur==='bt'?'<span class="here">ваше місто</span>':'')+'</td><td class="n">'+fmt2(PRICES.baseSec.bt)+'</td></tr>';
  rows+=PRICES.bc.stations.map(function(s){return '<tr'+(cur==='bt'?' class="cur"':'')+'><td>'+s[0]+'</td><td class="n">'+s[1]+'</td><td class="n">'+fmt2(PRICES.baseSec.bt)+'</td></tr>'}).join('');
  var regs={fs:[['БЛІЦ-ФМ','95,0'],['Перець ФМ','99,6']],um:[['БЛІЦ-ФМ','90,6'],['Перець ФМ','105,7']],bg:[['БЛІЦ-ФМ','94,4']],rk:[['БЛІЦ-ФМ','100,3']],sm:[['БЛІЦ-ФМ','102,0']],st:[['Перець ФМ','89,2']]};
