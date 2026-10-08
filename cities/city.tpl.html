@@ -19,6 +19,8 @@
 :root[data-theme="dark"]{--bg:#15110d;--bg2:#1f1913;--fg:#f4eee6;--fg2:#d6cdc1;--fg3:#a39a8d;--line:#3a3128;--acc:#FF8A3D;--accsoft:#2d2216;--hl:#4a2f12;--shadow:0 8px 24px rgba(0,0,0,.4);--ph:#241b11;--warn:#F5B35C;color-scheme:dark}
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--fg);font-family:var(--font);margin:0;line-height:1.55;font-size:16px;-webkit-font-smoothing:antialiased}
+html body,#radio-order-form-mount,#radio-order-form-mount *{font-family:var(--font)!important}
+button,input,select,textarea{font-family:inherit}
 .wrap{max-width:1120px;margin:0 auto;padding-inline:20px}
 section{padding-block:52px}
 h1,h2,h3{font-weight:800;line-height:1.15;margin:0;text-wrap:balance}
@@ -335,7 +337,7 @@ function fillTexts(){
  document.title='Реклама на радіо '+c.l+' — ціни, станції, калькулятор | РІА «БЛІЦ»';
  var md=document.querySelector('meta[name=description]');if(!md){md=document.createElement('meta');md.name='description';document.head.appendChild(md)}
  md.content='Реклама на радіо '+c.l+': '+sNames+'. Пакет від '+fmt(one)+' грн на 28 днів, виготовлення ролика, звіт про виходи. Розрахуйте вартість онлайн.';
- $('whyH').textContent='Чому радіо працює '+c.l;
+ $('whyH').textContent='Чому радіореклама працює '+c.l;
  $('whyLead').textContent='Радіо звучить у машині, на кухні, в магазині й на роботі: людина зайнята справами, а ваше повідомлення вже в голові. Ми мовимо '+c.l+' на '+(st.length>1?st.length+' станціях':'станції')+': '+sNames+'.';
  $('why').innerHTML=
   '<div class="card"><h3>Ваш покупець слухає місцевий ефір</h3><p>Ролик у місцевому ефірі звучить для тих, хто живе й купує поруч: можна назвати вашу вулицю, район, акцію чи ціну. Це не загальнонаціональна реклама, яка розчиняється, а розмова зі своїм містом.</p></div>'+
