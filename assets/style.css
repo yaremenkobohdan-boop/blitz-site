@@ -355,3 +355,6 @@ span.freq-chip--pending { cursor: default; }
 .rp-zone { font-weight: var(--fw-semibold); }
 .rp-more b { color: var(--fg-1); }
 .radio-modal-box { max-height: 90vh; }
+
+.footer-cities a { color: inherit; text-decoration: none; }
+.footer-cities a:hover { color: #F8A900; text-decoration: underline; }
