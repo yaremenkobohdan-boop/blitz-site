@@ -93,5 +93,12 @@
     fill(buildText());
   });
   bar.querySelector('.want-clear').addEventListener('click', function () { cart = {}; save(); refresh(); });
+  /* Коли форма на екрані — ховаємо панель «Обрано», щоб вона не закривала кнопку «Надіслати» */
+  var formEl = document.getElementById('contact-form-target') || document.getElementById('radio-order-section');
+  if (formEl && 'IntersectionObserver' in window) {
+    new IntersectionObserver(function (en) {
+      bar.classList.toggle('want-away', en[0].isIntersecting);
+    }, { threshold: 0.05 }).observe(formEl);
+  }
   refresh();
 })();

@@ -112,8 +112,10 @@
     /* Спроба відправити форму Uspacy (кнопка) */
     var inForm = t.closest && t.closest('#uspacy-forms');
     if (inForm) {
-      var hit = t.closest('button,[role=button],[type=submit]');
-      if (hit && /Надіслати/i.test(hit.textContent)) formAttempt();
+      var hit = t;
+      for (var k = 0; k < 5 && hit && hit !== inForm; k++, hit = hit.parentElement) {
+        if (/^\s*Надіслати\s*$/i.test(hit.textContent)) { formAttempt(); break; }
+      }
     }
   }, true);
 
