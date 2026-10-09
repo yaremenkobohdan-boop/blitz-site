@@ -110,8 +110,11 @@
     if (t.closest && t.closest('[data-days]')) calcUse();
 
     /* Спроба відправити форму Uspacy (кнопка) */
-    var btn = t.closest && t.closest('#uspacy-forms button, #uspacy-forms [type=submit]');
-    if (btn) formAttempt();
+    var inForm = t.closest && t.closest('#uspacy-forms');
+    if (inForm) {
+      var hit = t.closest('button,[role=button],[type=submit]');
+      if (hit && /Надіслати/i.test(hit.textContent)) formAttempt();
+    }
   }, true);
 
   /* перша взаємодія з калькулятором (один раз) */
@@ -135,22 +138,20 @@
   function formAttempt() {
     var now = Date.now(); if (now - attemptT < 3000) return; attemptT = now;
     ev('form_submit_attempt', { form: 'uspacy_request' });
-    var w = document.getElementById('uspacy-forms'); if (!w) return;
-    var form = w.querySelector('form');
-    var before = txt(w).length;
-    var done = false, tries = 0;
-    var timer = setInterval(function () {
-      tries++;
-      var f = w.querySelector('form');
-      var t = txt(w);
-      var ok = !f || !document.body.contains(form) || /дякуєм|дякуємо|надіслан|відправлен|прийнят|thank/i.test(t);
-      if (ok && !done) {
-        done = true; clearInterval(timer);
-        ev('generate_lead', { form: 'uspacy_request', value: 1, currency: 'UAH', cart_items: Object.keys(cart).length }, 'Lead', { content_name: document.title });
-      }
-      if (tries > 16) clearInterval(timer); // ~8 с
-    }, 500);
   }
+
+  /* Успіх: віджет показує «Успішно надіслано!» — ловимо появу цього тексту (один раз на відправку) */
+  var leadShown = false, watchT = 0;
+  function watchLead() {
+    var w = document.getElementById('uspacy-forms'); if (!w) return;
+    var ok = /Успішно надіслано|Дякуємо|Дякуєм/i.test(w.textContent);
+    if (ok && !leadShown) {
+      leadShown = true;
+      ev('generate_lead', { form: 'uspacy_request', value: 1, currency: 'UAH', cart_items: Object.keys(cart).length }, 'Lead', { content_name: document.title });
+    } else if (!ok) leadShown = false;
+  }
+  new MutationObserver(function () { clearTimeout(watchT); watchT = setTimeout(watchLead, 200); })
+    .observe(document.documentElement, { childList: true, subtree: true, characterData: true });
 
   /* ---------- перегляд розділу послуг ---------- */
   function viewContent() {
