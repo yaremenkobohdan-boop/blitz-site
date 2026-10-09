@@ -429,6 +429,11 @@ function fillDesc(txt,n){
   $('fbTxt').hidden=false;$('fbTxt').textContent=txt;$('fm').textContent='Форма ще завантажується. Скопіюйте розрахунок нижче й вставте в поле «Суть запиту».';return }
  ce.focus();document.execCommand('selectAll');document.execCommand('insertText',false,txt);
  $('fm').textContent='Розрахунок додано в поле «Суть запиту». Вкажіть ім\'я й телефон та натисніть кнопку відправки форми.'}
+document.addEventListener('click',function(e){
+ var b=e.target.closest&&e.target.closest('[data-fmt]');if(!b)return;
+ var v=PRICES.video.filter(function(x){return x[0]===b.dataset.fmt})[0];if(!v)return;
+ lastText='ЗАПИТ: виготовлення рекламного ролика\nФормат: '+v[0]+'\nСценарій: '+fmt(v[1])+' грн; ролик: '+fmt(v[2])+' грн; разом: '+fmt(v[1]+v[2])+' грн (без податку)';
+ sendRequest()});
 function sendRequest(){
  var txt=(lastText||'Запит на рекламу на радіо')+'\n\nСторінка: '+CITIES[cur].n+' ('+location.hostname+')';
  $('order').scrollIntoView({behavior:'smooth',block:'start'});
@@ -467,7 +472,7 @@ function fillTexts(){
  var v=PRICES.video;
  $('fmtLead').textContent='Формат ролика впливає на запам\'ятовування. Підкажемо, що підійде вашому бізнесу '+c.l+', а вартість виготовлення бачите в калькуляторі («Виготовлення ролика»).';
  var desc={'Інформаційний':'Диктор коротко розповідає, що, де й за якою ціною. Підходить для акцій, відкриття, графіка роботи.','Ігровий':'Невелика сценка з двох-трьох голосів. Краще запам\'ятовується, добре працює для роздрібу й послуг.','Пісенний':'Джингл або пісня з вашою назвою. Лишається в голові найдовше, добре для постійної реклами бренду.'};
- $('fmts').innerHTML=v.map(function(x){return '<div class="card"><h3>'+x[0]+'</h3><p>'+(desc[x[0]]||'')+'</p><p style="margin-top:10px"><b>Сценарій '+money(x[1])+' + ролик '+money(x[2])+'</b></p></div>'}).join('');
+ $('fmts').innerHTML=v.map(function(x){return '<div class="card"><h3>'+x[0]+'</h3><p>'+(desc[x[0]]||'')+'</p><p style="margin-top:10px"><b>Сценарій '+money(x[1])+' + ролик '+money(x[2])+'</b></p><button type="button" class="btn" data-fmt="'+x[0]+'" style="margin-top:14px">Замовити</button></div>'}).join('');
  $('faqH').textContent='Часті питання про рекламу на радіо '+c.l;
  var q=[];
  q.push(['Скільки коштує реклама на радіо '+c.l+'?',''+(cur==='mz'?'Пакет на всю мережу з 6 станцій БЛІЦ-ФМ':'Пакет на одну станцію '+c.g)+' коштує '+money(one)+' за '+PRICES.packDays[0]+' днів'+(st.length>1&&cur!=='mz'?', на всі станції міста '+money(cityAll(cur))+'':'')+'. Для швидшого розрахунку скористайтеся калькулятором: він враховує станції, термін, фіксовану позицію й податки.']);
