@@ -16,6 +16,29 @@
     return map[h] || '';
   })();
 
+
+  /* ---------- UTM / джерело: запам'ятовуємо з URL і додаємо в текст заявки ---------- */
+  (function () {
+    var K = 'blitz_utm';
+    try {
+      var q = new URLSearchParams(location.search), keys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'fbclid', 'gclid'], got = {}, any = false;
+      keys.forEach(function (k) { if (q.get(k)) { got[k] = q.get(k).slice(0, 80); any = true; } });
+      if (any) sessionStorage.setItem(K, JSON.stringify(got));
+    } catch (e) {}
+    window.blitzUtmText = function () {
+      try {
+        var u = JSON.parse(sessionStorage.getItem(K) || 'null');
+        var ref = document.referrer && document.referrer.indexOf(location.hostname) < 0 ? document.referrer.replace(/^https?:\/\//, '').slice(0, 60) : '';
+        var parts = [];
+        if (u) Object.keys(u).forEach(function (k) { if (k.indexOf('utm_') === 0) parts.push(k.slice(4) + '=' + u[k]); });
+        if (u && u.fbclid) parts.push('fbclid');
+        if (u && u.gclid) parts.push('gclid');
+        if (!parts.length && ref) parts.push('referrer=' + ref);
+        return parts.length ? '\nДжерело: ' + parts.join(', ') : '';
+      } catch (e) { return ''; }
+    };
+  })();
+
   /* ---------- завантаження тегів ---------- */
   window.dataLayer = window.dataLayer || [];
   function gtag() { window.dataLayer.push(arguments); }

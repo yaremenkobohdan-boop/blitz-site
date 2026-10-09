@@ -52,6 +52,7 @@
       lines.push((i + 1) + '. ' + k + (v.qty ? ' — ' + v.qty : '') + (v.price ? ' — ' + v.price : ''));
     });
     lines.push('Сторінка: ' + location.href.split('#')[0]);
+    if (window.blitzUtmText) { var u = window.blitzUtmText().replace(/^\n/, ''); if (u) lines.push(u); }
     return lines.join('\n');
   }
 

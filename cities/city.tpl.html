@@ -443,7 +443,7 @@ document.addEventListener('click',function(e){
  lastText='ЗАПИТ: виготовлення рекламного ролика\nФормат: '+v[0]+'\nСценарій: '+fmt(v[1])+' грн; ролик: '+fmt(v[2])+' грн; разом: '+fmt(v[1]+v[2])+' грн (без податку)';
  sendRequest()});
 function sendRequest(){
- var txt=(lastText||'Запит на рекламу на радіо')+'\n\nСторінка: '+CITIES[cur].n+' ('+location.hostname+')';
+ var txt=(lastText||'Запит на рекламу на радіо')+'\n\nСторінка: '+CITIES[cur].n+' ('+location.hostname+')'+(window.blitzUtmText?window.blitzUtmText():'');
  $('order').scrollIntoView({behavior:'smooth',block:'start'});
  fillDesc(txt,0)}
 function money(n){return fmt(n)+' грн'}
