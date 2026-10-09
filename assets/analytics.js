@@ -163,7 +163,7 @@
   function banner() {
     if (document.getElementById('an-banner')) return;
     var b = document.createElement('div'); b.id = 'an-banner';
-    b.innerHTML = '<span>Ми використовуємо cookie та аналітику (Google, Meta), щоб покращувати сайт і рекламу. </span>' +
+    b.innerHTML = '<span>Ми використовуємо cookie та аналітику (Google, Meta), щоб покращувати сайт і рекламу. <a href="https://blitz.com.ua/konfidentsiinist.html" style="color:#F8A900">Детальніше</a> </span>' +
       '<button type="button" data-v="ok">Добре</button><button type="button" data-v="no" class="no">Відмовитись</button>';
     var s = document.createElement('style');
     s.textContent = '#an-banner{position:fixed;left:16px;right:16px;bottom:16px;z-index:400;max-width:560px;margin:0 auto;background:#1B1B1B;color:#fff;font:500 13px/1.4 Inter,system-ui,sans-serif;padding:12px 14px;border-radius:14px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;box-shadow:0 8px 28px rgba(0,0,0,.3)}' +

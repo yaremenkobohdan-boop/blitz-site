@@ -62,6 +62,8 @@
       ed.focus();
       document.execCommand('selectAll', false, null);
       document.execCommand('insertText', false, text.replace(/\n+/g, ' | '));
+      /* редактор Uspacy буває ще не готовий — перевіряємо, що текст справді з'явився */
+      setTimeout(function () { if (ed.textContent.trim().length < 5 && tries < 30) fill(text, tries + 1); }, 400);
       return;
     }
     var ta = document.getElementById('fbTxt');
