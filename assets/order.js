@@ -55,17 +55,31 @@
     return lines.join('\n');
   }
 
+  /* Редактор Uspacy (Lexical) приймає вставку лише після синхронізації виділення,
+     тому: виділяємо вміст -> чекаємо -> вставляємо -> перевіряємо -> повторюємо; як запасний варіант дописуємо в кінець. */
+  function fillEditor(ed, want, tries, onDone) {
+    function sel(toEnd) {
+      ed.focus();
+      var r = document.createRange(); r.selectNodeContents(ed); if (toEnd) r.collapse(false);
+      var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+    }
+    var head = want.slice(0, 12);
+    if (ed.textContent.indexOf(want) > -1 && ed.textContent.length <= want.length + 3) { if (onDone) onDone(); return; }
+    var append = tries >= 4;
+    sel(append);
+    setTimeout(function () {
+      document.execCommand('insertText', false, append ? (ed.textContent.trim() ? ' | ' : '') + want : want);
+      setTimeout(function () {
+        if (ed.textContent.indexOf(head) > -1) { if (onDone) onDone(); }
+        else if (tries < 8) { ed.blur(); setTimeout(function () { fillEditor(ed, want, tries + 1, onDone); }, 100); }
+      }, 400);
+    }, 150);
+  }
+
   function fill(text, tries) {
     tries = tries || 0;
     var ed = document.querySelector('#uspacy-forms [contenteditable="true"]');
-    if (ed) {
-      ed.focus();
-      document.execCommand('selectAll', false, null);
-      document.execCommand('insertText', false, text.replace(/\n+/g, ' | '));
-      /* редактор Uspacy буває ще не готовий — перевіряємо, що текст справді з'явився */
-      setTimeout(function () { if (ed.textContent.trim().length < 5 && tries < 30) fill(text, tries + 1); }, 400);
-      return;
-    }
+    if (ed) { fillEditor(ed, text.replace(/\n+/g, ' | '), 0); return; }
     var ta = document.getElementById('fbTxt');
     if (ta) { ta.value = text; return; }
     if (tries < 40) setTimeout(function () { fill(text, tries + 1); }, 250);

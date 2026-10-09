@@ -424,12 +424,18 @@ function calc(){
  bindCopy()
 }
 function bindCopy(){var b=$('reqBtn');if(!b)return;b.onclick=sendRequest}
+function fillEditor(ed,want,tries){
+ function sel(toEnd){ed.focus();var r=document.createRange();r.selectNodeContents(ed);if(toEnd)r.collapse(false);var s=window.getSelection();s.removeAllRanges();s.addRange(r)}
+ var head=want.slice(0,12);
+ if(ed.textContent.indexOf(want)>-1&&ed.textContent.length<=want.length+3)return;
+ var append=tries>=4;sel(append);
+ setTimeout(function(){document.execCommand('insertText',false,append?(ed.textContent.trim()?' | ':'')+want:want);
+  setTimeout(function(){if(ed.textContent.indexOf(head)<0&&tries<8){ed.blur();setTimeout(function(){fillEditor(ed,want,tries+1)},100)}},400)},150)}
 function fillDesc(txt,n){
  var ce=document.querySelector('#uspacy-forms [contenteditable="true"]');
  if(!ce){ if(n<40){setTimeout(function(){fillDesc(txt,n+1)},250);return}
   $('fbTxt').hidden=false;$('fbTxt').textContent=txt;$('fm').textContent='Форма ще завантажується. Скопіюйте розрахунок нижче й вставте в поле «Суть запиту».';return }
- ce.focus();document.execCommand('selectAll');document.execCommand('insertText',false,txt.replace(/\n+/g,' | '));
- setTimeout(function(){if(ce.textContent.trim().length<5&&n<30)fillDesc(txt,n+1)},400);
+ fillEditor(ce,txt.replace(/\n+/g,' | '),0);
  $('fm').textContent='Розрахунок додано в поле «Суть запиту». Вкажіть ім\'я й телефон та натисніть кнопку відправки форми.'}
 document.addEventListener('click',function(e){
  var b=e.target.closest&&e.target.closest('[data-fmt]');if(!b)return;
