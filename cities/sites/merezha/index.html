@@ -426,7 +426,7 @@ function fillDesc(txt,n){
  var ce=document.querySelector('#uspacy-forms [contenteditable="true"]');
  if(!ce){ if(n<40){setTimeout(function(){fillDesc(txt,n+1)},250);return}
   $('fbTxt').hidden=false;$('fbTxt').textContent=txt;$('fm').textContent='Форма ще завантажується. Скопіюйте розрахунок нижче й вставте в поле «Суть запиту».';return }
- ce.focus();document.execCommand('selectAll');document.execCommand('insertText',false,txt);
+ ce.focus();document.execCommand('selectAll');document.execCommand('insertText',false,txt.replace(/\n+/g,' | '));
  $('fm').textContent='Розрахунок додано в поле «Суть запиту». Вкажіть ім\'я й телефон та натисніть кнопку відправки форми.'}
 document.addEventListener('click',function(e){
  var b=e.target.closest&&e.target.closest('[data-fmt]');if(!b)return;

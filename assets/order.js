@@ -61,7 +61,7 @@
     if (ed) {
       ed.focus();
       document.execCommand('selectAll', false, null);
-      document.execCommand('insertText', false, text);
+      document.execCommand('insertText', false, text.replace(/\n+/g, ' | '));
       return;
     }
     var ta = document.getElementById('fbTxt');
