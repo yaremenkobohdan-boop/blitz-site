@@ -1,7 +1,7 @@
 /* «Хочу» — кошик заявки на сторінках Послуг. Дані літають у форму Uspacy (Суть запиту). */
 (function () {
   var KEY = 'blitzWant:' + location.pathname;
-  var cards = document.querySelectorAll('.product-card');
+  var cards = document.querySelectorAll('.product-card, .promo-card');
   if (!cards.length) return;
   var cart = {};
   try { cart = JSON.parse(sessionStorage.getItem(KEY) || '{}') || {}; } catch (e) { cart = {}; }
@@ -9,7 +9,7 @@
   function txt(el) { return el ? el.textContent.replace(/\s+/g, ' ').trim() : ''; }
 
   var catEl = document.querySelector('.cta-band h3');
-  var cat = '';
+  var cat = /akcii/.test(location.pathname) ? 'Акції' : '';
   document.querySelectorAll('.cta-band h3').forEach(function (h) {
     var m = txt(h).match(/^Замовити:\s*(.+)$/); if (m) cat = m[1];
   });
@@ -33,7 +33,7 @@
   }
 
   cards.forEach(function (c, i) {
-    var body = c.querySelector('.body'); if (!body) return;
+    var body = c.querySelector('.body') || c; if (!body) return;
     var name = txt(c.querySelector('h4')) || ('Позиція ' + (i + 1));
     var b = document.createElement('button');
     b.type = 'button'; b.className = 'want-btn'; b.dataset.name = name; b.textContent = 'Хочу';
