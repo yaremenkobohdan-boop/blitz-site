@@ -78,7 +78,20 @@
     params = params || {};
     if (CITY && !params.city) params.city = CITY;
     try { gtag('event', name, params); } catch (e) {}
-    if (fbName && window.fbq) { try { window.fbq('track', fbName, fbParams || {}); } catch (e) {} }
+    if (fbName && window.fbq) {
+      var eid = 'b' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+      try { window.fbq('track', fbName, fbParams || {}, { eventID: eid }); } catch (e) {}
+      capi(fbName, eid, fbParams);
+    }
+  }
+  function gc(k) { var m = document.cookie.match(new RegExp('(?:^|; )' + k + '=([^;]*)')); return m ? decodeURIComponent(m[1]) : undefined; }
+  /* серверна копія події (Conversions API), дедуплікація за event_id */
+  function capi(name, eid, p) {
+    try {
+      var body = JSON.stringify({ n: name, id: eid, u: location.href, p: p || {}, fbp: gc('_fbp'), fbc: gc('_fbc') });
+      if (navigator.sendBeacon) navigator.sendBeacon('https://blitz.com.ua/api/capi', new Blob([body], { type: 'text/plain' }));
+      else fetch('https://blitz.com.ua/api/capi', { method: 'POST', body: body, keepalive: true, mode: 'no-cors' });
+    } catch (e) {}
   }
   window.blitzTrack = ev;
 

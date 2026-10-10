@@ -1,5 +1,8 @@
 name = "blitz-site"
+main = "worker/capi.js"
 compatibility_date = "2026-01-01"
 
 [assets]
 directory = "./"
+binding = "ASSETS"
+run_worker_first = ["/api/*"]
