@@ -193,3 +193,11 @@ schema.org (`url`, `sameAs`), перелінковка з головного с�
 - Кореневий `.assetsignore` ховає `cities/` від основного сайту (щоб не було дублів).
 - Приклади роликів: `assets/radio-examples/*.mp3`. Форма заявки — Uspacy `6a60cd562704e3c3a69dd0f2`; кнопка «Надіслати запит» вставляє розрахунок у поле «Суть запиту» (contenteditable).
 - Деплой: Cloudflare Workers Builds, Root directory `cities`.
+
+
+## SEO / ШІ-видимість (оновлено 2026-10-20)
+- Усі сторінки мають canonical (БЕЗ `.html`: Cloudflare редіректить `/x.html` → `/x`), OG/Twitter, BreadcrumbList; сторінки послуг — `Service`, поради — `Article`. sitemap.xml і llms.txt — з lastmod / адресами без `.html`.
+- robots.txt дозволяє ШІ-краулерів (ClaudeBot, Claude-SearchBot, GPTBot, OAI-SearchBot, PerplexityBot, Google-Extended, Bingbot та ін.). Піддомени міст: build.js генерує robots.txt + llms.txt + sitemap.
+- Аналітика: assets/analytics.js (GA4 G-M9ZCYGWDPB + Meta Pixel). Google Search Console: файл google3bf7f58dca4d6efa.html (URL-prefix); Domain-property — потрібен DNS TXT у Cloudflare (робить власник).
+- IndexNow: ключ-файл у корені (`<key>.txt`); після деплою можна пінгувати `https://api.indexnow.org/indexnow`.
+- Нова сторінка = додати canonical/OG/JSON-LD за зразком + рядок у sitemap.xml і llms.txt.

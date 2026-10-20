@@ -21,7 +21,9 @@ const root=path.join(__dirname,'..'),tpl=fs.readFileSync(path.join(__dirname,'ci
   let out='<!doctype html>\n'+await p.evaluate(()=>{document.querySelectorAll('#uspacy-forms,script[src*="uspa.cy"]').forEach(e=>e.remove());return document.documentElement.outerHTML});
   const dir=path.join(__dirname,'sites',slug);fs.mkdirSync(dir,{recursive:true});
   fs.writeFileSync(path.join(dir,'index.html'),out);
-  fs.writeFileSync(path.join(dir,'robots.txt'),'User-agent: *\nAllow: /\nSitemap: https://'+host+'/sitemap.xml\n');
+  const BOTS=['ClaudeBot','Claude-SearchBot','Claude-User','GPTBot','OAI-SearchBot','ChatGPT-User','PerplexityBot','Perplexity-User','Google-Extended','Applebot-Extended','Bingbot','Googlebot','Meta-ExternalAgent','CCBot','Amazonbot','DuckAssistBot'];
+  fs.writeFileSync(path.join(dir,'robots.txt'),'User-agent: *\nAllow: /\n\n'+BOTS.map(b=>'User-agent: '+b+'\nAllow: /\n').join('\n')+'\nSitemap: https://'+host+'/sitemap.xml\n');
+  fs.writeFileSync(path.join(dir,'llms.txt'),'# Реклама на радіо '+l+' — РІА «БЛІЦ»\n\n> Рекламно-інформаційне агентство повного циклу РІА «БЛІЦ» (Біла Церква, працює з 2000 року): реклама на радіо, розрахунок вартості та замовлення '+l+'. Ціни на радіореклами і спонсорство програм розраховує онлайн-калькулятор на цій сторінці.\n\n## Сторінки\n- Ця сторінка: https://'+host+'/\n- Головний сайт агентства: https://blitz.com.ua\n- Реклама на радіо (всі міста): https://blitz.com.ua/poslugy/radio\n- Власна радіостанція БЛІЦ ФМ: https://blits-fm.ua\n\n## Контакти\nАдреса: вул. Млинова, 5, оф. 22, Біла Церква, Україна\nГрафік роботи: Пн–Пт, 9:00–17:00\nТелефони: +380 67 280 40 30, +380 50 469 33 66, +380 63 000 25 30\nTelegram: https://t.me/ra_blits\nInstagram: https://www.instagram.com/ra_blitz/\nFacebook: https://www.facebook.com/blitz.com.ua/\n');
   fs.writeFileSync(path.join(dir,'sitemap.xml'),'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://'+host+'/</loc><lastmod>'+today+'</lastmod></url></urlset>\n');
   await p.close();console.log('ok',slug,out.length);
  }

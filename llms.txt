@@ -26,14 +26,47 @@ Email: Owner@blitz.com.ua
 Сайт: https://blitz.com.ua
 
 ## Основні сторінки
-- Всі послуги: https://blitz.com.ua/poslugy.html
-- Реклама на радіо: https://blitz.com.ua/poslugy/radio.html
-- Бігборди: https://blitz.com.ua/poslugy/bigbordy.html
-- Відеоборди: https://blitz.com.ua/poslugy/videoborday.html
-- Поліграфія: https://blitz.com.ua/poslugy/poligrafiya.html
-- Сувенірна продукція: https://blitz.com.ua/poslugy/suvenirna.html
-- Вивіски: https://blitz.com.ua/poslugy/vyvisky.html
-- Розробка логотипів: https://blitz.com.ua/poslugy/logotypy.html
-- Фото/відео контент: https://blitz.com.ua/poslugy/foto-video.html
-- Про нас: https://blitz.com.ua/pro-nas.html
-- Контакти: https://blitz.com.ua/kontakty.html
+- Всі послуги: https://blitz.com.ua/poslugy
+- Реклама на радіо: https://blitz.com.ua/poslugy/radio
+- Бігборди: https://blitz.com.ua/poslugy/bigbordy
+- Відеоборди: https://blitz.com.ua/poslugy/videoborday
+- Поліграфія: https://blitz.com.ua/poslugy/poligrafiya
+- Сувенірна продукція: https://blitz.com.ua/poslugy/suvenirna
+- Вивіски: https://blitz.com.ua/poslugy/vyvisky
+- Розробка логотипів: https://blitz.com.ua/poslugy/logotypy
+- Фото/відео контент: https://blitz.com.ua/poslugy/foto-video
+- Про нас: https://blitz.com.ua/pro-nas
+- Контакти: https://blitz.com.ua/kontakty
+
+## Міські сторінки реклами на радіо
+- Біла Церква: https://bila-tserkva.blitz.com.ua
+- Фастів: https://fastiv.blitz.com.ua
+- Умань: https://uman.blitz.com.ua
+- Сміла: https://smila.blitz.com.ua
+- Богуслав: https://bohuslav.blitz.com.ua
+- Рокитне: https://rokytne.blitz.com.ua
+- Ставище: https://stavyshche.blitz.com.ua
+- Вся мережа: https://merezha.blitz.com.ua
+
+## Радіо БЛІЦ ФМ (власна радіостанція агентства)
+- Сайт станції: https://blits-fm.ua (програми, розклад ефіру, ведучі, новини, реклама)
+- Інструкція для ШІ-асистентів по станції: https://blits-fm.ua/llms.txt
+
+## Поради та статті
+- ... а вийде тільки з 6 разу (тут розкажемо як насправді робляться круті рекламні продукти): https://blitz.com.ua/poradu/a-vyy-de-tilky-z-6-razu-tut-rozkazhemo-iak-naspravdi-robliat
+- ЧОМУ МИ ЗАВЖДИ ЗАДАЄМО БАГАТО ПИТАНЬ КЛІЄНТУ?: https://blitz.com.ua/poradu/chomu-my-zavzhdy-zadaiemo-bahato-pytan-kliientu
+- «Я ЩО НЕ МОЖУ НАКЛЕЙКУ НА ВІКНО ПОКЛЕЇТИ?»: https://blitz.com.ua/poradu/ia-shcho-ne-mozhu-nakleiku-na-vikno-pokleity
+- Як думаєте, легко подружжю працювати разом?: https://blitz.com.ua/poradu/iak-dumaiete-lehko-podruzhzhiu-pratsiuvaty-razom
+- Є ерогенні точки, а є ТОЧКИ КОНТАКТУ: https://blitz.com.ua/poradu/ie-erohenni-tochky-a-ie-tochky-kontaktu
+- Контент 18+: https://blitz.com.ua/poradu/kontent-18
+- Любов - то всерйоз і надовго. А якщо ні?: https://blitz.com.ua/poradu/liubov-to-vserioz-i-nadovho-a-iakshcho-ni
+- Ми НЕ ПОЛІГРАФІЯ, точніше так: ми не просто поліграфія!: https://blitz.com.ua/poradu/my-n-e-p-o-l-i-h-r-a-f-i-ia-tochnishe-tak-my-ne-prosto-polih
+- МИ РОСТЕМО ЗАВДЯКИ ВАМ: https://blitz.com.ua/poradu/my-rostemo-zavdiaky-vam
+- Новий час-нові правила: https://blitz.com.ua/poradu/novyi-chas-novi-pravyla
+- ОФІГЕННИЙ ПОСТ ДЛЯ ЗБЕРЕЖЕННЯ: https://blitz.com.ua/poradu/ofihennyy-post-dlia-zberezhennia
+- PRO ВІДПОВІДАЛЬНІСТЬ: https://blitz.com.ua/poradu/pro-vidpovidalnist
+- РА «БЛІЦ» 26 РОКІВ!: https://blitz.com.ua/poradu/ra-blits-20-rokiv
+- ТОП 5 порад, як не просадити бюджет на радіорекламу: https://blitz.com.ua/poradu/top-5-porad-iak-ne-prosadyty-biudzhet-na-radioreklamu
+- ВІРУС = КРИЗА: https://blitz.com.ua/poradu/virus-kryza
+- Вигода — на час, принципи — на віки!: https://blitz.com.ua/poradu/vyhoda-na-chas-pryntsypy-na-viky
+- ЗАКУСОЧНА чи РЕСТОРАН?: https://blitz.com.ua/poradu/zakusochna-chy-restoran
