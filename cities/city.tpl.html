@@ -150,6 +150,7 @@ footer h4{margin:0 0 8px;color:var(--fg)}footer a{color:var(--acc);text-decorati
 <nav class="nav"><a href="#map">Покриття</a><a href="#audience">Аудиторія</a><a href="#price">Ціни</a><a href="#calc">Калькулятор</a><a href="#how">Як працюємо</a><a href="#order">Заявка</a></nav>
 <a class="phone" href="tel:+380672804030">+380 67 280 40 30</a>
 </div></header>
+<div id="cityNotice"></div>
 
 <section class="hero"><div class="wrap">
 <div>
@@ -495,7 +496,9 @@ function fillTexts(){
  $('orderNote').textContent='Залишіть заявку, і ми підготуємо розрахунок реклами на радіо '+c.l+'. Усе, що ви обрали в калькуляторі, потрапить у поле «Опис».';
  $('footCities').innerHTML=Object.keys(CITIES).map(function(k){return '<a data-k="'+k+'" href="https://'+CITIES[k].h+'.blitz.com.ua/">'+CITIES[k].n+'</a>'}).join(' · ');
 }
+var NOTICE_UM='<div class="wrap"><a href="https://blitz.com.ua/poradu/uman-pauza-v-efiri-90-6" style="display:flex;gap:16px;align-items:center;margin:14px 0 0;padding:12px 18px;border-radius:18px;background:#FFF1DC;border:1px solid #F39200;border-left:6px solid #EA580C;color:#1A1A1A;text-decoration:none;box-shadow:0 8px 24px rgba(234,88,12,.12)"><img src="https://blitz.com.ua/assets/news/uman-pauza-90-6-thumb.jpg" alt="" width="64" height="64" style="border-radius:12px;flex:none;object-fit:cover"><span style="font-size:14.5px;line-height:1.45"><strong>Мовлення БЛІЦ ФМ на 90,6 FM в Умані тимчасово призупинено.</strong> Через атаку пошкоджено передавальне обладнання; відновимо мовлення одразу після ремонту. <u style="color:#EA580C;font-weight:700">Детальніше</u></span></a></div>';
 function fillStatic(){
+ if(cur==='um'&&$('cityNotice'))$('cityNotice').innerHTML=NOTICE_UM;
  fillTexts();
  var c=CITIES[cur];
  $('crumbs').textContent='blitz.com.ua / Реклама на радіо / '+c.n;
