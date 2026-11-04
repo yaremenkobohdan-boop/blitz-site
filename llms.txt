@@ -53,7 +53,6 @@ Email: Owner@blitz.com.ua
 - Інструкція для ШІ-асистентів по станції: https://blits-fm.ua/llms.txt
 
 ## Поради та статті
-- Ми знову в ефірі: БЛІЦ ФМ в Умані на частоті 90,6 FM відновив мовлення (офіційне повідомлення, 4 листопада 2026): https://blitz.com.ua/poradu/uman-efir-vidnovleno-90-6
 - ... а вийде тільки з 6 разу (тут розкажемо як насправді робляться круті рекламні продукти): https://blitz.com.ua/poradu/a-vyy-de-tilky-z-6-razu-tut-rozkazhemo-iak-naspravdi-robliat
 - ЧОМУ МИ ЗАВЖДИ ЗАДАЄМО БАГАТО ПИТАНЬ КЛІЄНТУ?: https://blitz.com.ua/poradu/chomu-my-zavzhdy-zadaiemo-bahato-pytan-kliientu
 - «Я ЩО НЕ МОЖУ НАКЛЕЙКУ НА ВІКНО ПОКЛЕЇТИ?»: https://blitz.com.ua/poradu/ia-shcho-ne-mozhu-nakleiku-na-vikno-pokleity
