@@ -67,9 +67,19 @@
     window.fbq('track', 'PageView');
   }
 
+  /* Metricool: статистика сайту в кабінеті Metricool (бренд «Рекламне агентство БЛІЦ»); hash публічний, як і GA_ID */
+  var MC_HASH = '3700211f2fd3d01ee2a38f6840aad86f';
+  function loadMetricool() {
+    if (window.beTracker) return;
+    var s = document.createElement('script'); s.async = true;
+    s.src = 'https://tracker.metricool.com/resources/be.js';
+    s.onload = function () { try { window.beTracker.t({ hash: MC_HASH }); } catch (e) {} };
+    document.head.appendChild(s);
+  }
+
   function start() {
     if (loaded) return; loaded = true;
-    loadGA(); loadPixel();
+    loadGA(); loadPixel(); loadMetricool();
   }
 
   /* ---------- відправка подій ---------- */
