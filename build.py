@@ -114,6 +114,7 @@ def header(active='', depth=''):
     <a href="{home}" class="logo"><img src="{logo}" alt="РА «БЛІЦ»"></a>
     <nav class="nav" id="mainNav">
       {nav(active).replace('href="', f'href="{depth}')}
+      <a href="https://check.blitz.com.ua" class="nav-check">Бліц-перевірка</a>
     </nav>
     <div class="header-actions">
       <a href="tel:{PHONE1.replace(' ', '')}" class="nav-phone">{PHONE1}</a>

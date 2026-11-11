@@ -60,9 +60,11 @@ section { padding: var(--sp-9) 0; }
 }
 .header-social a:hover { background: var(--blitz-gradient); color: #fff; }
 .header-social svg { width: 16px; height: 16px; fill: currentColor; }
+.nav a.nav-check { background: var(--blitz-gradient); color: #fff; border-radius: 9999px; padding: 7px 16px; font-weight: 700; }
+.nav a.nav-check:hover { color: #fff; transform: translateY(-1px); }
 .burger { display: none; background: none; border: none; cursor: pointer; padding: 8px; }
 .burger span { display: block; width: 24px; height: 2px; background: var(--fg-1); margin: 5px 0; }
-@media (max-width: 900px) {
+@media (max-width: 1180px) {
   .nav { position: fixed; top: 76px; left: 0; right: 0; background: #fff; flex-direction: column; align-items: flex-start;
          padding: 24px; gap: 18px; border-bottom: 1px solid var(--blitz-line); transform: translateY(-150%); transition: transform .25s ease; box-shadow: var(--shadow-lg); }
   .nav.open { transform: translateY(0); }
