@@ -2,6 +2,7 @@
    Підключається на blitz.com.ua та всіх піддоменах (міста). Один файл — одна правда. */
 (function () {
   'use strict';
+  if (navigator.webdriver) return; // автоматизовані браузери не рахуємо (як на blits-fm.ua)
   var GA_ID = 'G-M9ZCYGWDPB';
   var PIXEL_ID = '1282596818602598';
   var CK = 'blitz_an'; // 'ok' | 'no' — вибір відвідувача про cookie аналітики
@@ -19,15 +20,22 @@
 
   /* ---------- UTM / джерело: запам'ятовуємо з URL і додаємо в текст заявки ---------- */
   (function () {
-    var K = 'blitz_utm';
+    var K = 'blitz_utm', TTL = 90 * 864e5; // зберігаємо 90 днів, щоб заявка за кілька днів після кліку не втрачала джерело
+    function store(v) { try { localStorage.setItem(K, v); } catch (e) { try { sessionStorage.setItem(K, v); } catch (e2) {} } }
+    window.blitzUtmRead = function () {
+      var raw = null;
+      try { raw = localStorage.getItem(K); } catch (e) {}
+      if (!raw) { try { raw = sessionStorage.getItem(K); } catch (e) {} }
+      try { var o = JSON.parse(raw || 'null'); return o && o.t && Date.now() - o.t < TTL ? o.v : null; } catch (e) { return null; }
+    };
     try {
       var q = new URLSearchParams(location.search), keys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'fbclid', 'gclid'], got = {}, any = false;
       keys.forEach(function (k) { if (q.get(k)) { got[k] = q.get(k).slice(0, 80); any = true; } });
-      if (any) sessionStorage.setItem(K, JSON.stringify(got));
+      if (any) store(JSON.stringify({ t: Date.now(), v: got }));
     } catch (e) {}
     window.blitzUtmText = function () {
       try {
-        var u = JSON.parse(sessionStorage.getItem(K) || 'null');
+        var u = window.blitzUtmRead();
         var ref = document.referrer && document.referrer.indexOf(location.hostname) < 0 ? document.referrer.replace(/^https?:\/\//, '').slice(0, 60) : '';
         var parts = [];
         if (u) Object.keys(u).forEach(function (k) { if (k.indexOf('utm_') === 0) parts.push(k.slice(4) + '=' + u[k]); });
