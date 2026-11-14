@@ -371,3 +371,14 @@ span.freq-chip--pending { cursor: default; }
 .want-go { background: var(--blitz-gradient); color: #fff; border: 0; border-radius: 999px; padding: 10px 18px; font-family: var(--font-display); font-weight: 800; text-transform: uppercase; font-size: 13px; cursor: pointer; }
 .want-clear { background: transparent; border: 0; color: #ccc; font-size: 16px; cursor: pointer; padding: 4px 8px; }
 @media (max-width: 768px) { .want-bar { bottom: 66px; width: calc(100% - 24px); justify-content: space-between; } }
+
+/* ---- Radio: calculator entry (city landing #calc) ---- */
+.radio-calc-sec { padding: var(--sp-7) 0 0; }
+.radio-calc { background: var(--bg-2); border: 1px solid var(--blitz-line); border-radius: var(--radius-xl); padding: 32px; }
+.radio-calc h2 { font-family: var(--font-display); font-weight: 900; font-style: italic; text-transform: uppercase; font-size: clamp(22px, 3vw, 32px); line-height: 1.2; margin: 0 0 10px; }
+.radio-calc p { color: var(--fg-3); font-size: 15.5px; max-width: 680px; margin: 0 0 20px; }
+.radio-calc-cities { display: flex; flex-wrap: wrap; gap: 10px; }
+.radio-city-calc { margin: -8px 0 18px 24px; font-size: 14px; font-weight: var(--fw-semibold); }
+.radio-city-calc a { color: var(--fg-accent); text-decoration: underline; text-underline-offset: 3px; overflow-wrap: anywhere; }
+.radio-city-calc a:hover { text-decoration-thickness: 2px; }
+@media (max-width: 560px) { .radio-calc { padding: 22px 18px; } .radio-city-calc { margin-left: 4px; } }
