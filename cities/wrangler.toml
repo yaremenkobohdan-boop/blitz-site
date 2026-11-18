@@ -15,4 +15,5 @@ routes = [
   { pattern = "bohuslav.blitz.com.ua", custom_domain = true },
   { pattern = "rokytne.blitz.com.ua", custom_domain = true },
   { pattern = "stavyshche.blitz.com.ua", custom_domain = true },
+  { pattern = "merezha.blitz.com.ua", custom_domain = true },
 ]

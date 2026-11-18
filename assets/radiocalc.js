@@ -27,7 +27,9 @@
   function kyivToday() {
     try { return new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Kyiv' }); } catch (e) { return new Date().toISOString().slice(0, 10); }
   }
-  // Активні акції: enabled і київська дата в [from,to]. opts.preview — id акцій, що показуються примусово (для перегляду до початку).
+  // Активні акції: enabled і київська дата в [from,to]. opts.preview — id акцій, що показуються примусово (для перегляду до початку);
+  // opts.city — ключ міста (bt, fs, um, sm, bg, rk, st, mz): акція з непорожнім cities діє лише в перелічених містах.
+  // Необов'язкові поля банера: headline, text, fine, image (у посиланні {city} замінюється на ключ міста).
   function activePromos(P, opts) {
     opts = opts || {};
     var arr = (P && Array.isArray(P.promos)) ? P.promos : [], t = opts.today || kyivToday(), pv = opts.preview || [], out = [];
@@ -35,8 +37,10 @@
       if (!p || !p.id) return;
       var pct = +p.discountPct, dd = +p.days;
       if (!(pct > 0 && pct <= 100 && dd >= 1)) return;
+      if (opts.city && Array.isArray(p.cities) && p.cities.length && p.cities.indexOf(opts.city) < 0) return;
       var forced = pv.indexOf(p.id) >= 0;
-      if (forced || (p.enabled && p.from <= t && t <= p.to)) out.push({ id: String(p.id), name: String(p.name || p.id), discountPct: pct, days: Math.round(dd), comment: String(p.comment || p.name || p.id) });
+      if (forced || (p.enabled && p.from <= t && t <= p.to)) out.push({ id: String(p.id), name: String(p.name || p.id), discountPct: pct, days: Math.round(dd), comment: String(p.comment || p.name || p.id),
+        from: p.from, to: p.to, headline: String(p.headline || ''), text: String(p.text || ''), fine: String(p.fine || ''), image: p.image ? String(p.image).split('{city}').join(opts.city || '') : '' });
     });
     return out;
   }
@@ -54,5 +58,5 @@
     return { days: days, tariffIdx: ti, tariffDays: tD, packagePrice: pkg, minSecs: minSecs, orderedSecs: ordered, billedSecs: billed, pricePerSec: pps,
       raw: raw, volumePct: vp, promoPct: promoPct, afterDiscount: afterDisc, discountAmt: raw - afterDisc, fixedAmt: fixedAmt, subtotal: sub, taxAmt: taxAmt, total: sub + taxAmt };
   }
-  root.RadioCalc = { rules: rules, packDays: packDays, pack: pack, clampDays: clampDays, tariffIdx: tariffIdx, volumeDiscountPct: volumeDiscountPct, volumeText: volumeText, activePromos: activePromos, calcAirtime: calcAirtime, kyivToday: kyivToday, version: 1 };
+  root.RadioCalc = { rules: rules, packDays: packDays, pack: pack, clampDays: clampDays, tariffIdx: tariffIdx, volumeDiscountPct: volumeDiscountPct, volumeText: volumeText, activePromos: activePromos, calcAirtime: calcAirtime, kyivToday: kyivToday, version: 2 };
 })(typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : this));
