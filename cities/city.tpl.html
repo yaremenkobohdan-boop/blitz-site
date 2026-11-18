@@ -338,7 +338,7 @@ function fmt2(n){return n.toFixed(2).replace('.',',')}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function resetState(){
  var c=CITIES[cur];
- S={tab:c.tab,day:0,days:28,clips:[{d:20,s:5}],tax:0,pre:0,promo:'',promoPrev:28,fixed:false,bcSel:{},combo:'',regSel:{},netSel:{},netPreset:false,sp:0,vidStyle:0,vidParts:{sc:true,cl:true}};
+ S={tab:c.tab,day:0,days:28,clips:[{d:20,s:5}],tax:0,pre:0,promo:'',promoPrev:28,fixed:false,bcSel:{},combo:'',regSel:{},netSel:{},netPreset:false,sp:0,vidStyle:0,vidParts:{sc:true,cl:true},vidBuyout:false};
  if(cur==='bt')S.bcSel[1]=true;
  if(cur==='fs'||cur==='um')S.regSel[cur+'-0']=true;
  if(['bg','rk','sm','st'].indexOf(cur)>=0){}
@@ -414,7 +414,7 @@ function render(){
   h+='<div class="lab">Передоплата</div><div class="chips">'+PRICES.prepay.map(function(p,i){return chip(p[0],S.pre===i,'data-pre="'+i+'"')}).join('')+'</div>'+taxBlock();
  }else{
   h+='<div class="lab">Стиль ролика</div><div class="chips">'+PRICES.video.map(function(v,i){return chip(v[0],S.vidStyle===i,'data-vs="'+i+'"')}).join('')+'</div>';
-  h+='<div class="lab">Що потрібно</div><div class="chips">'+chip('Сценарій',S.vidParts.sc,'data-vp="sc"')+chip('Ролик',S.vidParts.cl,'data-vp="cl"')+'</div><p class="note">Викупна ціна потрібна для роликів під розміщення на станціях поза нашою мережею: сценарій і ролик разом від '+fmt(PRICES.video[0][4])+' грн.</p>'+taxBlock();
+  h+='<div class="lab">Що потрібно</div><div class="chips">'+chip('Сценарій',S.vidParts.sc,'data-vp="sc"')+chip('Ролик',S.vidParts.cl,'data-vp="cl"')+chip('Викуп (для інших радіостанцій)',S.vidBuyout,'data-vp="buy"')+'</div><p class="note">Викуп потрібен для ролика під розміщення на станціях поза нашою мережею: сценарій і ролик разом від '+fmt(PRICES.video[0][4])+' грн. Обирається замість окремих «Сценарій» і «Ролик».</p>'+taxBlock();
  }
  if(S.tab==='bc'||S.tab==='reg'||S.tab==='net')h=promoBlock()+h;
  $('body').innerHTML=h;
@@ -440,15 +440,15 @@ function syncDays(){syncPromoBtn();var n=$('daysNote');if(n)n.innerHTML=daysNote
 function calc(){
  var o=$('sumBody'),taxR=PRICES.tax[S.tax][1],tn=PRICES.tax[S.tax][0];
  if(S.tab==='spo'){
-  var pr=PRICES.sponsor[S.sp],disc=PRICES.prepay[S.pre][1],base=pr[1],aft=base*(1-disc),tot=aft*(1+taxR);
-  o.innerHTML='<dl><div><dt>Програма</dt><dd>'+esc(pr[0])+'</dd></div><div><dt>Базова ціна</dt><dd>'+fmt(base)+' грн/міс</dd></div>'+(disc?'<div><dt>Передоплата</dt><dd>−'+Math.round(disc*100)+'%</dd></div>':'')+'<div><dt>Оподаткування</dt><dd>'+tn+'</dd></div></dl><div class="tot">'+fmt(tot)+' грн/міс</div><small>Ціна без податку, якщо не обрано інше. 100% передоплата.</small><button type="button" class="btn" id="reqBtn">Надіслати запит</button>';
-  lastText='РІА «БЛІЦ» — розрахунок\nСпонсорство: '+pr[0]+'\nЦіна: '+fmt(tot)+' грн/міс ('+tn+')';
+  var pr=PRICES.sponsor[S.sp],pp=PRICES.prepay[S.pre],disc=pp[1],mm=/(\d+)\s*міс/.exec(pp[0]),months=mm?+mm[1]:0,base=pr[1],aft=Math.round(base*(1-disc)),tot=Math.round(aft*(1+taxR)),sub=Math.round(base*months*(1-disc)),totAll=sub+Math.round(sub*taxR);
+  o.innerHTML='<dl><div><dt>Програма</dt><dd>'+esc(pr[0])+'</dd></div><div><dt>Базова ціна</dt><dd>'+fmt(base)+' грн/міс</dd></div>'+(disc?'<div><dt>Передоплата</dt><dd>−'+Math.round(disc*100)+'%</dd></div>':'')+(months?'<div><dt>Разом за '+months+' міс.</dt><dd>'+fmt(totAll)+' грн</dd></div>':'')+'<div><dt>Оподаткування</dt><dd>'+tn+'</dd></div></dl><div class="tot">'+fmt(tot)+' грн/міс</div><small>Ціна без податку, якщо не обрано інше. 100% передоплата.</small><button type="button" class="btn" id="reqBtn">Надіслати запит</button>';
+  lastText='РІА «БЛІЦ» — розрахунок\nСпонсорство: '+pr[0]+'\nЦіна: '+fmt(tot)+' грн/міс ('+tn+')'+(months?'\nРазом за '+months+' міс. (передоплата −'+Math.round(disc*100)+'%): '+fmt(totAll)+' грн':'');
   return bindCopy()
  }
  if(S.tab==='vid'){
-  var v=PRICES.video[S.vidStyle],sc=S.vidParts.sc?v[1]:0,cl=S.vidParts.cl?v[2]:0,b=sc+cl,t3=b*(1+taxR);
-  o.innerHTML='<dl><div><dt>Стиль</dt><dd>'+v[0]+'</dd></div><div><dt>Сценарій</dt><dd>'+fmt(sc)+' грн</dd></div><div><dt>Ролик</dt><dd>'+fmt(cl)+' грн</dd></div><div><dt>Оподаткування</dt><dd>'+tn+'</dd></div></dl><div class="tot">'+fmt(t3)+' грн</div><button type="button" class="btn" id="reqBtn">Надіслати запит</button>';
-  lastText='РІА «БЛІЦ» — розрахунок\nВиготовлення: '+v[0]+', сценарій '+fmt(sc)+', ролик '+fmt(cl)+'\nРазом: '+fmt(t3)+' грн ('+tn+')';
+  var v=PRICES.video[S.vidStyle],bo=S.vidBuyout,sc=!bo&&S.vidParts.sc?v[1]:0,cl=!bo&&S.vidParts.cl?v[2]:0,b=bo?v[4]:sc+cl,t3=b*(1+taxR);
+  o.innerHTML='<dl><div><dt>Стиль</dt><dd>'+v[0]+'</dd></div>'+(bo?'<div><dt>Викуп (сценарій і ролик для інших радіостанцій)</dt><dd>'+fmt(b)+' грн</dd></div>':'<div><dt>Сценарій</dt><dd>'+fmt(sc)+' грн</dd></div><div><dt>Ролик</dt><dd>'+fmt(cl)+' грн</dd></div>')+'<div><dt>Оподаткування</dt><dd>'+tn+'</dd></div></dl><div class="tot">'+fmt(t3)+' грн</div><button type="button" class="btn" id="reqBtn">Надіслати запит</button>';
+  lastText='РІА «БЛІЦ» — розрахунок\nВиготовлення: '+v[0]+(bo?', викуп (для інших радіостанцій) '+fmt(b):', сценарій '+fmt(sc)+', ролик '+fmt(cl))+'\nРазом: '+fmt(t3)+' грн ('+tn+')';
   return bindCopy()
  }
  var r=priceRow();
@@ -560,7 +560,7 @@ document.addEventListener('click',function(e){
  else if(d.net){S.netPreset=false;S.netSel[d.net]=!S.netSel[d.net]}
  else if(d.netp){S.netPreset=!S.netPreset}
  else if(d.vs!==undefined){S.vidStyle=+d.vs}
- else if(d.vp){S.vidParts[d.vp]=!S.vidParts[d.vp]}
+ else if(d.vp){if(d.vp==='buy'){S.vidBuyout=!S.vidBuyout;if(S.vidBuyout){S.vidParts.sc=false;S.vidParts.cl=false}}else{S.vidParts[d.vp]=!S.vidParts[d.vp];if(S.vidParts[d.vp])S.vidBuyout=false}}
  else if(d.del!==undefined){S.clips.splice(+d.del,1)}
  else if(t.id==='addClip'){S.clips.push({d:20,s:5})}
  else return;
