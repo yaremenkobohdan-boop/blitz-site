@@ -4,7 +4,7 @@
 const fs=require('fs'),path=require('path');
 const {chromium}=require(process.env.PLAYWRIGHT_PATH||'playwright');
 const CITIES=[['bt','bila-tserkva','Біла Церква','у Білій Церкві'],['fs','fastiv','Фастів','у Фастові'],['um','uman','Умань','в Умані'],['sm','smila','Сміла','у Смілі'],['bg','bohuslav','Богуслав','у Богуславі'],['rk','rokytne','Рокитне','у Рокитному'],['st','stavyshche','Ставище','у Ставищі'],['mz','merezha','Вся мережа','у мережі БЛІЦ-ФМ']];
-const root=path.join(__dirname,'..'),tpl=fs.readFileSync(path.join(__dirname,'city.tpl.html'),'utf8'),prices=fs.readFileSync(path.join(root,'assets','radio-prices.js'),'utf8');
+const root=path.join(__dirname,'..'),tpl=fs.readFileSync(path.join(__dirname,'city.tpl.html'),'utf8'),prices=fs.readFileSync(path.join(root,'assets','radio-prices.js'),'utf8'),rcalc=fs.readFileSync(path.join(root,'assets','radiocalc.js'),'utf8');
 (async()=>{
  const b=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||undefined});
  const today=new Date().toISOString().slice(0,10);
@@ -14,6 +14,7 @@ const root=path.join(__dirname,'..'),tpl=fs.readFileSync(path.join(__dirname,'ci
   const p=await b.newPage();
   await p.route('**/*',r=>{const u=r.request().url();
    if(u.endsWith('/assets/radio-prices.js')||u==='https://calc.blitz.com.ua/prices.js')return r.fulfill({contentType:'application/javascript',body:prices});
+   if(u.endsWith('/assets/radiocalc.js')||u==='https://calc.blitz.com.ua/radiocalc.js')return r.fulfill({contentType:'application/javascript',body:rcalc});
    if(u.startsWith('about:')||u.startsWith('data:'))return r.continue();
    if(u==='https://'+host+'/')return r.fulfill({contentType:'text/html',body:html});
    return r.abort()});
