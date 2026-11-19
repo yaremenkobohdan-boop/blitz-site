@@ -424,7 +424,7 @@ function priceRow(){
  var p=null,label='';
  if(S.tab==='bc'){
   if(S.combo){var x=PRICES.bc.combos.filter(function(a){return a[0]===S.combo})[0];p=x[2];label=x[1]}
-  else{var ks=Object.keys(S.bcSel).filter(function(k){return S.bcSel[k]});if(!ks.length)return null;p=PRICES.bc.byCount[Math.min(ks.length,8)];label=ks.map(function(k){var s=PRICES.bc.stations[k-1];return s[0]+' '+s[1]}).join(', ')+' ('+ks.length+' ст.)'}
+  else{var ks=Object.keys(S.bcSel).filter(function(k){return S.bcSel[k]});if(!ks.length)return null;p=PRICES.bc.byCount[Math.min(ks.length,8)];if(ks.length===1&&ks[0]==='2'){var nb=PRICES.network.filter(function(a){return a[0]==='bt'})[0];if(nb)p=nb[3]}label=ks.map(function(k){var s=PRICES.bc.stations[k-1];return s[0]+' '+s[1]}).join(', ')+' ('+ks.length+' ст.)'}
  }else if(S.tab==='reg'){
   var tot=[0,0,0,0],nm=[];PRICES.regions.forEach(function(r){r.v.forEach(function(v,i){if(S.regSel[r.id+'-'+i]){for(var j=0;j<4;j++)tot[j]+=v[1][j];nm.push(r.name+': '+v[0])}})});
   if(!nm.length)return null;p=tot;label=nm.join('; ')
