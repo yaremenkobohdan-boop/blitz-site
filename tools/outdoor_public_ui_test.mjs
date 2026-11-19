@@ -4,9 +4,9 @@ const O = globalThis.OutdoorPublic;
 let fails = 0, n = 0;
 const eq = (m, g, w) => { n++; if (JSON.stringify(g) !== JSON.stringify(w)) { fails++; print('FAIL', m, JSON.stringify(g), JSON.stringify(w)); } };
 const sale = { printPrice: 1300, mountPrice: 2000, liftPrice: 3500, banPrint: 5800, banMount: 4200, banLift: 6800, clPrint: 0, rlPrint: 0 };
-const pz = { id: 'PZ-25', type: 'board', price: 5000, priceY: { 2026: 5000, 2027: 6000 }, mount: 'ladder', inc: false, fresh: true, occ: '000000000000', occY: { 2026: '000000000001', 2027: '000000000000' } };
-const al = { id: 'AL-5', type: 'board', price: 5000, mount: 'lift', inc: false, fresh: false, occ: '000000000000' };
-const led = { id: 'PZ-4', type: 'led', price: 6000, priceY: { 2026: 6000, 2027: 6000 }, mount: 'ladder', inc: false, fresh: true };
+const pz = { k: 'i1', type: 'board', price: 5000, priceY: { 2026: 5000, 2027: 6000 }, mount: 'ladder', inc: false, st: { 2026: '000000000001', 2027: '000000000000' } };
+const al = { k: 'i2', type: 'board', price: 5000, mount: 'lift', inc: false };
+const led = { k: 'i3', type: 'led', price: 6000, priceY: { 2026: 6000, 2027: 6000 }, mount: 'ladder', inc: false };
 eq('місяці через новий рік', O.monthsOf('2026-12-01', 3), [[2026, 11], [2027, 0], [2027, 1]]);
 eq('оренда: грудень 2026 + січень, лютий 2027 = 5000+6000+6000', O.rentOf(pz, O.monthsOf('2026-12-01', 3)), 17000);
 eq('оренда без priceY', O.rentOf(al, O.monthsOf('2026-12-01', 3)), 15000);
@@ -18,17 +18,46 @@ r = O.calc([pz, al], sale, { start: '2027-01-01', n: 1, banner: true, print: tru
 eq('банер: друк 5800, монтаж 4200/вишка 6800, демонтаж як монтаж', [r.print, r.mount, r.demount, r.sub], [11600, 11000, 11000, 6000 + 5000 + 11600 + 11000 + 11000]);
 r = O.calc([pz], sale, { start: '2027-01-01', n: 1, banner: false, print: false, mount: false, taxRate: 0 });
 eq('лише оренда', [r.rent, r.print, r.mount, r.total], [6000, 0, 0, 6000]);
-const inc = { id: 'X', type: 'board', price: 4000, inc: true, mount: 'ladder', fresh: true };
+const inc = { k: 'x', type: 'board', price: 4000, inc: true, mount: 'ladder' };
 eq('поклейка входить у ціну: монтаж 0, демонтаж 0', (r = O.calc([inc], sale, { start: '2027-01-01', n: 1, banner: true, print: false, mount: true, taxRate: 0 }), [r.mount, r.demount]), [0, 0]);
-const cl = { id: 'C', type: 'citylight', price: 3000, inc: false, fresh: true, mount: 'ladder' };
+const cl = { k: 'c', type: 'citylight', price: 3000, inc: false, mount: 'ladder' };
 r = O.calc([cl], sale, { start: '2027-01-01', n: 1, banner: false, print: true, mount: false, taxRate: 0 });
 eq('сітілайт: друк 0 → «уточнюйте» (ask)', [r.print, r.ask], [0, true]);
 // стани
 eq('екран завжди вільний', O.stateOf(led, O.monthsOf('2026-12-01', 3)), 'free');
-eq('Алтай (не свіжі дані) — уточнюйте', O.stateOf(al, O.monthsOf('2026-12-01', 1)), 'unknown');
-eq('Позитив: грудень 2026 зайнято', O.stateOf(pz, O.monthsOf('2026-12-01', 1)), 'busy');
-eq('Позитив: листопад 2026 вільно', O.stateOf(pz, O.monthsOf('2026-11-01', 1)), 'free');
-eq('Позитив: 2027 вільно', O.stateOf(pz, O.monthsOf('2027-01-01', 2)), 'free');
-eq('невідомий рік → уточнюйте', O.stateOf(pz, O.monthsOf('2028-01-01', 1)), 'unknown');
+eq('сторона без даних про зайнятість — вільно (зелений)', O.stateOf(al, O.monthsOf('2026-12-01', 1)), 'free');
+eq('грудень 2026 зайнято', O.stateOf(pz, O.monthsOf('2026-12-01', 1)), 'busy');
+eq('листопад 2026 вільно', O.stateOf(pz, O.monthsOf('2026-11-01', 1)), 'free');
+eq('2027 вільно', O.stateOf(pz, O.monthsOf('2027-01-01', 2)), 'free');
+eq('період охоплює зайнятий грудень → зайнято', O.stateOf(pz, O.monthsOf('2026-11-01', 2)), 'busy');
+eq('період через новий рік: гру 2026 зайнято', O.stateOf(pz, O.monthsOf('2026-12-01', 3)), 'busy');
+eq('період після зайнятого місяця: січ-лют 2027 вільно', O.stateOf(pz, O.monthsOf('2027-01-01', 2)), 'free');
+eq('немає даних про рік (2028) → вільно, без «уточнюйте»', O.stateOf(pz, O.monthsOf('2028-01-01', 1)), 'free');
+eq('частково відомий період: рік без даних не робить зайнятим', O.stateOf({ type: 'board', st: { 2026: '111111111111' } }, O.monthsOf('2027-01-01', 1)), 'free');
+// відстань і радіус
+const BC = { lat: 49.8, lng: 30.12 };
+eq('haversine: нуль', O.haversine(49.8, 30.12, 49.8, 30.12), 0);
+const d1 = O.haversine(49.8, 30.12, 49.81, 30.12); eq('haversine: 0,01° широти ≈ 1,11 км', Math.round(d1 * 100) / 100, 1.11);
+eq('dTxt', [O.dTxt(0.42), O.dTxt(1.26), O.dTxt(null)], ['420 м', '1,3 км', '']);
+const mk = (k, la, lo) => ({ k: k, lat: la, lng: lo, type: 'board' });
+const pts = [mk('far', 49.9, 30.12), mk('near', 49.801, 30.12), mk('mid', 49.82, 30.12), mk('nocoord', null, null), mk('edge', 49.8 + 3 / 111.195, 30.12)];
+let w = O.withinRadius(pts, BC, 3);
+eq('радіус 3 км: near, mid, edge у колі, відсортовано за відстанню', w.map(function (x) { return x.it.k; }), ['near', 'mid', 'edge']);
+eq('радіус 1 км: лише near', O.withinRadius(pts, BC, 1).map(function (x) { return x.it.k; }), ['near']);
+eq('радіус 20 км: далекий (≈11 км) входить, без координат — ні', O.withinRadius(pts, BC, 20).map(function (x) { return x.it.k; }), ['near', 'mid', 'edge', 'far']);
+// групування
+const g = O.groupByCoord([{ it: mk('a', 49.80001, 30.1), st: 'free' }, { it: mk('b', 49.80001, 30.1), st: 'busy' }, { it: mk('c', 49.9, 30.2) }, { it: mk('d', null, null) }]);
+eq('групування: дві сторони на одній точці → один маркер', g.map(function (x) { return x.rows.map(function (r) { return r.it.k; }); }), [['a', 'b'], ['c']]);
+// координати
+eq('координати: пара через кому', O.parseCoords('49.8001, 30.1234'), { lat: 49.8001, lng: 30.1234 });
+eq('координати: Google @', O.parseCoords('https://www.google.com/maps/@49.80,30.12,17z'), { lat: 49.8, lng: 30.12 });
+eq('координати: Google !3d!4d', O.parseCoords('…!3d49.8123!4d30.1456'), { lat: 49.8123, lng: 30.1456 });
+eq('координати: десяткова кома', O.parseCoords('49,8123 30,1456'), { lat: 49.8123, lng: 30.1456 });
+eq('координати: поза Україною відкидаються', O.parseCoords('51.5074, -0.1278'), null);
+eq('адреса — не координати', O.parseCoords('Біла Церква, Гагаріна 5'), null);
+// публічна сторона не несе службових полів
+const pi = O.publicItem({ id: 'AL-5', sup: 'altai', fresh: true, occ: '1', occY: {}, region: 'x', code: '1', side: 'А', addr: 'a', zone: 'z', type: 'board', price: 1, lat: 1, lng: 2, acc: 'exact', img: 'i.jpg', mount: 'ladder', inc: false, st: { 2026: '0' } }, 7);
+eq('publicItem: ключі', Object.keys(pi).sort().join(), 'acc,addr,code,img,inc,k,lat,lng,mount,price,priceY,side,size,st,type,zone');
+eq('publicItem: k порядковий, без id постачальника', pi.k, 'i7');
 eq('початок: наступний місяць', [O.nextMonthStart(new Date(2026, 10, 18)), O.nextMonthStart(new Date(2026, 11, 5))], ['2026-12-01', '2027-01-01']);
 print(fails ? 'OUTDOOR PUBLIC UI FAILED ' + fails + ' з ' + n : n + ' перевірок: OUTDOOR PUBLIC UI OK');

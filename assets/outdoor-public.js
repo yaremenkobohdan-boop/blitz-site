@@ -1,13 +1,17 @@
-/* Онлайн-бронювання зовнішньої реклами (бігборди, відеоекрани): публічний калькулятор. SPEC_OUTDOOR_PUBLIC.md.
-   Дані: calc.blitz.com.ua/outdoor-public.json (білий список; без постачальників і собівартості). Формули — ті самі, що в калькуляторі менеджера.
-   Контейнер: <div id="outdoor-app" data-kind="board|led" data-feed="…" data-img="…">. Заявка вставляє розрахунок у форму Uspacy. */
+/* Онлайн-бронювання зовнішньої реклами (бігборди, відеоекрани): публічний калькулятор. SPEC_OUTDOOR_PUBLIC.md, SPEC_OUTDOOR_PUBLIC_MAP.md.
+   Дані: calc.blitz.com.ua/outdoor-public.json (лише публічні поля). Формули — ті самі, що в калькуляторі менеджера.
+   Бігборди: карта з точкою клієнта й радіусом (Leaflet + OpenStreetMap), список за відстанню, фільтр наявності. Відеоекрани: картки.
+   Контейнер: <div id="outdoor-app" data-kind="board|led" data-feed="…" data-img="…" data-privacy="…">. Заявка вставляє розрахунок у форму Uspacy. */
 (function (root) {
   'use strict';
   var MON = ['січня', 'лютого', 'березня', 'квітня', 'травня', 'червня', 'липня', 'серпня', 'вересня', 'жовтня', 'листопада', 'грудня'];
   var TYPE_LBL = { board: 'Бігборд', citylight: 'Сітілайт', roller: 'Ролер / призматрон', led: 'Відеоекран' };
   var TAXES = [['Без податку', 0], ['ЄП 2%', 0.02], ['ЄП 3 групи 7%', 0.07], ['ПДВ 20%', 0.2]];
+  var RADII = [1, 2, 3, 5, 10, 20];
+  var DISCLAIMER = 'Наявність на обраний період підтверджує менеджер: після підтвердження сторони резервуються за вами на 3 дні для прийняття рішення.';
+  var CONSENT = 'Я погоджуюся на обробку моїх персональних даних для опрацювання заявки та зв’язку зі мною відповідно до ';
   var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
-  var money = function (n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' грн'; };
+  var money = function (n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' грн'; };
 
   /* ───── чисті функції (тестуються в jsc) ───── */
   // Ціна місяця року y: ціна найближчого року не пізніше y (для років без окремої колонки — остання відома); раніше першого відомого — it.price.
@@ -23,15 +27,43 @@
     return out;
   }
   function rentOf(it, ms) { var s = 0; ms.forEach(function (x) { s += priceAt(it, x[0]); }); return Math.round(s); }
-  function occOf(it, y) { if (it.occY && it.occY[y] != null) return it.occY[y]; return null; }
-  // 'free' | 'busy' | 'unknown': екрани завжди вільні (рішення власника); де дані постачальника не свіжі — 'unknown' («Уточнюйте»)
+  // 'free' | 'busy'. it.st = {рік: 12 символів}: '1' зайнято (у т.ч. резерв), '0' вільно. Немає даних про рік чи сторону = вільно (зелений). Екрани завжди вільні.
   function stateOf(it, ms) {
-    if (it.type === 'led') return 'free';
-    if (!it.fresh) return 'unknown';
-    var busy = false, unk = false;
-    ms.forEach(function (x) { var oc = occOf(it, x[0]) || (x[0] === 2026 ? it.occ : null); if (!oc) { unk = true; return; } var c = oc[x[1]]; if (c === '1' || c === '2') busy = true; });
-    return busy ? 'busy' : unk ? 'unknown' : 'free';
+    if (it.type === 'led' || !it.st) return 'free';
+    for (var i = 0; i < ms.length; i++) { var row = it.st[ms[i][0]]; if (row && row.charAt(ms[i][1]) === '1') return 'busy'; }
+    return 'free';
   }
+  // Відстань між двома точками, км (haversine)
+  function haversine(lat1, lng1, lat2, lng2) {
+    var R = 6371, rad = function (x) { return x * Math.PI / 180; }, dLa = rad(lat2 - lat1), dLo = rad(lng2 - lng1);
+    var a = Math.sin(dLa / 2) * Math.sin(dLa / 2) + Math.cos(rad(lat1)) * Math.cos(rad(lat2)) * Math.sin(dLo / 2) * Math.sin(dLo / 2);
+    return 2 * R * Math.asin(Math.sqrt(a));
+  }
+  // Сторони в радіусі km від точки pt {lat,lng}: [{it, d}] за зростанням відстані; сторони без координат відкидаються
+  function withinRadius(items, pt, km) {
+    var out = [];
+    items.forEach(function (it) { if (it.lat == null || it.lng == null) return; var d = haversine(pt.lat, pt.lng, it.lat, it.lng); if (d <= km) out.push({ it: it, d: d }); });
+    return out.sort(function (a, b) { return a.d - b.d; });
+  }
+  // Групи сторін з однаковими координатами (до 5 знаків): [{key, lat, lng, rows:[row…]}]; row — елемент з полями it (сторона)
+  function groupByCoord(rows) {
+    var map = {}, order = [];
+    rows.forEach(function (r) {
+      var it = r.it; if (it.lat == null || it.lng == null) return;
+      var k = Number(it.lat).toFixed(5) + ',' + Number(it.lng).toFixed(5);
+      if (!map[k]) { map[k] = { key: k, lat: it.lat, lng: it.lng, rows: [] }; order.push(k); }
+      map[k].rows.push(r);
+    });
+    return order.map(function (k) { return map[k]; });
+  }
+  // Координати з тексту або посилання Google Maps (@lat,lng або !3dлат!4dдов); лише в межах України
+  function parseCoords(raw) {
+    var m = String(raw || '').match(/@(-?\d{1,2}\.\d+),(-?\d{1,3}\.\d+)/) || String(raw || '').match(/!3d(-?\d{1,2}\.\d+)!4d(-?\d{1,3}\.\d+)/) || String(raw || '').match(/(-?\d{1,2}[.,]\d{3,})\s*[,; ]\s*(-?\d{1,3}[.,]\d{3,})/);
+    if (!m) return null;
+    var la = Number(m[1].replace(',', '.')), lo = Number(m[2].replace(',', '.'));
+    return (la > 44 && la < 53 && lo > 22 && lo < 41) ? { lat: la, lng: lo } : null;
+  }
+  function dTxt(d) { return d == null ? '' : d < 1 ? Math.round(d * 100) * 10 + ' м' : d.toFixed(1).replace('.', ',') + ' км'; }
   function printSale(it, sale, banner) {
     if (it.type === 'led') return 0;
     if (it.type === 'citylight') return Number(sale.clPrint) || 0;
@@ -58,8 +90,12 @@
   }
   function isoMonthStart(y, m) { return y + '-' + String(m + 1).padStart(2, '0') + '-01'; }
   function nextMonthStart(now) { var d = now || new Date(); var y = d.getFullYear(), m = d.getMonth() + 1; if (m === 12) { m = 0; y++; } return isoMonthStart(y, m); }
+  // Публічна сторона з фіду: лише потрібні клієнту поля; ключ k (порядковий) замість id з фіду
+  function publicItem(raw, idx) {
+    return { k: 'i' + idx, code: raw.code, side: raw.side, size: raw.size, addr: raw.addr, zone: raw.zone, type: raw.type, price: raw.price, priceY: raw.priceY, lat: raw.lat, lng: raw.lng, acc: raw.acc, img: raw.img, mount: raw.mount, inc: raw.inc, st: raw.st };
+  }
 
-  var API = { priceAt: priceAt, monthsOf: monthsOf, rentOf: rentOf, stateOf: stateOf, printSale: printSale, mountSale: mountSale, calc: calc, nextMonthStart: nextMonthStart };
+  var API = { priceAt: priceAt, monthsOf: monthsOf, rentOf: rentOf, stateOf: stateOf, haversine: haversine, withinRadius: withinRadius, groupByCoord: groupByCoord, parseCoords: parseCoords, dTxt: dTxt, printSale: printSale, mountSale: mountSale, calc: calc, nextMonthStart: nextMonthStart, publicItem: publicItem };
   root.OutdoorPublic = API;
   if (typeof document === 'undefined') return;
 
@@ -68,107 +104,290 @@
   var KIND = app.getAttribute('data-kind') === 'led' ? 'led' : 'board';
   var FEED = app.getAttribute('data-feed') || 'https://calc.blitz.com.ua/outdoor-public.json';
   var IMG = app.getAttribute('data-img') || 'https://blitz.com.ua/assets/outdoor/t/';
-  var S = { items: [], sale: {}, byId: {}, sel: [], zone: '', type: '', view: 'list', limit: 30, start: nextMonthStart(), n: 1, banner: false, print: false, mount: false, tax: 0, map: null, markers: null, err: '' };
+  var PRIVACY = app.getAttribute('data-privacy') || 'https://blitz.com.ua/konfidentsiinist';
+  var COL = { free: '#16A34A', busy: '#DC2626' };
+  var S = { items: [], sale: {}, byId: {}, sel: [], zone: '', type: '', limit: 30, start: nextMonthStart(), n: 1, banner: false, print: false, mount: false, tax: 0, consent: false, consentErr: false,
+    av: 'free', pt: null, radius: 3, pick: false, helpOpen: false, view: 'list', map: null, fit: true, busy: false };
+  var $ = function (id) { return document.getElementById(id); };
 
   function typesOk(it) { return KIND === 'led' ? it.type === 'led' : it.type !== 'led'; }
-  function filtered() { return S.items.filter(function (it) { return typesOk(it) && (!S.zone || it.zone === S.zone) && (!S.type || it.type === S.type); }); }
-  function stTxt(st, it) { return st === 'free' ? (it.type === 'led' ? 'Вільно' : 'За нашими даними вільно') : st === 'busy' ? 'За нашими даними зайнято' : 'Уточнюйте'; }
+  function stTxt(st, it) { return st === 'busy' ? 'За нашими даними зайнято' : (it.type === 'led' ? 'Вільно' : 'За нашими даними вільно'); }
   function stHint(it) { return it.type === 'led' ? 'Наявність і умови підтверджує менеджер після вашої заявки' : 'Позначка орієнтовна й може відрізнятися від фактичного стану. Наявність підтверджує менеджер після вашої заявки'; }
   function periodOptions() {
     var y = Number(nextMonthStart().slice(0, 4)), m = Number(nextMonthStart().slice(5, 7)) - 1, o = '';
     for (var i = 0; i < 12; i++) { var iso = isoMonthStart(y, m); o += '<option value="' + iso + '"' + (iso === S.start ? ' selected' : '') + '>' + MON[m].charAt(0).toUpperCase() + MON[m].slice(1) + ' ' + y + '</option>'; m++; if (m === 12) { m = 0; y++; } }
     return o;
   }
-  function card(it) {
-    var ms = monthsOf(S.start, S.n), st = stateOf(it, ms), inCart = S.sel.indexOf(it.id) >= 0;
+  function monthsOptions() { return [1, 2, 3, 4, 5, 6, 9, 12].map(function (n) { return '<option value="' + n + '"' + (n === S.n ? ' selected' : '') + '>' + n + '</option>'; }).join(''); }
+  function zones() { var z = {}; S.items.filter(typesOk).forEach(function (it) { z[it.zone] = (z[it.zone] || 0) + 1; }); return Object.keys(z).sort(); }
+  function sideLbl(it) { return '№ ' + esc(it.code) + (it.side ? ', сторона ' + esc(it.side) : '') + (it.size ? ' · ' + esc(it.size) + ' м' : ''); }
+  function sel() { return S.sel.map(function (k) { return S.byId[k]; }).filter(Boolean); }
+  function periodTxt() { var ms = monthsOf(S.start, S.n), a = ms[0], b = ms[ms.length - 1]; return MON[a[1]] + ' ' + a[0] + (ms.length > 1 ? ' — ' + MON[b[1]] + ' ' + b[0] : '') + ' (' + ms.length + ' міс.)'; }
+
+  /* ───── відеоекрани: картки ───── */
+  function ledList() { return S.items.filter(function (it) { return typesOk(it) && (!S.zone || it.zone === S.zone); }); }
+  function ledCard(it) {
+    var ms = monthsOf(S.start, S.n), st = stateOf(it, ms), inCart = S.sel.indexOf(it.k) >= 0;
     var pr = priceAt(it, ms[0][0]), img = it.img ? '<img src="' + esc(IMG + it.img) + '" alt="' + esc(it.addr) + '" loading="lazy" width="360" height="203">' : '<div class="op-noimg">Фото відсутнє</div>';
     return '<article class="op-card"><div class="op-photo">' + img + '</div><div class="op-body"><div class="op-tags"><span>' + esc(TYPE_LBL[it.type] || it.type) + '</span><span>' + esc(it.zone) + '</span>' + (it.size ? '<span>' + esc(it.size) + ' м</span>' : '') + '</div>' +
       '<h4>' + esc(it.addr) + '</h4><div class="op-meta">№ ' + esc(it.code) + (it.side ? ', сторона ' + esc(it.side) : '') + '</div>' +
       '<div class="op-foot"><div><b>' + money(pr) + '</b> <small>за місяць, без податків</small></div><span class="op-st op-' + st + '" title="' + esc(stHint(it)) + '">' + stTxt(st, it) + '</span></div>' +
-      '<button type="button" class="btn ' + (inCart ? 'btn-outline' : 'btn-primary') + ' btn-sm" data-act="' + (inCart ? 'del' : 'add') + '" data-id="' + esc(it.id) + '">' + (inCart ? 'Прибрати' : 'Додати до розрахунку') + '</button></div></article>';
+      '<button type="button" class="btn ' + (inCart ? 'btn-outline' : 'btn-primary') + ' btn-sm" data-act="' + (inCart ? 'del' : 'add') + '" data-id="' + esc(it.k) + '">' + (inCart ? 'Прибрати' : 'Додати до розрахунку') + '</button></div></article>';
   }
-  function zones() { var z = {}; S.items.filter(typesOk).forEach(function (it) { z[it.zone] = (z[it.zone] || 0) + 1; }); return Object.keys(z).sort(); }
-  function render() {
-    var list = filtered(), shown = list.slice(0, S.limit), zs = zones(), types = {}; S.items.filter(typesOk).forEach(function (it) { types[it.type] = 1; });
+  function renderLed() {
+    var list = ledList(), shown = list.slice(0, S.limit), zs = zones();
     var h = '<div class="op-filters"><label>Населений пункт<select data-f="zone"><option value="">Усі (' + S.items.filter(typesOk).length + ')</option>' + zs.map(function (z) { return '<option value="' + esc(z) + '"' + (z === S.zone ? ' selected' : '') + '>' + esc(z) + '</option>'; }).join('') + '</select></label>';
-    if (Object.keys(types).length > 1) h += '<label>Тип<select data-f="type"><option value="">Усі</option>' + Object.keys(types).map(function (t) { return '<option value="' + t + '"' + (t === S.type ? ' selected' : '') + '>' + esc(TYPE_LBL[t] || t) + '</option>'; }).join('') + '</select></label>';
     h += '<div class="op-views"><button type="button" class="btn btn-sm ' + (S.view === 'list' ? 'btn-primary' : 'btn-outline') + '" data-view="list">Список</button><button type="button" class="btn btn-sm ' + (S.view === 'map' ? 'btn-primary' : 'btn-outline') + '" data-view="map">Карта</button></div></div>';
-    h += '<p class="op-count">Знайдено: ' + list.length + '</p>';
-    if (S.err) h += '<div class="op-err">' + esc(S.err) + '</div>';
-    h += S.view === 'map' ? '<div id="op-map" class="op-map" role="img" aria-label="Карта поверхонь"></div><p class="op-note">Розташування на карті орієнтовне.</p>' : '<div class="op-grid">' + shown.map(card).join('') + '</div>' + (list.length > shown.length ? '<button type="button" class="btn btn-outline" data-act="more">Показати ще</button>' : '') + '<p class="op-note">Фото й схеми довідкові.</p>';
+    h += '<p class="op-disc">' + esc(DISCLAIMER) + '</p><p class="op-count">Знайдено: ' + list.length + '</p>';
+    h += S.view === 'map' ? '<div id="op-map" class="op-map" role="img" aria-label="Карта поверхонь"></div><p class="op-note">Розташування на карті орієнтовне.</p>' : '<div class="op-grid">' + shown.map(ledCard).join('') + '</div>' + (list.length > shown.length ? '<button type="button" class="btn btn-outline" data-act="more">Показати ще</button>' : '') + '<p class="op-note">Фото й схеми довідкові.</p>';
     h += '<div id="op-cart"></div>';
     app.innerHTML = h;
     renderCart();
-    if (S.view === 'map') drawMap(list);
+    if (S.view === 'map') drawLedMap(list);
   }
+  function drawLedMap(list) {
+    ensureLeaflet(function () {
+      var el = $('op-map'); if (!el) return;
+      if (S.map) { S.map.remove(); S.map = null; }
+      S.map = L.map(el).setView([49.8, 30.1], 9); tiles(S.map);
+      var pts = [];
+      list.forEach(function (it) { if (it.lat == null || it.lng == null) return; pts.push([it.lat, it.lng]);
+        L.circleMarker([it.lat, it.lng], { radius: 8, color: '#fff', weight: 2, fillColor: COL.free, fillOpacity: .95 }).addTo(S.map)
+          .bindPopup('<b>' + esc(it.addr) + '</b><br>' + money(priceAt(it, monthsOf(S.start, 1)[0][0])) + ' за місяць<br><button type="button" data-act="add" data-id="' + esc(it.k) + '">Додати до розрахунку</button>'); });
+      if (pts.length) S.map.fitBounds(pts, { padding: [20, 20] });
+    });
+  }
+
+  /* ───── Leaflet ───── */
+  var leafletQ = [], leafletLoading = false;
+  function ensureLeaflet(cb) {
+    if (window.L) { cb(); return; }
+    leafletQ.push(cb); if (leafletLoading) return; leafletLoading = true;
+    var css = document.createElement('link'); css.rel = 'stylesheet'; css.href = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
+    css.integrity = 'sha512-h9FcoyWjHcOcmEVkxOfTLnmZFWIH0iZhZT1H2TbOq55xssQGEJHEaIm+PgoUaZbRvQTNTluNOEfb1ZRy6D3BOw=='; css.crossOrigin = ''; document.head.appendChild(css);
+    var sc = document.createElement('script'); sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
+    sc.integrity = 'sha512-puJW3E/qXDqYp9IfhAI54BJEaWIfloJ7JWs7OeD5i6ruC9JZL1gERT1wjtwXFlh7CjE7ZJ+/vcRZRkIYIb6p4g=='; sc.crossOrigin = '';
+    sc.onload = function () { var q = leafletQ; leafletQ = []; q.forEach(function (f) { f(); }); };
+    sc.onerror = function () { leafletLoading = false; leafletQ = []; var el = $('op-map'); if (el) el.innerHTML = '<div class="op-err">Не вдалося завантажити карту. Список нижче працює без неї.</div>'; };
+    document.head.appendChild(sc);
+  }
+  function tiles(map) { L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>' }).addTo(map); }
+
+  /* ───── бігборди: карта + радіус ───── */
+  function boardRows() {
+    var ms = monthsOf(S.start, S.n), base = S.items.filter(function (it) { return typesOk(it) && (!S.type || it.type === S.type); }), rows;
+    if (S.pt) rows = withinRadius(base, S.pt, S.radius);
+    else rows = base.filter(function (it) { return !S.zone || it.zone === S.zone; }).map(function (it) { return { it: it, d: null }; });
+    rows.forEach(function (r) { r.st = stateOf(r.it, ms); });
+    var all = rows.length;
+    if (S.av !== 'all') rows = rows.filter(function (r) { return r.st === (S.av === 'busy' ? 'busy' : 'free'); });
+    return { rows: rows, all: all };
+  }
+  function helpHtml() {
+    return '<div class="op-help"><button type="button" class="op-helpbtn" data-act="help" aria-expanded="' + (S.helpOpen ? 'true' : 'false') + '" aria-controls="op-helpbody"><span>Як користуватися</span><span class="op-helpact">' + (S.helpOpen ? 'Згорнути' : 'Показати') + '</span></button>' +
+      '<div id="op-helpbody" class="op-helpbody"' + (S.helpOpen ? '' : ' hidden') + '><ol>' +
+      '<li><b>Вкажіть точку:</b> введіть адресу й натисніть «Знайти» або клікніть по карті («Вказати на карті»).</li>' +
+      '<li><b>Оберіть радіус</b> пошуку навколо точки.</li>' +
+      '<li><b>Зелені сторони доступні, червоні зайняті.</b> За замовчуванням показано лише доступні; фільтр «Показувати» дозволяє побачити й зайняті.</li>' +
+      '<li><b>Оберіть сторони й період</b> розміщення.</li>' +
+      '<li><b>Надішліть заявку:</b> менеджер підтвердить наявність і зарезервує сторони за вами на 3 дні.</li></ol></div></div>';
+  }
+  function shellBoard() {
+    var zs = zones(), types = {}; S.items.filter(typesOk).forEach(function (it) { types[it.type] = 1; });
+    var h = helpHtml();
+    h += '<div class="op-find"><div class="op-ptrow"><label class="op-addr">Ваша точка (адреса бізнесу)<input type="text" id="op-q" class="op-in" placeholder="напр. Біла Церква, Гагаріна 5" autocomplete="off"></label>' +
+      '<button type="button" class="btn btn-primary btn-sm" id="op-find" data-act="find">Знайти</button>' +
+      '<button type="button" class="btn btn-outline btn-sm" id="op-pickbtn" data-act="pick">Вказати на карті</button>' +
+      '<label>Радіус<select data-f="radius" class="op-in">' + RADII.map(function (k) { return '<option value="' + k + '"' + (k === S.radius ? ' selected' : '') + '>до ' + k + ' км</option>'; }).join('') + '</select></label>' +
+      '<button type="button" class="btn btn-outline btn-sm" id="op-clear" data-act="clear" hidden>Скинути точку</button></div>' +
+      '<div class="op-note" id="op-msg">Вкажіть точку, щоб побачити сторони поруч і відстань до кожної. Без точки показано всі сторони обраного населеного пункту.</div>' +
+      '<div class="op-ptrow op-row2"><label>Населений пункт<select data-f="zone" id="op-zone" class="op-in"><option value="">Усі (' + S.items.filter(typesOk).length + ')</option>' + zs.map(function (z) { return '<option value="' + esc(z) + '">' + esc(z) + '</option>'; }).join('') + '</select></label>';
+    if (Object.keys(types).length > 1) h += '<label>Тип<select data-f="type" class="op-in"><option value="">Усі</option>' + Object.keys(types).map(function (t) { return '<option value="' + t + '">' + esc(TYPE_LBL[t] || t) + '</option>'; }).join('') + '</select></label>';
+    h += '<label>Початок розміщення<select data-o="start" class="op-in">' + periodOptions() + '</select></label><label>Місяців<select data-o="n" class="op-in">' + monthsOptions() + '</select></label>' +
+      '<label>Показувати<select data-f="av" class="op-in"><option value="free" selected>Доступні</option><option value="busy">Зайняті</option><option value="all">Усі</option></select></label></div>' +
+      '<p class="op-disc">' + esc(DISCLAIMER) + '</p></div>';
+    h += '<div class="op-legend"><span><i style="background:' + COL.free + '"></i>доступно</span><span><i style="background:' + COL.busy + '"></i>зайнято</span><span><i class="op-legpt">★</i>ваша точка</span></div>';
+    h += '<p class="op-count" id="op-count"></p><div class="op-split"><div class="op-mapbox"><div id="op-map" class="op-map" role="application" aria-label="Карта бігбордів"></div><div class="op-pickbar" id="op-pickbar" hidden>Клікніть на карті місце вашого бізнесу</div></div>' +
+      '<div id="op-list" class="op-list"></div></div><p class="op-note">Розташування на карті орієнтовне. Фото й схеми довідкові.</p><div id="op-cart"></div>';
+    app.innerHTML = h;
+  }
+  function rowHtml(r) {
+    var it = r.it, inCart = S.sel.indexOf(it.k) >= 0, pr = priceAt(it, monthsOf(S.start, S.n)[0][0]);
+    var img = it.img ? '<img src="' + esc(IMG + it.img) + '" alt="" loading="lazy" width="120" height="68">' : '<div class="op-noimg">Фото відсутнє</div>';
+    return '<article class="op-row" data-act="focus" data-id="' + esc(it.k) + '"><div class="op-th">' + img + '</div><div class="op-rb"><h4>' + esc(it.addr) + '</h4><div class="op-meta">' + sideLbl(it) + ' · ' + esc(it.zone) + '</div>' +
+      '<div class="op-rl">' + (r.d != null ? '<span class="op-dist">' + (it.acc === 'approx' ? '≈ ' : '') + dTxt(r.d) + '</span>' : '') + '<span class="op-st op-' + r.st + '" title="' + esc(stHint(it)) + '">' + stTxt(r.st, it) + '</span><b>' + money(pr) + '</b><small>/міс., без податків</small></div>' +
+      '<button type="button" class="btn ' + (inCart ? 'btn-outline' : 'btn-primary') + ' btn-sm" data-act="' + (inCart ? 'del' : 'add') + '" data-id="' + esc(it.k) + '">' + (inCart ? 'Прибрати' : 'Додати до розрахунку') + '</button></div></article>';
+  }
+  function updateList(data) {
+    var rows = data.rows, shown = rows.slice(0, S.limit), box = $('op-list'); if (!box) return;
+    var h = shown.map(rowHtml).join('');
+    if (!rows.length) h = '<div class="op-empty">' + (S.pt ? 'У радіусі ' + S.radius + ' км немає сторін за вибраним фільтром.' : 'Немає сторін за вибраним фільтром.') + (data.all > 0 ? ' Є ' + data.all + ' сторін з іншим статусом: змініть фільтр «Показувати».' : (S.pt ? ' Збільште радіус.' : '')) + '</div>';
+    if (rows.length > shown.length) h += '<button type="button" class="btn btn-outline" data-act="more">Показати ще</button>';
+    box.innerHTML = h;
+    var c = $('op-count'); if (c) c.textContent = 'Знайдено: ' + rows.length + (S.pt ? ' у радіусі ' + S.radius + ' км від вашої точки, від найближчої' : '');
+    var z = $('op-zone'); if (z) { z.disabled = !!S.pt; z.title = S.pt ? 'З точкою діє радіус; населений пункт не враховується' : ''; }
+    var cl = $('op-clear'); if (cl) cl.hidden = !S.pt;
+    var pb = $('op-pickbtn'); if (pb) { pb.className = 'btn btn-sm ' + (S.pick ? 'btn-primary' : 'btn-outline'); pb.textContent = S.pick ? 'Клікніть по карті…' : 'Вказати на карті'; }
+    var bar = $('op-pickbar'); if (bar) bar.hidden = !S.pick;
+  }
+  function popupHtml(g) {
+    var th = null; g.rows.forEach(function (r) { if (!th && r.it.img) th = r.it.img; });
+    return '<div class="op-pop">' + (th ? '<img src="' + esc(IMG + th) + '" alt="" width="240" height="135">' : '') + '<b>' + esc(g.rows[0].it.addr) + '</b>' + g.rows.map(function (r) {
+      var it = r.it, inCart = S.sel.indexOf(it.k) >= 0;
+      return '<div class="op-ps"><div>' + sideLbl(it) + '<br><span class="op-st op-' + r.st + '">' + stTxt(r.st, it) + '</span> <b>' + money(priceAt(it, monthsOf(S.start, S.n)[0][0])) + '</b>' + (r.d != null ? ' · ' + (it.acc === 'approx' ? '≈ ' : '') + dTxt(r.d) : '') + '</div>' +
+        '<button type="button" class="btn ' + (inCart ? 'btn-outline' : 'btn-primary') + ' btn-sm" data-act="' + (inCart ? 'del' : 'add') + '" data-id="' + esc(it.k) + '">' + (inCart ? 'Прибрати' : 'Обрати') + '</button></div>'; }).join('') + '</div>';
+  }
+  function groupColor(g) { return g.rows.some(function (r) { return r.st === 'free'; }) ? COL.free : COL.busy; }
+  function groupSelected(g) { return g.rows.some(function (r) { return S.sel.indexOf(r.it.k) >= 0; }); }
+  function drawMap(data) {
+    ensureLeaflet(function () {
+      var el = $('op-map'); if (!el) return;
+      if (!S.map) {
+        S.map = L.map(el).setView([49.81, 30.12], 12); tiles(S.map);
+        S.layer = L.layerGroup().addTo(S.map); S.ptLayer = L.layerGroup().addTo(S.map);
+        S.map.on('click', function (e) { if (S.pick) { S.pick = false; setPt(e.latlng.lat, e.latlng.lng, 'Точка на карті'); } });
+      }
+      S.map.invalidateSize();
+      S.layer.clearLayers(); S.ptLayer.clearLayers(); S.markerOf = {}; S.groupOf = {};
+      S.map.getContainer().style.cursor = S.pick ? 'crosshair' : '';
+      var bounds = [];
+      groupByCoord(data.rows).forEach(function (g) {
+        var m = L.circleMarker([g.lat, g.lng], { interactive: !S.pick, radius: g.rows.length > 1 ? 10 : 8, color: groupSelected(g) ? '#1A1A1A' : '#fff', weight: groupSelected(g) ? 3 : 2, fillColor: groupColor(g), fillOpacity: .95 });
+        m.bindPopup(function () { return popupHtml(g); }, { minWidth: 250, maxWidth: 280 }); m.addTo(S.layer); bounds.push([g.lat, g.lng]);
+        g.rows.forEach(function (r) { S.markerOf[r.it.k] = m; S.groupOf[r.it.k] = g; });
+      });
+      var circle = null;
+      if (S.pt) {
+        L.marker([S.pt.lat, S.pt.lng], { icon: L.divIcon({ className: 'op-mypin', html: '<span>★</span>', iconSize: [30, 30], iconAnchor: [15, 15] }), interactive: false, keyboard: false }).addTo(S.ptLayer);
+        circle = L.circle([S.pt.lat, S.pt.lng], { radius: S.radius * 1000, color: '#EA580C', weight: 1.5, fillColor: '#EA580C', fillOpacity: .06, interactive: false }).addTo(S.ptLayer);
+      }
+      if (S.fit) {
+        S.fit = false;
+        if (circle) S.map.fitBounds(circle.getBounds(), { padding: [10, 10] });
+        else if (bounds.length) S.map.fitBounds(bounds, { padding: [30, 30], maxZoom: 15 });
+      }
+    });
+  }
+  function redraw(fit) {
+    if (KIND === 'led') { renderLed(); return; }
+    if (fit) S.fit = true;
+    var data = boardRows(); updateList(data); drawMap(data); renderCart();
+  }
+  function setPt(lat, lng, label) { S.pt = { lat: lat, lng: lng, label: label }; S.pick = false; redraw(true); }
+  function say(t) { var m = $('op-msg'); if (m) m.textContent = t; }
+
+  /* ───── геокодування: лише за кнопкою «Знайти»; результати кешуються в браузері ───── */
+  var GEO_KEY = 'op_geo_v1';
+  function geoCache() { try { return JSON.parse(localStorage.getItem(GEO_KEY) || '{}') || {}; } catch (e) { return {}; } }
+  function geoGet(q) { var c = geoCache()[q.toLowerCase()]; return c && Date.now() - c.t < 30 * 864e5 ? c : null; }
+  function geoPut(q, v) {
+    try {
+      var c = geoCache(); c[q.toLowerCase()] = { lat: v.lat, lng: v.lng, name: v.name, t: Date.now() };
+      var ks = Object.keys(c); if (ks.length > 60) { ks.sort(function (a, b) { return c[a].t - c[b].t; }).slice(0, ks.length - 60).forEach(function (k) { delete c[k]; }); }
+      localStorage.setItem(GEO_KEY, JSON.stringify(c));
+    } catch (e) { /* сховище недоступне: працюємо без кешу */ }
+  }
+  function nominatim(q) { return fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&countrycodes=ua&accept-language=uk&viewbox=28.5,51.2,32.0,48.8&q=' + encodeURIComponent(q)).then(function (r) { return r.json(); }).then(function (a) { return (a || []).map(function (x) { return { lat: Number(x.lat), lng: Number(x.lon), name: x.display_name }; }); }); }
+  function photon(q) { return fetch('https://photon.komoot.io/api/?limit=5&lang=default&lat=49.8&lon=30.1&q=' + encodeURIComponent(q)).then(function (r) { return r.json(); }).then(function (a) { return ((a && a.features) || []).filter(function (f) { return (f.properties || {}).countrycode === 'UA'; }).map(function (f) { return { lat: f.geometry.coordinates[1], lng: f.geometry.coordinates[0], name: [f.properties.name, f.properties.street, f.properties.housenumber, f.properties.city].filter(Boolean).join(', ') }; }); }); }
+  async function geocode() {
+    var inp = $('op-q'), raw = inp ? inp.value.trim() : ''; if (S.busy) return;
+    if (!raw) { say('Введіть адресу, координати або посилання Google Maps, або натисніть «Вказати на карті».'); return; }
+    var c = parseCoords(raw); if (c) { setPt(c.lat, c.lng, 'Координати'); say('Точка за координатами.'); return; }
+    var hit = geoGet(raw); if (hit) { setPt(hit.lat, hit.lng, raw); say('Знайдено: ' + String(hit.name).split(',').slice(0, 4).join(',') + '. Не те місце? Натисніть «Вказати на карті».'); return; }
+    S.busy = true; var btn = $('op-find'); if (btn) btn.disabled = true; say('Шукаю…');
+    var clean = raw.replace(/\b(вул|вулиця|бул|бульвар|б-р|просп|пр-т|пр|пров|провулок|майдан|м)\.?\s+/gi, ' ').replace(/\s+/g, ' ').trim();
+    var noNum = clean.replace(/[\s,]+\d+[\wА-Яа-яІіЇїЄє\/\-]*\s*$/, '').trim();
+    var tries = [raw, clean, noNum].filter(function (x, k, a) { return x && a.indexOf(x) === k; }), res = [], net = false, i;
+    for (i = 0; i < tries.length && !res.length; i++) { try { res = await nominatim(tries[i]); net = true; } catch (e) { /* далі */ } }
+    for (i = 0; i < tries.length && !res.length; i++) { try { res = await photon(tries[i]); net = true; } catch (e) { /* далі */ } }
+    S.busy = false; btn = $('op-find'); if (btn) btn.disabled = false;
+    if (!res.length) { say(net ? 'Адресу не знайдено. Спробуйте «місто, вулиця, номер», вставте координати чи посилання Google Maps або натисніть «Вказати на карті».' : 'Пошук адреси зараз недоступний. Натисніть «Вказати на карті».'); return; }
+    geoPut(raw, res[0]); setPt(res[0].lat, res[0].lng, raw);
+    say('Знайдено: ' + String(res[0].name).split(',').slice(0, 4).join(',') + '. Не те місце? Натисніть «Вказати на карті».');
+  }
+
+  /* ───── кошик і заявка ───── */
   function renderCart() {
-    var box = document.getElementById('op-cart'); if (!box) return;
-    var sel = S.sel.map(function (id) { return S.byId[id]; }).filter(Boolean);
-    if (!sel.length) { box.innerHTML = '<div class="op-cart"><h3>Розрахунок вартості</h3><p>Оберіть хоча б одну сторону, щоб побачити вартість.</p></div>'; return; }
-    var r = calc(sel, S.sale, { start: S.start, n: S.n, banner: S.banner, print: S.print, mount: S.mount, taxRate: TAXES[S.tax][1] });
-    var led = KIND === 'led';
-    var h = '<div class="op-cart"><h3>Розрахунок вартості</h3><div class="op-opts"><label>Початок розміщення<select data-o="start">' + periodOptions() + '</select></label><label>Місяців<select data-o="n">' + [1, 2, 3, 4, 5, 6, 9, 12].map(function (n) { return '<option value="' + n + '"' + (n === S.n ? ' selected' : '') + '>' + n + '</option>'; }).join('') + '</select></label>';
+    var box = $('op-cart'); if (!box) return;
+    var items = sel(), led = KIND === 'led';
+    if (!items.length) { box.innerHTML = '<div class="op-cart"><h3>Розрахунок вартості</h3><p>Оберіть хоча б одну сторону, щоб побачити вартість.</p></div>'; return; }
+    var r = calc(items, S.sale, { start: S.start, n: S.n, banner: S.banner, print: S.print, mount: S.mount, taxRate: TAXES[S.tax][1] });
+    var h = '<div class="op-cart"><h3>Розрахунок вартості</h3><div class="op-opts">';
+    if (led) h += '<label>Початок розміщення<select data-o="start">' + periodOptions() + '</select></label><label>Місяців<select data-o="n">' + monthsOptions() + '</select></label>';
+    else h += '<div class="op-per">Період: <b>' + esc(periodTxt()) + '</b> <a href="#" data-act="toper">змінити</a></div>';
     if (!led) h += '<label>Виріб<select data-o="banner"><option value="0"' + (S.banner ? '' : ' selected') + '>Постер</option><option value="1"' + (S.banner ? ' selected' : '') + '>Банер</option></select></label><label class="op-chk"><input type="checkbox" data-o="print"' + (S.print ? ' checked' : '') + '> Друк виробу</label><label class="op-chk"><input type="checkbox" data-o="mount"' + (S.mount ? ' checked' : '') + '> Монтаж (поклейка)</label>';
     h += '<label>Оподаткування<select data-o="tax">' + TAXES.map(function (t, i) { return '<option value="' + i + '"' + (i === S.tax ? ' selected' : '') + '>' + t[0] + '</option>'; }).join('') + '</select></label></div>';
     h += '<p class="op-note">Період: повні календарні місяці, початок з 1 числа. Ціни вказані без податків. Обраний вами податок додається до підсумку; якщо його обрано неправильно, його буде визначено при підготовці договору.</p>';
-    h += '<table class="op-tbl"><thead><tr><th>Сторона</th><th>Оренда</th>' + (S.print || S.mount ? '<th>Друк і монтаж</th>' : '') + '<th></th></tr></thead><tbody>' + r.lines.map(function (l) {
-      return '<tr><td>' + esc(l.it.addr) + '<br><small>№ ' + esc(l.it.code) + (l.it.side ? ', ' + esc(l.it.side) : '') + ' · ' + stTxt(l.state, l.it) + '</small></td><td>' + money(l.rent) + '</td>' + (S.print || S.mount ? '<td>' + money(l.print + l.mount + l.demount) + '</td>' : '') + '<td><button type="button" class="btn btn-outline btn-sm" data-act="del" data-id="' + esc(l.it.id) + '">×</button></td></tr>'; }).join('') + '</tbody></table>';
+    h += '<div class="op-tblwrap"><table class="op-tbl"><thead><tr><th>Сторона</th><th>Оренда</th>' + (S.print || S.mount ? '<th>Друк і монтаж</th>' : '') + '<th></th></tr></thead><tbody>' + r.lines.map(function (l) {
+      return '<tr><td>' + esc(l.it.addr) + '<br><small>№ ' + esc(l.it.code) + (l.it.side ? ', ' + esc(l.it.side) : '') + ' · ' + stTxt(l.state, l.it) + '</small></td><td>' + money(l.rent) + '</td>' + (S.print || S.mount ? '<td>' + money(l.print + l.mount + l.demount) + '</td>' : '') + '<td><button type="button" class="btn btn-outline btn-sm" data-act="del" data-id="' + esc(l.it.k) + '" aria-label="Прибрати">×</button></td></tr>'; }).join('') + '</tbody></table></div>';
     if (r.ask) h += '<p class="op-note">Вартість друку для деяких обраних сторін уточнюйте в менеджера.</p>';
     h += '<div class="op-total"><span>Орієнтовна вартість' + (r.tax ? ' (з податком ' + money(r.tax) + ')' : '') + '</span><b>' + money(r.total) + '</b></div><p class="op-note">Остаточна вартість і умови визначаються в договорі.</p>';
+    h += '<p class="op-disc">' + esc(DISCLAIMER) + '</p>';
+    h += '<label class="op-chk op-consent"><input type="checkbox" data-o="consent"' + (S.consent ? ' checked' : '') + '> <span>' + esc(CONSENT) + '<a href="' + esc(PRIVACY) + '" target="_blank" rel="noopener">Політики конфіденційності</a></span></label>';
+    if (S.consentErr && !S.consent) h += '<div class="op-err" role="alert">Щоб надіслати заявку, поставте галочку згоди на обробку персональних даних.</div>';
     h += '<button type="button" class="btn btn-primary" data-act="send">Надіслати заявку на перевірку наявності</button></div>';
     box.innerHTML = h;
   }
   function requestText() {
-    var sel = S.sel.map(function (id) { return S.byId[id]; }).filter(Boolean), r = calc(sel, S.sale, { start: S.start, n: S.n, banner: S.banner, print: S.print, mount: S.mount, taxRate: TAXES[S.tax][1] });
+    var items = sel(), r = calc(items, S.sale, { start: S.start, n: S.n, banner: S.banner, print: S.print, mount: S.mount, taxRate: TAXES[S.tax][1] });
     var m0 = r.months[0], mN = r.months[r.months.length - 1];
     var t = 'ЗАПИТ З САЙТУ: онлайн-бронювання ' + (KIND === 'led' ? 'відеоекранів' : 'бігбордів') + '. Період: ' + MON[m0[1]] + ' ' + m0[0] + (r.months.length > 1 ? ' — ' + MON[mN[1]] + ' ' + mN[0] : '') + ' (' + r.months.length + ' міс.). Сторони: ' +
       r.lines.map(function (l) { return l.it.code + (l.it.side ? l.it.side : '') + ' ' + l.it.addr + ' [' + stTxt(l.state, l.it) + ', ' + money(l.rent) + ']'; }).join('; ') + '.';
     if (KIND !== 'led') t += ' Виріб: ' + (S.banner ? 'банер' : 'постер') + (S.print ? ', друк' : '') + (S.mount ? ', монтаж' : '') + '.';
-    return t + ' Оподаткування: ' + TAXES[S.tax][0] + '. Орієнтовна вартість: ' + money(r.total) + '.';
+    return t + ' Оподаткування: ' + TAXES[S.tax][0] + '. Орієнтовна вартість: ' + money(r.total) + '. Згоду на обробку персональних даних надано.';
   }
   function fillEditor(ed, want, tries) {
     ed.focus();
-    var sel = window.getSelection(), rg = document.createRange(); rg.selectNodeContents(ed); sel.removeAllRanges(); sel.addRange(rg);
+    var sl = window.getSelection(), rg = document.createRange(); rg.selectNodeContents(ed); sl.removeAllRanges(); sl.addRange(rg);
     setTimeout(function () { document.execCommand('insertText', false, want); setTimeout(function () { if (ed.textContent.indexOf(want.slice(0, 20)) < 0 && tries < 8) { ed.blur(); setTimeout(function () { fillEditor(ed, want, tries + 1); }, 100); } }, 400); }, 150);
   }
   function send() {
-    var text = requestText(), tgt = document.getElementById('contact-form-target') || document.getElementById('uspacy-forms');
+    if (!S.consent) { S.consentErr = true; renderCart(); var c = app.querySelector('.op-consent'); if (c) c.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+    var text = requestText(), tgt = $('contact-form-target') || $('uspacy-forms');
     if (tgt) tgt.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    (function fill(tries) { var ed = document.querySelector('#uspacy-forms [contenteditable="true"]'); if (ed) { fillEditor(ed, text, 0); return; } var ta = document.getElementById('fbTxt'); if (ta) { ta.value = text; return; } if (tries < 40) setTimeout(function () { fill(tries + 1); }, 250); })(0);
+    (function fill(tries) { var ed = document.querySelector('#uspacy-forms [contenteditable="true"]'); if (ed) { fillEditor(ed, text, 0); return; } var ta = $('fbTxt'); if (ta) { ta.value = text; return; } if (tries < 40) setTimeout(function () { fill(tries + 1); }, 250); })(0);
   }
-  function drawMap(list) {
-    function go() {
-      var el = document.getElementById('op-map'); if (!el || !window.L) return;
-      if (S.map) { S.map.remove(); S.map = null; }
-      S.map = L.map(el).setView([49.8, 30.1], 9); L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© OpenStreetMap' }).addTo(S.map);
-      var pts = [];
-      list.forEach(function (it) { if (it.lat == null || it.lng == null) return; pts.push([it.lat, it.lng]); var m = L.circleMarker([it.lat, it.lng], { radius: 6, color: '#EA580C', fillColor: '#EA580C', fillOpacity: .8 }).addTo(S.map);
-        m.bindPopup('<b>' + esc(it.addr) + '</b><br>' + money(priceAt(it, monthsOf(S.start, 1)[0][0])) + ' за місяць<br><button type="button" data-act="add" data-id="' + esc(it.id) + '">Додати до розрахунку</button>'); });
-      if (pts.length) S.map.fitBounds(pts, { padding: [20, 20] });
-    }
-    if (window.L) { go(); return; }
-    var css = document.createElement('link'); css.rel = 'stylesheet'; css.href = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css'; document.head.appendChild(css);
-    var sc = document.createElement('script'); sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js'; sc.onload = go; document.head.appendChild(sc);
+
+  /* ───── події ───── */
+  function afterToggle(id) {
+    if (KIND === 'led') { renderLed(); return; }
+    var data = boardRows(); updateList(data); renderCart();
+    var g = S.groupOf && S.groupOf[id], m = S.markerOf && S.markerOf[id];
+    if (g && m) { m.setStyle({ color: groupSelected(g) ? '#1A1A1A' : '#fff', weight: groupSelected(g) ? 3 : 2 }); if (m.isPopupOpen()) m.setPopupContent(popupHtml(g)); }
   }
   app.addEventListener('click', function (e) {
     var b = e.target.closest('[data-act],[data-view]'); if (!b) return;
-    if (b.dataset.view) { S.view = b.dataset.view; render(); return; }
+    if (b.dataset.view) { S.view = b.dataset.view; renderLed(); return; }
     var a = b.dataset.act, id = b.dataset.id;
+    if (a === 'toper') { e.preventDefault(); var st = app.querySelector('[data-o="start"]'); if (st) { st.scrollIntoView({ behavior: 'smooth', block: 'center' }); st.focus(); } return; }
+    if (a === 'help') { S.helpOpen = !S.helpOpen; b.setAttribute('aria-expanded', S.helpOpen ? 'true' : 'false'); var hb = $('op-helpbody'); if (hb) hb.hidden = !S.helpOpen; var ha = b.querySelector('.op-helpact'); if (ha) ha.textContent = S.helpOpen ? 'Згорнути' : 'Показати'; return; }
+    if (a === 'find') { geocode(); return; }
+    if (a === 'pick') { S.pick = !S.pick; redraw(false); return; }
+    if (a === 'clear') { S.pt = null; S.pick = false; S.fit = true; var q = $('op-q'); if (q) q.value = ''; say('Точку скинуто. Показано всі сторони обраного населеного пункту.'); redraw(true); return; }
+    if (a === 'focus') { var mk = S.markerOf && S.markerOf[id]; if (mk && S.map) { S.map.setView(mk.getLatLng(), Math.max(S.map.getZoom(), 15)); mk.openPopup(); var mb = app.querySelector('.op-mapbox'); if (mb && mb.getBoundingClientRect().top < 0) mb.scrollIntoView({ behavior: 'smooth', block: 'start' }); } return; }
+    if (a === 'more') { S.limit += 30; if (KIND === 'led') renderLed(); else updateList(boardRows()); return; }
+    if (a === 'send') { send(); return; }
     if (a === 'add') { if (S.sel.indexOf(id) < 0) S.sel.push(id); }
     else if (a === 'del') { S.sel = S.sel.filter(function (x) { return x !== id; }); }
-    else if (a === 'more') { S.limit += 30; render(); return; }
-    else if (a === 'send') { send(); return; }
-    if (S.view === 'map') renderCart(); else render();
+    else return;
+    afterToggle(id);
   });
+  app.addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target && e.target.id === 'op-q') { e.preventDefault(); geocode(); } });
   app.addEventListener('change', function (e) {
-    var t = e.target;
-    if (t.dataset.f) { S[t.dataset.f] = t.value; S.limit = 30; render(); return; }
-    var o = t.dataset.o; if (!o) return;
-    if (o === 'start') S.start = t.value; else if (o === 'n') S.n = Number(t.value); else if (o === 'banner') S.banner = t.value === '1'; else if (o === 'print') S.print = t.checked; else if (o === 'mount') S.mount = t.checked; else if (o === 'tax') S.tax = Number(t.value);
-    render();
+    var t = e.target, f = t.dataset.f, o = t.dataset.o;
+    if (f) {
+      if (f === 'radius') { S.radius = Number(t.value); redraw(true); return; }
+      if (f === 'av') { S.av = t.value; S.limit = 30; redraw(false); return; }
+      S[f] = t.value; S.limit = 30; redraw(f === 'zone'); return;
+    }
+    if (!o) return;
+    if (o === 'start') S.start = t.value; else if (o === 'n') S.n = Number(t.value); else if (o === 'banner') S.banner = t.value === '1'; else if (o === 'print') S.print = t.checked; else if (o === 'mount') S.mount = t.checked; else if (o === 'tax') S.tax = Number(t.value); else if (o === 'consent') { S.consent = t.checked; if (S.consent) S.consentErr = false; }
+    if (KIND === 'led') { if (o === 'start' || o === 'n') renderLed(); else renderCart(); return; }
+    if (o === 'start' || o === 'n') redraw(false); else renderCart();
   });
   app.innerHTML = '<p class="op-note">Завантаження каталогу…</p>';
   fetch(FEED).then(function (r) { if (!r.ok) throw new Error('feed'); return r.json(); }).then(function (d) {
-    S.items = d.items || []; S.sale = d.sale || {}; S.items.forEach(function (it) { S.byId[it.id] = it; }); render();
+    S.items = (d.items || []).map(publicItem); S.sale = d.sale || {}; S.items.forEach(function (it) { S.byId[it.k] = it; });
+    if (KIND === 'led') renderLed(); else { shellBoard(); redraw(true); }
   }).catch(function () { app.innerHTML = '<div class="op-err">Каталог тимчасово недоступний. Залиште заявку або зателефонуйте нам: ми підготуємо розрахунок вручну.</div>'; });
 })(typeof window !== 'undefined' ? window : globalThis);
