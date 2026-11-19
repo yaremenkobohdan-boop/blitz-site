@@ -4,3 +4,4 @@ wrangler.toml
 cities/
 build.py
 worker/
+tools/

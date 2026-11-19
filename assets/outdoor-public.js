@@ -90,9 +90,11 @@
   }
   function isoMonthStart(y, m) { return y + '-' + String(m + 1).padStart(2, '0') + '-01'; }
   function nextMonthStart(now) { var d = now || new Date(); var y = d.getFullYear(), m = d.getMonth() + 1; if (m === 12) { m = 0; y++; } return isoMonthStart(y, m); }
-  // Публічна сторона з фіду: лише потрібні клієнту поля; ключ k (порядковий) замість id з фіду
+  // Публічна сторона з фіду: лише потрібні клієнту поля. Фід віддає нейтральний ключ id (8 hex) — він і є ключем k та назвою мініатюри (img);
+  // старий формат фіду (id іншого вигляду) приймається теж, але такий id в сторінку не потрапляє: k тоді порядковий. Внутрішніх номерів сторін клієнт не бачить.
   function publicItem(raw, idx) {
-    return { k: 'i' + idx, code: raw.code, side: raw.side, size: raw.size, addr: raw.addr, zone: raw.zone, type: raw.type, price: raw.price, priceY: raw.priceY, lat: raw.lat, lng: raw.lng, acc: raw.acc, img: raw.img, mount: raw.mount, inc: raw.inc, st: raw.st };
+    var nk = typeof raw.id === 'string' && /^[0-9a-f]{8}$/.test(raw.id) ? raw.id : '';
+    return { k: nk ? 'k' + nk : 'i' + idx, ref: nk, side: raw.side, size: raw.size, addr: raw.addr, zone: raw.zone, type: raw.type, price: raw.price, priceY: raw.priceY, lat: raw.lat, lng: raw.lng, acc: raw.acc, img: raw.img, mount: raw.mount, inc: raw.inc, st: raw.st };
   }
 
   var API = { priceAt: priceAt, monthsOf: monthsOf, rentOf: rentOf, stateOf: stateOf, haversine: haversine, withinRadius: withinRadius, groupByCoord: groupByCoord, parseCoords: parseCoords, dTxt: dTxt, printSale: printSale, mountSale: mountSale, calc: calc, nextMonthStart: nextMonthStart, publicItem: publicItem };
@@ -120,7 +122,7 @@
   }
   function monthsOptions() { return [1, 2, 3, 4, 5, 6, 9, 12].map(function (n) { return '<option value="' + n + '"' + (n === S.n ? ' selected' : '') + '>' + n + '</option>'; }).join(''); }
   function zones() { var z = {}; S.items.filter(typesOk).forEach(function (it) { z[it.zone] = (z[it.zone] || 0) + 1; }); return Object.keys(z).sort(); }
-  function sideLbl(it) { return '№ ' + esc(it.code) + (it.side ? ', сторона ' + esc(it.side) : '') + (it.size ? ' · ' + esc(it.size) + ' м' : ''); }
+  function sideLbl(it) { return (it.side ? 'Сторона ' + esc(it.side) : '') + (it.size ? (it.side ? ' · ' : '') + esc(it.size) + ' м' : ''); }
   function sel() { return S.sel.map(function (k) { return S.byId[k]; }).filter(Boolean); }
   function periodTxt() { var ms = monthsOf(S.start, S.n), a = ms[0], b = ms[ms.length - 1]; return MON[a[1]] + ' ' + a[0] + (ms.length > 1 ? ' — ' + MON[b[1]] + ' ' + b[0] : '') + ' (' + ms.length + ' міс.)'; }
 
@@ -130,7 +132,7 @@
     var ms = monthsOf(S.start, S.n), st = stateOf(it, ms), inCart = S.sel.indexOf(it.k) >= 0;
     var pr = priceAt(it, ms[0][0]), img = it.img ? '<img src="' + esc(IMG + it.img) + '" alt="' + esc(it.addr) + '" loading="lazy" width="360" height="203">' : '<div class="op-noimg">Фото відсутнє</div>';
     return '<article class="op-card"><div class="op-photo">' + img + '</div><div class="op-body"><div class="op-tags"><span>' + esc(TYPE_LBL[it.type] || it.type) + '</span><span>' + esc(it.zone) + '</span>' + (it.size ? '<span>' + esc(it.size) + ' м</span>' : '') + '</div>' +
-      '<h4>' + esc(it.addr) + '</h4><div class="op-meta">№ ' + esc(it.code) + (it.side ? ', сторона ' + esc(it.side) : '') + '</div>' +
+      '<h4>' + esc(it.addr) + '</h4><div class="op-meta">' + (it.side ? 'Сторона ' + esc(it.side) : '') + '</div>' +
       '<div class="op-foot"><div><b>' + money(pr) + '</b> <small>за місяць, без податків</small></div><span class="op-st op-' + st + '" title="' + esc(stHint(it)) + '">' + stTxt(st, it) + '</span></div>' +
       '<button type="button" class="btn ' + (inCart ? 'btn-outline' : 'btn-primary') + ' btn-sm" data-act="' + (inCart ? 'del' : 'add') + '" data-id="' + esc(it.k) + '">' + (inCart ? 'Прибрати' : 'Додати до розрахунку') + '</button></div></article>';
   }
@@ -319,7 +321,7 @@
     h += '<label>Оподаткування<select data-o="tax">' + TAXES.map(function (t, i) { return '<option value="' + i + '"' + (i === S.tax ? ' selected' : '') + '>' + t[0] + '</option>'; }).join('') + '</select></label></div>';
     h += '<p class="op-note">Період: повні календарні місяці, початок з 1 числа. Ціни вказані без податків. Обраний вами податок додається до підсумку; якщо його обрано неправильно, його буде визначено при підготовці договору.</p>';
     h += '<div class="op-tblwrap"><table class="op-tbl"><thead><tr><th>Сторона</th><th>Оренда</th>' + (S.print || S.mount ? '<th>Друк і монтаж</th>' : '') + '<th></th></tr></thead><tbody>' + r.lines.map(function (l) {
-      return '<tr><td>' + esc(l.it.addr) + '<br><small>№ ' + esc(l.it.code) + (l.it.side ? ', ' + esc(l.it.side) : '') + ' · ' + stTxt(l.state, l.it) + '</small></td><td>' + money(l.rent) + '</td>' + (S.print || S.mount ? '<td>' + money(l.print + l.mount + l.demount) + '</td>' : '') + '<td><button type="button" class="btn btn-outline btn-sm" data-act="del" data-id="' + esc(l.it.k) + '" aria-label="Прибрати">×</button></td></tr>'; }).join('') + '</tbody></table></div>';
+      return '<tr><td>' + esc(l.it.addr) + '<br><small>' + (l.it.side ? 'Сторона ' + esc(l.it.side) + ' · ' : '') + stTxt(l.state, l.it) + '</small></td><td>' + money(l.rent) + '</td>' + (S.print || S.mount ? '<td>' + money(l.print + l.mount + l.demount) + '</td>' : '') + '<td><button type="button" class="btn btn-outline btn-sm" data-act="del" data-id="' + esc(l.it.k) + '" aria-label="Прибрати">×</button></td></tr>'; }).join('') + '</tbody></table></div>';
     if (r.ask) h += '<p class="op-note">Вартість друку для деяких обраних сторін уточнюйте в менеджера.</p>';
     h += '<div class="op-total"><span>Орієнтовна вартість' + (r.tax ? ' (з податком ' + money(r.tax) + ')' : '') + '</span><b>' + money(r.total) + '</b></div><p class="op-note">Остаточна вартість і умови визначаються в договорі.</p>';
     h += '<p class="op-disc">' + esc(DISCLAIMER) + '</p>';
@@ -332,7 +334,7 @@
     var items = sel(), r = calc(items, S.sale, { start: S.start, n: S.n, banner: S.banner, print: S.print, mount: S.mount, taxRate: TAXES[S.tax][1] });
     var m0 = r.months[0], mN = r.months[r.months.length - 1];
     var t = 'ЗАПИТ З САЙТУ: онлайн-бронювання ' + (KIND === 'led' ? 'відеоекранів' : 'бігбордів') + '. Період: ' + MON[m0[1]] + ' ' + m0[0] + (r.months.length > 1 ? ' — ' + MON[mN[1]] + ' ' + mN[0] : '') + ' (' + r.months.length + ' міс.). Сторони: ' +
-      r.lines.map(function (l) { return l.it.code + (l.it.side ? l.it.side : '') + ' ' + l.it.addr + ' [' + stTxt(l.state, l.it) + ', ' + money(l.rent) + ']'; }).join('; ') + '.';
+      r.lines.map(function (l) { return l.it.addr + (l.it.side ? ', сторона ' + l.it.side : '') + (l.it.ref ? ' (ref ' + l.it.ref + ')' : '') + ' [' + stTxt(l.state, l.it) + ', ' + money(l.rent) + ']'; }).join('; ') + '.';
     if (KIND !== 'led') t += ' Виріб: ' + (S.banner ? 'банер' : 'постер') + (S.print ? ', друк' : '') + (S.mount ? ', монтаж' : '') + '.';
     return t + ' Оподаткування: ' + TAXES[S.tax][0] + '. Орієнтовна вартість: ' + money(r.total) + '. Згоду на обробку персональних даних надано.';
   }

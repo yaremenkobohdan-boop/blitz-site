@@ -55,9 +55,25 @@ eq('координати: Google !3d!4d', O.parseCoords('…!3d49.8123!4d30.1456
 eq('координати: десяткова кома', O.parseCoords('49,8123 30,1456'), { lat: 49.8123, lng: 30.1456 });
 eq('координати: поза Україною відкидаються', O.parseCoords('51.5074, -0.1278'), null);
 eq('адреса — не координати', O.parseCoords('Біла Церква, Гагаріна 5'), null);
-// публічна сторона не несе службових полів
-const pi = O.publicItem({ id: 'AL-5', sup: 'altai', fresh: true, occ: '1', occY: {}, region: 'x', code: '1', side: 'А', addr: 'a', zone: 'z', type: 'board', price: 1, lat: 1, lng: 2, acc: 'exact', img: 'i.jpg', mount: 'ladder', inc: false, st: { 2026: '0' } }, 7);
-eq('publicItem: ключі', Object.keys(pi).sort().join(), 'acc,addr,code,img,inc,k,lat,lng,mount,price,priceY,side,size,st,type,zone');
-eq('publicItem: k порядковий, без id постачальника', pi.k, 'i7');
+// публічна сторона не несе службових полів; приймає і новий фід (нейтральний id), і старий (id/code іншого вигляду)
+const rawNew = { id: 'a1b2c3d4', fresh: true, occ: '1', occY: {}, region: 'x', side: 'А', addr: 'a', zone: 'z', type: 'board', price: 1, lat: 1, lng: 2, acc: 'exact', img: 'a1b2c3d4.jpg', mount: 'ladder', inc: false, st: { 2026: '0' } };
+const rawOld = Object.assign({}, rawNew, { id: 'X-5', code: '10', schemeImg: 's.jpg', img: 'X-5.jpg' });
+const pi = O.publicItem(rawNew, 7), po = O.publicItem(rawOld, 7);
+eq('publicItem: ключі', Object.keys(pi).sort().join(), 'acc,addr,img,inc,k,lat,lng,mount,price,priceY,ref,side,size,st,type,zone');
+eq('publicItem: новий фід → k і ref з нейтрального id', [pi.k, pi.ref], ['ka1b2c3d4', 'a1b2c3d4']);
+eq('publicItem: старий фід → k порядковий, id не потрапляє в сторінку', [po.k, po.ref], ['i7', '']);
+eq('publicItem: ні code, ні schemeImg, ні id', ['code', 'schemeImg', 'id'].filter(function (x) { return x in pi || x in po; }), []);
+// у JS/HTML/CSS, що їдуть на сайт, немає слідів постачальника (префікси внутрішніх id, номер code, схеми); шаблони складені з частин, щоб сам тест не містив цих рядків
+const SHIPPED = ['assets/outdoor-public.js', 'assets/outdoor-public.css', 'poslugy/bronyuvannya-bigbordiv-test.html', 'poslugy/bronyuvannya-videoekraniv-test.html'];
+const pref = ['A' + 'L', 'P' + 'Z', 'I' + 'C', 'I' + 'M'];
+SHIPPED.forEach(function (f) {
+  const t = read(f);
+  eq(f + ': немає префіксів внутрішніх id', pref.filter(function (p) { return new RegExp('(^|[^A-Za-z])' + p + '-').test(t); }), []);
+  eq(f + ': немає звернень до code / schemeImg', [new RegExp('\\.co' + 'de\\b'), new RegExp('\\bco' + 'de:'), new RegExp('scheme' + 'Im')].filter(function (r) { return r.test(t); }).length, 0);
+});
+eq('фід: id-ключ дозволяє лише 8 hex', [/^[0-9a-f]{8}$/.test('a1b2c3d4'), /^[0-9a-f]{8}$/.test('X-5')], [true, false]);
+// публічні ключі унікальні (k у DOM): на повному наборі, як у фіді
+const ids = []; for (let i = 0; i < 285; i++) ids.push(('0000000' + (i * 2654435761 % 4294967296).toString(16)).slice(-8));
+eq('унікальні k для 285 сторін', new Set(ids.map(function (id, i) { return O.publicItem({ id: id }, i).k; })).size, 285);
 eq('початок: наступний місяць', [O.nextMonthStart(new Date(2026, 10, 18)), O.nextMonthStart(new Date(2026, 11, 5))], ['2026-12-01', '2027-01-01']);
 print(fails ? 'OUTDOOR PUBLIC UI FAILED ' + fails + ' з ' + n : n + ' перевірок: OUTDOOR PUBLIC UI OK');
