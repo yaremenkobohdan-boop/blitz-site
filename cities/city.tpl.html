@@ -441,7 +441,7 @@ function calc(){
  var o=$('sumBody'),taxR=PRICES.tax[S.tax][1],tn=PRICES.tax[S.tax][0];
  if(S.tab==='spo'){
   var pr=PRICES.sponsor[S.sp],pp=PRICES.prepay[S.pre],disc=pp[1],mm=/(\d+)\s*міс/.exec(pp[0]),months=mm?+mm[1]:0,base=pr[1],aft=Math.round(base*(1-disc)),tot=Math.round(aft*(1+taxR)),sub=Math.round(base*months*(1-disc)),totAll=sub+Math.round(sub*taxR);
-  o.innerHTML='<dl><div><dt>Програма</dt><dd>'+esc(pr[0])+'</dd></div><div><dt>Базова ціна</dt><dd>'+fmt(base)+' грн/міс</dd></div>'+(disc?'<div><dt>Передоплата</dt><dd>−'+Math.round(disc*100)+'%</dd></div>':'')+(months?'<div><dt>Разом за '+months+' міс.</dt><dd>'+fmt(totAll)+' грн</dd></div>':'')+'<div><dt>Оподаткування</dt><dd>'+tn+'</dd></div></dl><div class="tot">'+fmt(tot)+' грн/міс</div><small>Ціна без податку, якщо не обрано інше. 100% передоплата.</small><button type="button" class="btn" id="reqBtn">Надіслати запит</button>';
+  o.innerHTML='<dl><div><dt>Програма</dt><dd>'+esc(pr[0])+'</dd></div><div><dt>Базова ціна</dt><dd>'+fmt(base)+' грн/міс</dd></div>'+(disc?'<div><dt>Передоплата</dt><dd>−'+Math.round(disc*100)+'%</dd></div>':'')+(months?'<div><dt>Ціна за місяць</dt><dd>'+fmt(tot)+' грн/міс</dd></div>':'')+'<div><dt>Оподаткування</dt><dd>'+tn+'</dd></div></dl><div class="tot">'+(months?fmt(totAll)+' грн':fmt(tot)+' грн/міс')+'</div><small>'+(months?'Разом за '+months+' міс. одним платежем. ':'')+'Ціна без податку, якщо не обрано інше. 100% передоплата.</small><button type="button" class="btn" id="reqBtn">Надіслати запит</button>';
   lastText='РІА «БЛІЦ» — розрахунок\nСпонсорство: '+pr[0]+'\nЦіна: '+fmt(tot)+' грн/міс ('+tn+')'+(months?'\nРазом за '+months+' міс. (передоплата −'+Math.round(disc*100)+'%): '+fmt(totAll)+' грн':'');
   return bindCopy()
  }
