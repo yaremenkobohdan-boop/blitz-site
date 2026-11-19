@@ -370,6 +370,8 @@ function promoBlock(){
  var l=activePromos();if(!l.length)return '';var pc=promoCur();
  return '<div class="promo-row"><div class="chips">'+l.map(function(p){return '<button type="button" class="chip promo" aria-pressed="'+(pc&&pc.id===p.id?'true':'false')+'" data-promo="'+esc(p.id)+'">'+esc(p.name)+' −'+p.discountPct+'%</button>'}).join('')+'</div><p class="note">Акція: період '+(l.length===1?l[0].days+' дн.':'за умовами акції')+', знижка від базової ціни періоду. Не складається зі знижкою за обсягом. Натисніть ще раз, щоб зняти.</p></div>'
 }
+function spPromoCur(){if(!S.spPromo)return null;var l=activePromos();for(var i=0;i<l.length;i++)if(l[i].id===S.spPromo)return l[i];return null}
+function spPromoBlock(){var l=activePromos();if(!l.length)return '';var pc=spPromoCur();return '<div class="promo-row"><div class="chips">'+l.map(function(p){return '<button type="button" class="chip promo" aria-pressed="'+(pc&&pc.id===p.id?'true':'false')+'" data-spromo="'+esc(p.id)+'">'+esc(p.name)+' −'+p.discountPct+'%</button>'}).join('')+'</div><p class="note">Акція на спонсорство: 12 місяців, знижка від ціни за 12 місяців без передоплати. Не складається зі знижкою за передоплату. Натисніть ще раз, щоб зняти.</p></div>'}
 function syncPromoBtn(){var pc=promoCur();document.querySelectorAll('[data-promo]').forEach(function(b){b.setAttribute('aria-pressed',pc&&pc.id===b.dataset.promo?'true':'false')})}
 function togglePromo(id,only){
  var p=null;activePromos().forEach(function(x){if(x.id===id)p=x});if(!p)return false;
@@ -417,6 +419,7 @@ function render(){
   h+='<div class="lab">Що потрібно</div><div class="chips">'+chip('Сценарій',S.vidParts.sc,'data-vp="sc"')+chip('Ролик',S.vidParts.cl,'data-vp="cl"')+chip('Викуп (для інших радіостанцій)',S.vidBuyout,'data-vp="buy"')+'</div><p class="note">Викуп потрібен для ролика під розміщення на станціях поза нашою мережею: сценарій і ролик разом від '+fmt(PRICES.video[0][4])+' грн. Обирається замість окремих «Сценарій» і «Ролик».</p>'+taxBlock();
  }
  if(S.tab==='bc'||S.tab==='reg'||S.tab==='net')h=promoBlock()+h;
+if(S.tab==='spo')h=spPromoBlock()+h;
  $('body').innerHTML=h;
  calc();
 }
@@ -440,9 +443,10 @@ function syncDays(){syncPromoBtn();var n=$('daysNote');if(n)n.innerHTML=daysNote
 function calc(){
  var o=$('sumBody'),taxR=PRICES.tax[S.tax][1],tn=PRICES.tax[S.tax][0];
  if(S.tab==='spo'){
-  var pr=PRICES.sponsor[S.sp],pp=PRICES.prepay[S.pre],disc=pp[1],mm=/(\d+)\s*міс/.exec(pp[0]),months=mm?+mm[1]:0,base=pr[1],aft=Math.round(base*(1-disc)),tot=Math.round(aft*(1+taxR)),sub=Math.round(base*months*(1-disc)),totAll=sub+Math.round(sub*taxR);
-  o.innerHTML='<dl><div><dt>Програма</dt><dd>'+esc(pr[0])+'</dd></div><div><dt>Базова ціна</dt><dd>'+fmt(base)+' грн/міс</dd></div>'+(disc?'<div><dt>Передоплата</dt><dd>−'+Math.round(disc*100)+'%</dd></div>':'')+(months?'<div><dt>Ціна за місяць</dt><dd>'+fmt(tot)+' грн/міс</dd></div>':'')+'<div><dt>Оподаткування</dt><dd>'+tn+'</dd></div></dl><div class="tot">'+(months?fmt(totAll)+' грн':fmt(tot)+' грн/міс')+'</div><small>'+(months?'Разом за '+months+' міс. одним платежем. ':'')+'Ціна без податку, якщо не обрано інше. 100% передоплата.</small><button type="button" class="btn" id="reqBtn">Надіслати запит</button>';
-  lastText='РІА «БЛІЦ» — розрахунок\nСпонсорство: '+pr[0]+'\nЦіна: '+fmt(tot)+' грн/міс ('+tn+')'+(months?'\nРазом за '+months+' міс. (передоплата −'+Math.round(disc*100)+'%): '+fmt(totAll)+' грн':'');
+  var pr=PRICES.sponsor[S.sp],pp=PRICES.prepay[S.pre],disc=pp[1],mm=/(\d+)\s*міс/.exec(pp[0]),months=mm?+mm[1]:0,base=pr[1],aft=Math.round(base*(1-disc)),tot=Math.round(aft*(1+taxR)),sub=Math.round(base*months*(1-disc)),totAll=sub+Math.round(sub*taxR),pm=spPromoCur();
+  if(pm){months=12;disc=pm.discountPct/100;sub=Math.round(base*12*(1-disc));totAll=sub+Math.round(sub*taxR);tot=Math.round(sub/12*(1+taxR))}
+  o.innerHTML='<dl><div><dt>Програма</dt><dd>'+esc(pr[0])+'</dd></div><div><dt>Базова ціна</dt><dd>'+fmt(base)+' грн/міс</dd></div>'+(disc?'<div><dt>'+(pm?'Акція «'+esc(pm.name)+'»':'Передоплата')+'</dt><dd>−'+Math.round(disc*100)+'%</dd></div>':'')+(months?'<div><dt>Ціна за місяць</dt><dd>'+fmt(tot)+' грн/міс</dd></div>':'')+'<div><dt>Оподаткування</dt><dd>'+tn+'</dd></div></dl><div class="tot">'+(months?fmt(totAll)+' грн':fmt(tot)+' грн/міс')+'</div><small>'+(months?'Разом за '+months+' міс. одним платежем. ':'')+'Ціна без податку, якщо не обрано інше. 100% передоплата.</small><button type="button" class="btn" id="reqBtn">Надіслати запит</button>';
+  lastText='РІА «БЛІЦ» — розрахунок\nСпонсорство: '+pr[0]+'\nЦіна: '+fmt(tot)+' грн/міс ('+tn+')'+(months?'\nРазом за '+months+' міс. ('+(pm?'акція «'+pm.name+'»':'передоплата')+' −'+Math.round(disc*100)+'%): '+fmt(totAll)+' грн':'');
   return bindCopy()
  }
  if(S.tab==='vid'){
@@ -550,6 +554,7 @@ document.addEventListener('click',function(e){
  var t=e.target.closest('button');if(!t||!$('calcIn').contains(t))return;
  var d=t.dataset;
  if(d.promo!==undefined){togglePromo(d.promo);return}
+ else if(d.spromo!==undefined){S.spPromo=(S.spPromo===d.spromo?'':d.spromo);render();return}
  else if(d.tab){S.tab=d.tab}
  else if(d.days!==undefined){S.promo='';S.days=+d.days}
  else if(d.tax!==undefined){S.tax=+d.tax}
