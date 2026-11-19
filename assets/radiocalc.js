@@ -27,6 +27,14 @@
   function kyivToday() {
     try { return new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Kyiv' }); } catch (e) { return new Date().toISOString().slice(0, 10); }
   }
+  function daysBetween(a, b) { return Math.round((Date.parse(b + 'T00:00:00Z') - Date.parse(a + 'T00:00:00Z')) / 86400000); }
+  // Необов'язкове поле акції decay:{after:'YYYY-MM-DD', perDay:1, floor:0}: після дати after знижка щодня менша на perDay, не нижче floor. Без decay відсоток незмінний.
+  function currentPct(p, t) {
+    var d = p.decay, pct = +p.discountPct;
+    if (!d || !d.after || !(+d.perDay > 0)) return pct;
+    var n = daysBetween(d.after, t);
+    return n > 0 ? Math.max(+d.floor || 0, pct - n * +d.perDay) : pct;
+  }
   // Активні акції: enabled і київська дата в [from,to]. opts.preview — id акцій, що показуються примусово (для перегляду до початку);
   // opts.city — ключ міста (bt, fs, um, sm, bg, rk, st, mz): акція з непорожнім cities діє лише в перелічених містах.
   // Необов'язкові поля банера: headline, text, fine, image (у посиланні {city} замінюється на ключ міста).
@@ -35,7 +43,7 @@
     var arr = (P && Array.isArray(P.promos)) ? P.promos : [], t = opts.today || kyivToday(), pv = opts.preview || [], out = [];
     arr.forEach(function (p) {
       if (!p || !p.id) return;
-      var pct = +p.discountPct, dd = +p.days;
+      var pct = currentPct(p, t), dd = +p.days;
       if (!(pct > 0 && pct <= 100 && dd >= 1)) return;
       if (opts.city && Array.isArray(p.cities) && p.cities.length && p.cities.indexOf(opts.city) < 0) return;
       var forced = pv.indexOf(p.id) >= 0;
