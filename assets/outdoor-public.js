@@ -67,7 +67,8 @@
     return out;
   }
   function monthTxt(m) { return MON_N[m[1]] + ' ' + m[0]; }
-  function monthList(ms) { return ms.map(monthTxt).join(', '); }
+  // «травень 2027, вересень 2027 — жовтень 2027»: місяці підряд скорочуються до діапазону
+  function monthList(ms) { return flightsOf(ms).map(function (f) { return f.n === 1 ? monthTxt(f.from) : monthTxt(f.from) + ' — ' + monthTxt(f.to); }).join(', '); }
   function rentOf(it, ms) { var s = 0; ms.forEach(function (x) { s += priceAt(it, x[0]); }); return Math.round(s); }
   // Стан місяця: 'busy' | 'free' | 'unk'. it.st = {рік: 12 символів}: '1' зайнято (у т.ч. резерв), '0' вільно.
   // НЕМАЄ даних про рік (у Алтая зайнятість лише на 2026) або це екран (даних про зайнятість немає взагалі) = 'unk': «наявність уточнює менеджер», а НЕ «вільно» (SPEC_OUTDOOR_PUBLIC_V2 §13.9)
