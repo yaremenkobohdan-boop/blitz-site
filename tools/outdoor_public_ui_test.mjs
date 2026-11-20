@@ -1,5 +1,5 @@
 // Самоперевірка формул публічного калькулятора (assets/outdoor-public.js). Запуск з кореня сайту: /System/Library/Frameworks/JavaScriptCore.framework/Versions/Current/Helpers/jsc -m tools/outdoor_public_ui_test.mjs
-globalThis.window = globalThis; load('assets/outdoor-public.js');
+globalThis.window = globalThis; load('assets/outdoor-core.js'); load('assets/outdoor-public.js');
 const O = globalThis.OutdoorPublic;
 let fails = 0, n = 0;
 const eq = (m, g, w) => { n++; if (JSON.stringify(g) !== JSON.stringify(w)) { fails++; print('FAIL', m, JSON.stringify(g), JSON.stringify(w)); } };
@@ -64,7 +64,7 @@ eq('publicItem: новий фід → k і ref з нейтрального id', 
 eq('publicItem: старий фід → k порядковий, id не потрапляє в сторінку', [po.k, po.ref], ['i7', '']);
 eq('publicItem: ні code, ні schemeImg, ні id', ['code', 'schemeImg', 'id'].filter(function (x) { return x in pi || x in po; }), []);
 // у JS/HTML/CSS, що їдуть на сайт, немає слідів постачальника (префікси внутрішніх id, номер code, схеми); шаблони складені з частин, щоб сам тест не містив цих рядків
-const SHIPPED = ['assets/outdoor-public.js', 'assets/outdoor-public.css', 'poslugy/bigbordy.html', 'poslugy/videoborday.html'];
+const SHIPPED = ['assets/outdoor-core.js', 'assets/outdoor-public.js', 'assets/outdoor-public.css', 'poslugy/bigbordy.html', 'poslugy/videoborday.html'];
 const pref = ['A' + 'L', 'P' + 'Z', 'I' + 'C', 'I' + 'M'];
 SHIPPED.forEach(function (f) {
   const t = read(f);
