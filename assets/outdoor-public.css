@@ -119,3 +119,29 @@
 
 /* пастка для ботів: поза екраном, не для людей і не для скрінрідерів */
 .op-hp{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}
+
+/* §13: період (підряд / довільні місяці), план платежів, гарантія */
+.op-period{display:flex;flex-direction:column;gap:8px;flex:1 1 100%;min-width:0}
+.op-pmodes{display:flex;gap:8px;flex-wrap:wrap}
+.op-prange{display:flex;gap:12px;flex-wrap:wrap}.op-prange label{min-width:0}
+.op-mgrid{display:flex;flex-direction:column;gap:8px}
+.op-myear{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}.op-myear>b{min-width:42px}
+.op-mrow{display:flex;flex-wrap:wrap;gap:6px}
+.op-mbtn{font:600 13px/1 inherit;padding:8px 10px;min-width:46px;border:1px solid var(--op-line,#E8E5E0);border-radius:10px;background:#fff;color:#1C1917;cursor:pointer}
+.op-mbtn.on{background:#EA580C;border-color:#EA580C;color:#fff}
+.op-mbtn:focus-visible{outline:2px solid #1A1A1A;outline-offset:2px}
+.op-psum{margin:2px 0 0}
+.op-plan{margin:14px 0 8px;padding:12px 14px;border:1px solid var(--op-line,#E8E5E0);border-radius:14px;background:#FCFBF9}.op-plan h4{margin:0 0 6px;font-size:15px}
+.op-warr{margin:8px 0;padding:8px 12px;border-radius:10px;background:#F0FDF4;border:1px solid #BBF7D0;font-size:13.5px}
+.op-busy{color:#B91C1C;font-weight:600}
+
+.op-mbtn.busy{background:#F5F5F4;color:#A8A29E;border-style:dashed;text-decoration:line-through;cursor:not-allowed;display:flex;flex-direction:column;align-items:center;gap:2px}.op-mbtn.busy small{font-size:9px;text-decoration:none;color:#B91C1C;font-weight:600}
+.op-mrowwrap>td{padding:2px 0 12px;border-top:0}.op-lrow td{border-top:2px solid var(--op-line,#E8E5E0)}
+.op-mhead{display:flex;flex-direction:column;gap:6px;padding:8px 10px;border-radius:10px;background:#FAF7F2}.op-mhead>span{font-size:12px;color:#6B6B6B}
+.op-svc{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center}.op-info{color:#15803D}
+.op-st.op-part{color:#B45309}
+
+.op-st.op-unk{background:#F5F5F4;color:#57534E;border:1px dashed #A8A29E}
+.op-mbtn.op-unk{background:#FAFAF9;color:#57534E;border:1px dashed #A8A29E;display:flex;flex-direction:column;align-items:center;gap:2px}.op-mbtn.op-unk small{font-size:9px;color:#78716C;font-weight:600}
+.op-mbtn.op-unk.on{background:#78716C;border-style:solid;border-color:#78716C;color:#fff}.op-mbtn.op-unk.on small{color:#E7E5E4}
+.op-unkt{color:#57534E}
