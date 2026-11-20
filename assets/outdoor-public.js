@@ -240,7 +240,7 @@
       '<li><b>Оформіть замовлення</b> або завантажте комерційну пропозицію: менеджер підтвердить наявність і зарезервує сторони за вами на 3 дні.</li></ol></div></div>';
   }
   function layBtns() {
-    return '<div class="op-lay" role="group" aria-label="Вигляд">' + [['map', 'Карта'], ['list', 'Каталог'], ['both', 'Карта + каталог']].map(function (x) { return '<button type="button" class="btn btn-sm ' + (S.lay === x[0] ? 'btn-primary' : 'btn-outline') + '" data-lay="' + x[0] + '" aria-pressed="' + (S.lay === x[0]) + '">' + x[1] + '</button>'; }).join('') + '</div>';
+    return '<div class="op-lay" role="group" aria-label="Вигляд">' + [['map', 'Карта'], ['list', 'Каталог'], ['both', 'Карта + каталог']].concat(KIND === 'board' ? [['grid', 'Сітка місяців']] : []).map(function (x) { return '<button type="button" class="btn btn-sm ' + (S.lay === x[0] ? 'btn-primary' : 'btn-outline') + '" data-lay="' + x[0] + '" aria-pressed="' + (S.lay === x[0]) + '">' + x[1] + '</button>'; }).join('') + '</div>';
   }
   function shellBoard() {
     var zs = zones(), types = {}; S.items.filter(typesOk).forEach(function (it) { types[it.type] = 1; });
@@ -267,6 +267,7 @@
   function setLay(v) {
     S.lay = v; try { localStorage.setItem(LAY_KEY, v); } catch (e) { /* без запам'ятовування */ }
     var sp = $('op-split'); if (sp) sp.className = 'op-split op-lay-' + v;
+    if (KIND === 'board' && $('op-list')) updateList(boardRows());
     Array.prototype.forEach.call(app.querySelectorAll('[data-lay]'), function (b) { var on = b.dataset.lay === v; b.className = 'btn btn-sm ' + (on ? 'btn-primary' : 'btn-outline'); b.setAttribute('aria-pressed', on ? 'true' : 'false'); });
     if (S.map) { S.fit = true; setTimeout(function () { S.map.invalidateSize(); redraw(true); }, 30); }
   }
@@ -277,9 +278,23 @@
       '<div class="op-rl">' + (r.d != null ? '<span class="op-dist">' + (it.acc === 'approx' ? '≈ ' : '') + dTxt(r.d) + '</span>' : '') + '<span class="op-st op-' + r.st + '" title="' + esc(stHint(it)) + '">' + stTxt(r.st, it, r.bm) + '</span><b>' + money(pr) + '</b><small>/міс., без податків</small></div>' +
       '<button type="button" class="btn ' + (inCart ? 'btn-outline' : 'btn-primary') + ' btn-sm" data-act="' + (inCart ? 'del' : 'add') + '" data-id="' + esc(it.k) + '">' + (inCart ? 'Прибрати' : 'Додати до розрахунку') + '</button></div></article>';
   }
+  // Сітка «борд × місяці» (SPEC_OUTDOOR_MANAGER_GRID_PARITY §A.13): рядок = сторона, колонки = місяці періоду з вибору вище; клацання додає сторону й місяць у розрахунок
+  var GSYM = { free: '✓', busy: '✕', unk: '?' }, GTXT = { free: 'вільно', busy: 'зайнято', unk: 'наявність уточнює менеджер' };
+  function gridHtml(rows) {
+    var ms = S.mode === 'custom' ? curMonths() : monthsOf(S.start, Math.max(S.n, 6));   // у сітці завжди видно не менше 6 місяців від початку
+    var head = '<tr><th class="op-gs" scope="col">Сторона</th>' + ms.map(function (m, i) { var ny = i === 0 || m[1] === 0; return '<th class="op-gm' + (ny ? ' ny' : '') + '" scope="col">' + MON_N[m[1]].slice(0, 3) + '<small>' + (ny ? m[0] : '') + '</small></th>'; }).join('') + '</tr>';
+    var body = rows.map(function (r) {
+      var it = r.it, im = S.sel.indexOf(it.k) >= 0 ? (S.im[it.k] || []) : [];
+      return '<tr><th class="op-gs" scope="row"><b>' + esc(it.addr) + '</b><small>' + sideLbl(it) + ' · ' + esc(it.zone) + ' · ' + money(priceAt(it, ms[0][0])) + '/міс.</small></th>' + ms.map(function (m) {
+        var st = monthState(it, m), iso = isoMonthStart(m[0], m[1]), on = im.indexOf(iso) >= 0;
+        return '<td><button type="button" class="op-gc ' + st + (on ? ' on' : '') + '" data-act="gbm" data-id="' + esc(it.k) + '" data-v="' + iso + '"' + (st === 'busy' ? ' disabled' : '') + ' aria-pressed="' + on + '" aria-label="' + esc(it.addr + ', ' + MON_N[m[1]] + ' ' + m[0] + ': ' + GTXT[st] + (on ? ', обрано' : '')) + '" title="' + esc(MON_N[m[1]] + ' ' + m[0] + ': ' + GTXT[st]) + '">' + (on ? '✔' : GSYM[st]) + '</button></td>';
+      }).join('') + '</tr>';
+    }).join('');
+    return '<div class="op-gwrap"><table class="op-gtbl"><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div><p class="op-note">✓ вільно · ✕ зайнято · ? наявність уточнює менеджер · ✔ обрано. Клацніть клітинку, щоб додати сторону й місяць у розрахунок; у кожної сторони свої місяці. Період вгорі задає, які місяці показані.</p>';
+  }
   function updateList(data) {
     var rows = data.rows, shown = rows.slice(0, S.limit), box = $('op-list'); if (!box) return;
-    var h = shown.map(rowHtml).join('');
+    var h = S.lay === 'grid' && KIND === 'board' ? (shown.length ? gridHtml(shown) : '') : shown.map(rowHtml).join('');
     if (!rows.length) h = '<div class="op-empty">' + (S.pt ? 'У радіусі ' + S.radius + ' км немає сторін за вибраним фільтром.' : 'Немає сторін за вибраним фільтром.') + (data.all > 0 ? ' Є ' + data.all + ' сторін з іншим статусом: змініть фільтр «Показувати».' : (S.pt ? ' Збільште радіус.' : '')) + '</div>';
     if (rows.length > shown.length) h += '<button type="button" class="btn btn-outline" data-act="more">Показати ще</button>';
     box.innerHTML = h;
@@ -583,6 +598,7 @@
     if (a === 'add') { if (S.sel.indexOf(id) < 0) { S.sel.push(id); if (KIND === 'board') { S.im[id] = freeIso(S.byId[id], presetIso()); delete S.imManual[id]; } } }
     else if (a === 'del') { S.sel = S.sel.filter(function (x) { return x !== id; }); delete S.im[id]; delete S.ov[id]; delete S.imManual[id]; }
     else if (a === 'bm') { var cur = S.im[id] || []; S.im[id] = cur.indexOf(b.dataset.v) >= 0 ? cur.filter(function (x) { return x !== b.dataset.v; }) : cur.concat([b.dataset.v]); S.imManual[id] = true; S.info = ''; renderCart(); return; }
+    else if (a === 'gbm') { var gv = b.dataset.v, gi = S.byId[id]; if (!gi) return; if (S.sel.indexOf(id) < 0) { S.sel.push(id); S.im[id] = []; } var gc = S.im[id] || []; S.im[id] = gc.indexOf(gv) >= 0 ? gc.filter(function (x) { return x !== gv; }) : gc.concat([gv]); S.imManual[id] = true; S.info = ''; if (!S.im[id].length) { S.sel = S.sel.filter(function (x) { return x !== id; }); delete S.im[id]; delete S.ov[id]; delete S.imManual[id]; } updateList(boardRows()); renderCart(); return; }
     else if (a === 'bsame') { sameMonthsForAll(id); renderCart(); return; }
     else if (a === 'papply') { e.preventDefault(); S.info = ''; S.sel.forEach(function (k) { setPreset(k); delete S.imManual[k]; }); redraw(false); return; }
     else return;

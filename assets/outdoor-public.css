@@ -145,3 +145,21 @@
 .op-mbtn.op-unk{background:#FAFAF9;color:#57534E;border:1px dashed #A8A29E;display:flex;flex-direction:column;align-items:center;gap:2px}.op-mbtn.op-unk small{font-size:9px;color:#78716C;font-weight:600}
 .op-mbtn.op-unk.on{background:#78716C;border-style:solid;border-color:#78716C;color:#fff}.op-mbtn.op-unk.on small{color:#E7E5E4}
 .op-unkt{color:#57534E}
+
+/* Сітка місяців (E2б): borders × місяці, спрощена версія для клієнта */
+.op-split.op-lay-grid{grid-template-columns:minmax(0,1fr)}.op-split.op-lay-grid .op-mapbox{display:none}.op-split.op-lay-grid .op-list{max-height:none;overflow:visible;display:block}
+.op-gwrap{overflow-x:auto;border:1px solid #E7E5E4;border-radius:12px;background:#fff;max-width:100%}
+.op-gtbl{border-collapse:separate;border-spacing:0;font-size:12.5px;width:max-content;min-width:100%}
+.op-gtbl th,.op-gtbl td{padding:0;border-bottom:1px solid #F0EEEC;border-right:1px solid #F5F3F1}
+.op-gtbl thead th{position:sticky;top:0;background:#1C1917;color:#fff;font-size:11px;padding:6px 4px;text-align:center;font-weight:700}
+.op-gtbl thead th small{display:block;font-weight:400;opacity:.8;font-size:9.5px;min-height:11px}
+.op-gtbl thead th.ny{border-left:3px solid #EA580C}
+.op-gtbl th.op-gs{position:sticky;left:0;z-index:1;background:#fff;text-align:left;font-weight:400;padding:8px 10px;min-width:210px;max-width:250px}
+.op-gtbl thead th.op-gs{z-index:2;background:#1C1917}
+.op-gtbl th.op-gs b{display:block;font-weight:700;font-size:12.5px}
+.op-gtbl th.op-gs small{display:block;color:#78716C;font-size:11px;line-height:1.35}
+.op-gc{width:44px;min-width:44px;height:38px;border:0;border-radius:0;cursor:pointer;font:800 14px/1 inherit;background:#F5F5F4;color:#57534E}
+.op-gc.free{background:#D4F0DC;color:#166534}.op-gc.busy{background:#FBD5D5;color:#991B1B;cursor:not-allowed}.op-gc.unk{background:repeating-linear-gradient(135deg,#F5F5F4,#F5F5F4 4px,#E7E5E4 4px,#E7E5E4 8px);border:1px dashed #A8A29E}
+.op-gc.on{outline:3px solid #EA580C;outline-offset:-3px;background:#FFEDD5;color:#9A3412}
+.op-gc:focus-visible{outline:3px solid #2563EB;outline-offset:-3px}
+@media (max-width:640px){.op-gtbl th.op-gs{min-width:150px;max-width:170px}.op-gc{width:40px;min-width:40px}}
