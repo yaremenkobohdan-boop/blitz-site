@@ -22,7 +22,7 @@
   var VIDEO_DESC = {
     own: 'Ви надаєте готовий ролик чи зображення за вимогами екрана. Виготовлення не рахуємо.',
     static: 'Статичне зображення для показу на екрані.', dynamic: 'Зображення з простим рухом елементів.',
-    anim: 'Анімований ролик із рухом і переходами.', video: 'Відеоролик: монтаж із ваших матеріалів.'
+    anim: 'Анімований ролик із рухом і переходами.', video: 'Відеоролик: базовий відеомонтаж із ваших матеріалів.'
   };
   var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
   var money = function (n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' грн'; };
@@ -556,6 +556,7 @@
       var m = !S.cl.company.trim() ? 'Вкажіть назву компанії.' : !S.cl.contact.trim() ? 'Вкажіть контактну особу.' : !phoneOk(S.cl.phone) ? 'Вкажіть телефон (не менше 10 цифр).' : '';
       if (m) { S.msg = m; renderCart(); var er = app.querySelector('.op-client'); if (er) er.scrollIntoView({ behavior: 'smooth', block: 'center' }); return false; }
     }
+    var old = app.querySelector('.op-cart .op-err'); if (old && old.parentNode) old.parentNode.removeChild(old);
     return true;
   }
   function sent(msg) { var el = $('op-sent'); if (el) { el.hidden = false; el.textContent = msg; } }
@@ -611,7 +612,7 @@
   // Поля клієнта: зберігаємо без перемальовування (інакше губиться фокус); текст замовлення оновлюється
   app.addEventListener('input', function (e) {
     var t = e.target;
-    if (t.dataset && t.dataset.c) { S.cl[t.dataset.c] = t.value; S.msg = ''; var ta = $('op-text'); if (ta) ta.value = requestText({ kind: KIND, tag: 'Попередній розрахунок', num: 'КП-…', client: S.cl, r: compute(), o: optsOf(), taxName: taxName() }); return; }
+    if (t.dataset && t.dataset.c) { S.cl[t.dataset.c] = t.value; S.msg = ''; var oe = app.querySelector('.op-cart .op-err'); if (oe && oe.parentNode) oe.parentNode.removeChild(oe); var ta = $('op-text'); if (ta) ta.value = requestText({ kind: KIND, tag: 'Попередній розрахунок', num: 'КП-…', client: S.cl, r: compute(), o: optsOf(), taxName: taxName() }); return; }
     if (t.dataset && (t.dataset.d === 'qty' || t.dataset.v === 'qty')) { var q = Math.max(1, Math.min(10, parseInt(t.value, 10) || 1)); if (t.dataset.d) S.dQty = q; else S.vQty = q; if (t.value !== '') renderCartKeep(t); }
   });
   function renderCartKeep(t) {
