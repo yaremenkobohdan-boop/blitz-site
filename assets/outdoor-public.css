@@ -116,3 +116,6 @@
 .op-text{font:12.5px/1.45 ui-monospace,Menlo,Consolas,monospace;resize:vertical;min-height:110px}
 .op-ok{margin:10px 0 0;padding:10px 12px;border-radius:10px;background:#DCFCE7;color:#14532D;font-size:13.5px}.op-ok[hidden]{display:none}
 @media (max-width:640px){.op-acts .btn{flex:1 1 100%}.op-lay .btn{flex:1 1 auto}.op-split.op-lay-map .op-map{height:420px}.op-split.op-lay-list .op-list{grid-template-columns:minmax(0,1fr)}.op-pkgs ul{grid-template-columns:minmax(0,1fr)}.op-client .op-opts label{flex-basis:100%}}
+
+/* пастка для ботів: поза екраном, не для людей і не для скрінрідерів */
+.op-hp{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}

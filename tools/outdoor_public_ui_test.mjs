@@ -136,6 +136,22 @@ ok('КП: екранується HTML у введених даних', O.kpHtml(
 const lx = O.requestText({ kind: 'led', tag: 'Замовлення', num: 'КП-261120-0002', client: cx, r: lr, o: {}, taxName: 'ЄП 2%' });
 ok('текст екранів: пакет, економія, мінімум секунд, ролик', ['пакет', 'економія 3 000 грн', '259200 сек', 'Ролик: Статика × 2'].every(function (s) { return lx.indexOf(s) >= 0; }));
 ok('КП екранів: без колонок друк/монтаж, з мінімумом показів', (function (h) { return h.indexOf('Друк</th>') < 0 && h.indexOf('Монтаж</th>') < 0 && h.indexOf('259200 сек') >= 0; })(O.kpHtml({ kind: 'led', tag: 'КП завантажено', num: 'КП-261120-0002', client: cx, r: lr, o: {}, taxName: 'ЄП 2%', date: new Date(2026, 10, 20) })));
+// автоматична відправка заявки (leadPayload → POST /outdoor-lead): версія, подія, згода, клієнт, текст з номером, вибір з клієнтськими цінами; без виплат дизайнеру
+const lp = O.leadPayload(xb, 'kp', { dt: 9000, hp: '', page: '/poslugy/x' });
+eq('заявка: версія, подія, вид, номер, згода, пастка порожня, пауза', [lp.v, lp.ev, lp.kind, lp.num, lp.consent, lp.hp, lp.dt], [1, 'kp', 'board', 'КП-261120-0001', true, '', 9000]);
+eq('заявка: клієнт передається повністю', lp.client, cx);
+ok('заявка: текст = текст замовлення з номером', lp.text === tb && lp.text.indexOf('КП-261120-0001') >= 0);
+eq('заявка: сторона, поклейка й суми в рядках вибору', [lp.sel.lines.length, lp.sel.lines[0].addr, lp.sel.lines[0].side, lp.sel.lines[0].ref, lp.sel.lines[0].sum > 0, lp.sel.lines[0].demount > 0], [1, 'пр-т Незалежності', 'Б низ', 'ab12cd34', true, true]);
+eq('заявка: дизайн VIP × 2 з клієнтською ціною', [lp.sel.design.qty, lp.sel.design.price, lp.sel.design.sum], [2, 2000, 4000]);
+eq('заявка: підсумки збігаються з розрахунком', [lp.sel.subAll, lp.sel.taxSum, lp.sel.total, lp.sel.months, lp.sel.tax], [rb.subAll, rb.tax, rb.total, 3, 'ЄП 2%']);
+const lpl = O.leadPayload({ kind: 'led', tag: 'Замовлення', num: 'КП-261120-0002', client: cx, r: lr, o: {}, taxName: 'ЄП 2%' }, 'order', { dt: 9000 });
+eq('заявка екранів: пакет, ролик, подія order', [lpl.ev, lpl.sel.pkg && lpl.sel.pkg.count, lpl.sel.pkg && lpl.sel.pkg.saving, lpl.sel.video && lpl.sel.video.name, lpl.sel.video && lpl.sel.video.sum], ['order', 3, 3000, 'Статика', 1600]);
+ok('заявка: ключі верхнього рівня — лише дозволені', Object.keys(lp).sort().join() === 'client,consent,dt,ev,hp,kind,num,page,sel,text,v');
+ok('заявка: у вибору лише дозволені ключі, без виплат дизайнеру / постачальників', Object.keys(lp.sel).sort().join() === 'demount,design,lines,months,mount,period,pkg,print,rent,subAll,tax,taxSum,total,video' && !/payout|designer|multiplier|cost|sup|tier|supMount|occ/.test(JSON.stringify(lp)));
+ok('заявка: серіалізується в JSON без втрат (без undefined/NaN)', !/undefined|NaN|null,"?null/.test(JSON.stringify(lp).replace(/"(design|video|pkg)":null/g, '')));
+ok('скрипт: відправка на /outdoor-lead без ключів і токенів, дані клієнта лише в тілі POST', /bos\.blitz\.com\.ua\/outdoor-lead/.test(read('assets/outdoor-public.js')) && !/(token|secret|api[_-]?key|turnstile)/i.test(read('assets/outdoor-public.js')));
+ok('скрипт: збій відправки веде у запасну форму Uspacy і не блокує КП', /afterSend/.test(read('assets/outdoor-public.js')) && /pushToForm\(requestText\(x\), true\)/.test(read('assets/outdoor-public.js')));
+ok('сторінка має пастку для ботів у CSS поза екраном', /\.op-hp\{[^}]*-9999px/.test(read('assets/outdoor-public.css')));
 // ВИТІК: у скрипті, стилях і сторінках немає виплат дизайнеру, множника, полів прайсу дизайнера, старої адреси
 SHIPPED.forEach(function (f) {
   const t = read(f);

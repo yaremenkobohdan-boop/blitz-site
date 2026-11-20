@@ -2,7 +2,7 @@
    Дані: calc.blitz.com.ua/outdoor-public.json (лише публічні поля). Формули — ті самі, що в калькуляторі менеджера.
    Бігборди: карта з точкою клієнта й радіусом (Leaflet + OpenStreetMap), список за відстанню, фільтри (наявність, сторона А/Б, поклейка), дизайн, таблиця розрахунку, комерційна пропозиція.
    Відеоекрани: картки, постійні пакети за кількістю екранів, ролик, комерційна пропозиція.
-   Контейнер: <div id="outdoor-app" data-kind="board|led" data-feed="…" data-img="…" data-privacy="…">. Заявка вставляє розрахунок у форму Uspacy. */
+   Контейнер: <div id="outdoor-app" data-kind="board|led" data-feed="…" data-img="…" data-privacy="…">. Заявка й КП автоматично надсилаються нам (data-lead, за замовчуванням bos.blitz.com.ua/outdoor-lead); запасний шлях — вставка тексту у форму Uspacy. */
 (function (root) {
   'use strict';
   var MON = ['січня', 'лютого', 'березня', 'квітня', 'травня', 'червня', 'липня', 'серпня', 'вересня', 'жовтня', 'листопада', 'грудня'];
@@ -224,8 +224,25 @@
     return { k: nk ? 'k' + nk : 'i' + idx, ref: nk, side: raw.side, sd: raw.sd != null ? raw.sd : sideOf(raw.side), tr: raw.tr || '', size: raw.size, addr: raw.addr, zone: raw.zone, type: raw.type, price: raw.price, priceY: raw.priceY, lat: raw.lat, lng: raw.lng, acc: raw.acc, img: raw.img, mount: raw.mount, inc: raw.inc, st: raw.st };
   }
 
+  // Тіло запиту автоматичної відправки заявки (POST bos.blitz.com.ua/outdoor-lead): текст, дані клієнта й вибір. Лише клієнтські ціни й суми; ніяких виплат дизайнеру чи полів постачальників (білий список полів нижче).
+  // x: як у requestText; ev: 'kp' | 'order'; extra: {dt (мс від завантаження сторінки), hp (значення пастки для ботів), page}
+  function leadPayload(x, ev, extra) {
+    var r = x.r, e = extra || {}, item = function (d) { return d && d.sum ? { name: d.name, qty: d.qty, price: d.price, sum: d.sum } : null; };
+    return {
+      v: 1, ev: ev, kind: x.kind, num: x.num, consent: true, hp: e.hp || '', dt: e.dt || 0, page: e.page || '',
+      client: { company: x.client.company, contact: x.client.contact, phone: x.client.phone, email: x.client.email },
+      text: requestText(x),
+      sel: {
+        period: periodTxtOf(r.months), months: r.months.length, tax: x.taxName,
+        lines: r.lines.map(function (l) { return { addr: l.it.addr, ref: l.it.ref || '', side: sideTxt(l.it) || '', price: l.price, rent: l.rent, print: l.print || 0, mount: l.mount || 0, demount: l.demount || 0, sum: l.sum || l.rent }; }),
+        design: item(r.design), video: item(r.video), pkg: r.pkgMonths ? { count: r.count, month: r.pkgMonth, saving: r.saving } : null,
+        rent: r.rent, print: r.print || 0, mount: r.mount || 0, demount: r.demount || 0, subAll: r.subAll, taxSum: r.tax || 0, total: r.total
+      }
+    };
+  }
+
   var API = { priceAt: priceAt, monthsOf: monthsOf, rentOf: rentOf, stateOf: stateOf, haversine: haversine, withinRadius: withinRadius, groupByCoord: groupByCoord, parseCoords: parseCoords, dTxt: dTxt, printSale: printSale, mountSale: mountSale, calc: calc, nextMonthStart: nextMonthStart, publicItem: publicItem,
-    sideOf: sideOf, sideTxt: sideTxt, passSide: passSide, passMount: passMount, designOf: designOf, pkgPrice: pkgPrice, calcLed: calcLed, kpNumber: kpNumber, phoneOk: phoneOk, requestText: requestText, kpHtml: kpHtml, TAXES: TAXES, LED_MIN_SEC: LED_MIN_SEC };
+    sideOf: sideOf, sideTxt: sideTxt, passSide: passSide, passMount: passMount, designOf: designOf, pkgPrice: pkgPrice, calcLed: calcLed, kpNumber: kpNumber, phoneOk: phoneOk, requestText: requestText, leadPayload: leadPayload, kpHtml: kpHtml, TAXES: TAXES, LED_MIN_SEC: LED_MIN_SEC };
   root.OutdoorPublic = API;
   if (typeof document === 'undefined') return;
 
@@ -235,6 +252,8 @@
   var FEED = app.getAttribute('data-feed') || 'https://calc.blitz.com.ua/outdoor-public.json';
   var IMG = app.getAttribute('data-img') || 'https://blitz.com.ua/assets/outdoor/t/';
   var PRIVACY = app.getAttribute('data-privacy') || 'https://blitz.com.ua/konfidentsiinist';
+  var LEAD = app.getAttribute('data-lead') || 'https://bos.blitz.com.ua/outdoor-lead';   // публічний прийом заявок (BOS); без ключів: захист на сервері
+  var T0 = Date.now();
   var COL = { free: '#16A34A', busy: '#DC2626' };
   var LAY_KEY = 'op_layout_v1';
   var S = { items: [], sale: {}, pk: null, dz: null, byId: {}, sel: [], zone: '', type: '', limit: 30, start: nextMonthStart(), n: 1, banner: false, print: false, mount: false, tax: 0, consent: false, consentErr: false,
@@ -484,7 +503,8 @@
       '<label>Назва компанії<input type="text" class="op-in" data-c="company" value="' + esc(c.company) + '" autocomplete="organization" maxlength="120"></label>' +
       '<label>Контактна особа<input type="text" class="op-in" data-c="contact" value="' + esc(c.contact) + '" autocomplete="name" maxlength="120"></label>' +
       '<label>Телефон<input type="tel" class="op-in" data-c="phone" value="' + esc(c.phone) + '" autocomplete="tel" maxlength="30" placeholder="+380…"></label>' +
-      '<label>E-mail (необов’язково)<input type="email" class="op-in" data-c="email" value="' + esc(c.email) + '" autocomplete="email" maxlength="120"></label></div></div>';
+      '<label>E-mail (необов’язково)<input type="email" class="op-in" data-c="email" value="' + esc(c.email) + '" autocomplete="email" maxlength="120"></label></div>' +
+      '<div class="op-hp" aria-hidden="true"><label>Сайт (не заповнюйте)<input type="text" name="website" class="op-hpin" tabindex="-1" autocomplete="off"></label></div></div>';
   }
   function boardTable(r) {
     var o = optsOf(), n = r.months.length, cols = (o.print ? 1 : 0) + (o.mount ? 1 : 0) + (r.demount ? 1 : 0);
@@ -549,21 +569,39 @@
     (function fill(tries) { var ed = document.querySelector('#uspacy-forms [contenteditable="true"]'); if (ed) { fillEditor(ed, text, 0); return; } var ta = $('fbTxt'); if (ta) { ta.value = text; return; } if (tries < 40) setTimeout(function () { fill(tries + 1); }, 250); })(0);
   }
   function ctx(tag) { return { kind: KIND, tag: tag, num: kpNumber(), client: S.cl, r: compute(), o: optsOf(), taxName: taxName(), date: new Date() }; }
-  function need(clientRequired) {
+  // mode: 'kp' — компанія, контакт, телефон; 'order' — контакт і телефон (компанія необов'язкова для приватних осіб); без mode — лише згода
+  function need(mode) {
     S.msg = '';
     if (!S.consent) { S.consentErr = true; renderCart(); var c = app.querySelector('.op-consent'); if (c) c.scrollIntoView({ behavior: 'smooth', block: 'center' }); return false; }
-    if (clientRequired) {
-      var m = !S.cl.company.trim() ? 'Вкажіть назву компанії.' : !S.cl.contact.trim() ? 'Вкажіть контактну особу.' : !phoneOk(S.cl.phone) ? 'Вкажіть телефон (не менше 10 цифр).' : '';
+    if (mode) {
+      var m = mode === 'kp' && !S.cl.company.trim() ? 'Вкажіть назву компанії.' : !S.cl.contact.trim() ? 'Вкажіть контактну особу.' : !phoneOk(S.cl.phone) ? 'Вкажіть телефон (не менше 10 цифр).' : '';
       if (m) { S.msg = m; renderCart(); var er = app.querySelector('.op-client'); if (er) er.scrollIntoView({ behavior: 'smooth', block: 'center' }); return false; }
     }
     var old = app.querySelector('.op-cart .op-err'); if (old && old.parentNode) old.parentNode.removeChild(old);
     return true;
   }
   function sent(msg) { var el = $('op-sent'); if (el) { el.hidden = false; el.textContent = msg; } }
+  // Автоматична відправка заявки нам (BOS → лід у Uspacy). Не блокує ні копіювання тексту, ні КП. → Promise<{ok, delivered}>; ніколи не відхиляється
+  function sendLead(x, ev) {
+    var hp = app.querySelector('.op-hp'), body = JSON.stringify(leadPayload(x, ev, { dt: Date.now() - T0, hp: hp ? hp.value : '', page: location.pathname }));
+    var ctl = typeof AbortController !== 'undefined' ? new AbortController() : null, timer = ctl ? setTimeout(function () { ctl.abort(); }, 15000) : null;
+    return fetch(LEAD, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body, signal: ctl ? ctl.signal : undefined, credentials: 'omit' })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { return { ok: r.ok && j.ok === true, delivered: j.delivered !== false, error: j.error }; }); })
+      .catch(function () { return { ok: false }; })
+      .then(function (res) { if (timer) clearTimeout(timer); return res; });
+  }
+  function setBusy(on) { S.sending = on; Array.prototype.forEach.call(app.querySelectorAll('[data-act="send"],[data-act="kp"]'), function (b) { b.disabled = on; }); }
+  // Підсумок відправки для клієнта: чесно про успіх або про запасний шлях (форма Uspacy)
+  function afterSend(x, res, okMsg) {
+    setBusy(false);
+    if (res.ok) { sent(okMsg + (res.delivered ? '' : ' Заявку збережено, менеджер отримає її трохи згодом.')); return; }
+    pushToForm(requestText(x), true);
+    sent('Автоматично надіслати не вдалося' + (res.error ? ' (' + res.error + ')' : '') + '. Ваш вибір підготовлено у формі нижче: натисніть «Надіслати», або зателефонуйте нам: ' + CO.phones[0] + '. ' + (x.tag === 'Замовлення' ? 'Замовлення ' : 'Комерційна пропозиція ') + x.num + (x.tag === 'Замовлення' ? ' збережено у тексті.' : ' уже відкрита у вікні.'));
+  }
   function send() {
-    if (!need(false)) return;
-    var x = ctx('Замовлення'), text = requestText(x);
-    pushToForm(text); sent('Замовлення ' + x.num + ' підготовлено у формі нижче. Натисніть «Надіслати» у формі, щоб ми його отримали.');
+    if (S.sending || !need('order')) return;
+    var x = ctx('Замовлення'); setBusy(true); sent('Надсилаємо замовлення ' + x.num + '…');
+    sendLead(x, 'order').then(function (res) { afterSend(x, res, 'Замовлення ' + x.num + ' надіслано нам. Менеджер зв’яжеться з вами, підтвердить наявність і уточнить деталі.'); });
   }
   function copyText() {
     var ta = $('op-text'); if (!ta) return;
@@ -572,13 +610,13 @@
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, fail); else fail();
   }
   function downloadKp() {
-    if (!need(true)) return;
+    if (S.sending || !need('kp')) return;
     var x = ctx('КП завантажено'), w = window.open('', '_blank');
     if (!w) { S.msg = 'Браузер заблокував нове вікно. Дозвольте спливаючі вікна для цього сайту й натисніть кнопку ще раз.'; renderCart(); return; }
     w.document.open(); w.document.write(kpHtml(x)); w.document.close();
     setTimeout(function () { try { w.focus(); w.print(); } catch (e) { /* користувач натисне кнопку друку у вікні */ } }, 600);
-    pushToForm(requestText(x), true);
-    sent('Комерційну пропозицію ' + x.num + ' відкрито в новому вікні (друк або «Зберегти як PDF»). Ваші дані й вибір підготовлено у формі нижче: натисніть «Надіслати», щоб ми їх отримали й змогли уточнити, чи пропозиція вам підходить.');
+    setBusy(true); sent('Комерційну пропозицію ' + x.num + ' відкрито в новому вікні (друк або «Зберегти як PDF»). Надсилаємо вашу заявку нам…');
+    sendLead(x, 'kp').then(function (res) { afterSend(x, res, 'Комерційну пропозицію ' + x.num + ' відкрито в новому вікні (друк або «Зберегти як PDF»). Ваші дані й вибір надіслано нам: менеджер зв’яжеться, щоб уточнити, чи пропозиція вам підходить.'); });
   }
 
   /* ───── події ───── */
