@@ -452,7 +452,7 @@
       return '<div class="op-myear"><b>' + y + '</b><div class="op-mrow">' + by[y].map(function (iso) { var m = Number(iso.slice(5, 7)) - 1, on = !!S.picked[iso]; return '<button type="button" class="op-mbtn' + (on ? ' on' : '') + '" data-act="pm" data-v="' + iso + '" aria-pressed="' + on + '" title="' + MON_N[m] + ' ' + y + '">' + MON_N[m].slice(0, 3) + '</button>'; }).join('') + '</div></div>';
     }).join('') + '</div>';
     var ms = pickedIso().length ? monthsFrom({ months: pickedIso() }) : [];
-    h += '<p class="op-note op-psum">' + (ms.length ? 'Обрано ' + ms.length + ' міс.: ' + esc(periodTxtOf(ms)) + '. Кожен захід має свій монтаж; друк і дизайн один раз. ' : 'Позначте місяці, у які потрібне розміщення. Місяці підряд складають один захід. ') + '<a href="#" data-act="pclr">Очистити</a></p>';
+    h += '<p class="op-note op-psum">' + (ms.length ? 'Обрано ' + ms.length + ' міс.: ' + esc(periodTxtOf(ms)).replace(/\.$/, '') + '. Платіж на початок кожного місяця; між заходами платежів немає. ' : 'Позначте місяці, у які потрібне розміщення. Місяці підряд складають один захід. ') + '<a href="#" data-act="pclr">Очистити</a></p>';
     return h;
   }
   function renderPeriod() { var el = $('op-period'); if (el) el.innerHTML = periodHtml(); }
