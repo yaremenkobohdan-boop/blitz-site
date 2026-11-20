@@ -64,7 +64,7 @@ eq('publicItem: новий фід → k і ref з нейтрального id', 
 eq('publicItem: старий фід → k порядковий, id не потрапляє в сторінку', [po.k, po.ref], ['i7', '']);
 eq('publicItem: ні code, ні schemeImg, ні id', ['code', 'schemeImg', 'id'].filter(function (x) { return x in pi || x in po; }), []);
 // у JS/HTML/CSS, що їдуть на сайт, немає слідів постачальника (префікси внутрішніх id, номер code, схеми); шаблони складені з частин, щоб сам тест не містив цих рядків
-const SHIPPED = ['assets/outdoor-public.js', 'assets/outdoor-public.css', 'poslugy/bronyuvannya-bigbordiv-test.html', 'poslugy/bronyuvannya-videoekraniv-test.html'];
+const SHIPPED = ['assets/outdoor-public.js', 'assets/outdoor-public.css', 'poslugy/bigbordy.html', 'poslugy/videoborday.html'];
 const pref = ['A' + 'L', 'P' + 'Z', 'I' + 'C', 'I' + 'M'];
 SHIPPED.forEach(function (f) {
   const t = read(f);
@@ -161,7 +161,7 @@ SHIPPED.forEach(function (f) {
   ok(f + ': немає старої адреси', t.indexOf('Гагарін') < 0);
 });
 ok('скрипт не містить сум виплат дизайнеру (150/250/350/500, 800…): ціни лише з фіду', !/(price|ціна)\s*[:=]\s*(150|250|350|500)\b/.test(read('assets/outdoor-public.js')));
-ok('сторінка екранів не згадує друк, монтаж, демонтаж і виїзд', !/Друк, монтаж, демонтаж і виїзд/.test(read('poslugy/bronyuvannya-videoekraniv-test.html')));
+ok('сторінка екранів не згадує друк, монтаж, демонтаж і виїзд', !/Друк, монтаж, демонтаж і виїзд/.test(read('poslugy/videoborday.html')));
 // ───── SPEC_OUTDOOR_PUBLIC_V2 §13: календар до грудня 2027, координати, план платежів, гарантії, телефон ─────
 const money0 = function (v) { return String(v).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' грн'; };
 const now1120 = new Date(2026, 10, 20);
@@ -239,7 +239,7 @@ eq('телефон: +38 (050) 469-33-66', O.phoneFmt('050 469 3366'), '+38 (050)
 eq('телефон: нерозпізнаний лишається як введено', [O.phoneFmt('12345'), O.phoneFmt('+49 30 1234567'), O.phoneFmt('')], ['12345', '+49 30 1234567', '']);
 eq('телефон на сервер: +380XXXXXXXXX', [O.phoneE164('+38 (067) 280-40-30'), O.phoneE164('0501112233'), O.phoneE164('+49 30 1234567'), O.phoneE164('')], ['+380672804030', '+380501112233', '+49301234567', '']);
 ok('телефон: у шапці КП і підвалі лише новий формат', kf.indexOf('+38 (067) 280-40-30') >= 0 && kf.indexOf('+38 (050) 469-33-66') >= 0 && !/\+380 ?\d\d ?\d{3}/.test(kf.replace(/\+380 50 111 2233/g, '')));
-['poslugy/bronyuvannya-bigbordiv-test.html', 'poslugy/bronyuvannya-videoekraniv-test.html'].forEach(function (f) {
+['poslugy/bigbordy.html', 'poslugy/videoborday.html'].forEach(function (f) {
   const t = read(f).replace(/href="tel:[^"]*"/g, '');
   ok(f + ': видимі телефони компанії лише в українському форматі +38 (0XX) XXX-XX-XX', !/\+380 ?\d\d ?\d\d\d ?\d\d ?\d\d/.test(t) && t.indexOf('+38 (067) 280-40-30') >= 0 && t.indexOf('+38 (050) 469-33-66') >= 0);
 });
