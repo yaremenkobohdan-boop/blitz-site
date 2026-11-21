@@ -207,8 +207,8 @@ section { padding: var(--sp-9) 0; }
 .radio-selection-hint { font-size: 12.5px; color: var(--fg-3); margin-top: 8px; }
 
 /* ---- Category filter pills ---- */
-.cat-pills { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: var(--sp-6); }
-.cat-pills a { font-size: 13.5px; font-weight: var(--fw-semibold); padding: 9px 18px; border-radius: var(--radius-pill); background: var(--bg-2); color: var(--fg-2); border: 1px solid var(--blitz-line); }
+.cat-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: var(--sp-6); }
+.cat-pills a { font-size: 13px; font-weight: var(--fw-semibold); padding: 7px 14px; border-radius: var(--radius-pill); background: var(--bg-2); color: var(--fg-2); border: 1px solid var(--blitz-line); }
 .cat-pills a:hover, .cat-pills a.active { background: var(--blitz-gradient); color: #fff; border-color: transparent; }
 
 /* ---- Promo / akcii cards ---- */
