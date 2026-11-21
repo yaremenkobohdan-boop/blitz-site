@@ -387,3 +387,12 @@ span.freq-chip--pending { cursor: default; }
 .crumbs-top { background: var(--bg-2, #FAFAF9); border-bottom: 1px solid var(--blitz-line); }
 .crumbs-top .wrap { padding-top: 7px; padding-bottom: 7px; }
 .crumbs-top .breadcrumbs { padding: 0; margin: 0; font-size: 12.5px; line-height: 1.4; color: var(--fg-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Випадний другий рядок шапки: категорії послуг під «Послуги» */
+.svc-drop { position: absolute; top: 100%; left: 0; right: 0; background: #fff; border-bottom: 1px solid var(--blitz-line); box-shadow: 0 10px 20px -12px rgba(0,0,0,.25); z-index: 199; }
+.svc-drop[hidden] { display: none; }
+.site-header .svc-drop .wrap { display: block; height: auto; padding-top: 10px; padding-bottom: 12px; }
+.svc-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+.svc-pills a { font-size: 13px; font-weight: var(--fw-semibold); padding: 7px 14px; border-radius: var(--radius-pill); background: var(--bg-2); color: var(--fg-2); border: 1px solid var(--blitz-line); }
+.svc-pills a:hover, .svc-pills a.active { background: var(--blitz-gradient); color: #fff; border-color: transparent; }
+.nav a.svc-open { color: var(--fg-accent); }
