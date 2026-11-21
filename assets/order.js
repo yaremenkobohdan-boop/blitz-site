@@ -33,7 +33,7 @@
   }
 
   cards.forEach(function (c, i) {
-    if (c.hasAttribute('data-lead-name')) return; /* картки акцій мають власну кнопку «Залишити заявку» (window.blitzLead) */
+    if (c.hasAttribute('data-lead-name') || c.hasAttribute('data-nowant')) return; /* картки акцій мають власну кнопку «Залишити заявку» (window.blitzLead) */
     var body = c.querySelector('.body') || c; if (!body) return;
     var name = txt(c.querySelector('h4')) || ('Позиція ' + (i + 1));
     var b = document.createElement('button');
