@@ -59,7 +59,7 @@ eq('адреса — не координати', O.parseCoords('Біла Цер�
 const rawNew = { id: 'a1b2c3d4', fresh: true, occ: '1', occY: {}, region: 'x', side: 'А', addr: 'a', zone: 'z', type: 'board', price: 1, lat: 1, lng: 2, acc: 'exact', img: 'a1b2c3d4.jpg', mount: 'ladder', inc: false, st: { 2026: '0' } };
 const rawOld = Object.assign({}, rawNew, { id: 'X-5', code: '10', schemeImg: 's.jpg', img: 'X-5.jpg' });
 const pi = O.publicItem(rawNew, 7), po = O.publicItem(rawOld, 7);
-eq('publicItem: ключі', Object.keys(pi).sort().join(), 'acc,addr,img,inc,k,lat,lng,mount,price,priceY,ref,sd,side,size,st,tr,type,zone');
+eq('publicItem: ключі', Object.keys(pi).sort().join(), 'acc,addr,cd,img,inc,k,lat,lng,mount,price,priceY,ref,sd,side,size,st,tr,type,zone');
 eq('publicItem: новий фід → k і ref з нейтрального id', [pi.k, pi.ref], ['ka1b2c3d4', 'a1b2c3d4']);
 eq('publicItem: старий фід → k порядковий, id не потрапляє в сторінку', [po.k, po.ref], ['i7', '']);
 eq('publicItem: ні code, ні schemeImg, ні id', ['code', 'schemeImg', 'id'].filter(function (x) { return x in pi || x in po; }), []);
@@ -393,4 +393,20 @@ eq('список місяців скорочується до діапазоні
   eq('кроки: ціна місяця (лютий / березень / червень 2027)', [O.priceAt(itp, 2027, 1), O.priceAt(itp, 2027, 2), O.priceAt(itp, 2027, 5)], [6000, 9000, 7000]);
   eq('кроки: оренда за лютий–квітень 2027 = 6000 + 9000 + 9000', O.rentOf(itp, [[2027, 1], [2027, 2], [2027, 3]]), 24000);
   ok('скрипт сторінки передає місяць у кожен виклик priceAt (картка, мапа, список, таблиця)', (() => { const js = read('assets/outdoor-public.js'), calls = []; let i = -1; while ((i = js.indexOf('priceAt(', i + 1)) >= 0) calls.push(js.slice(i, i + 95)); return calls.length >= 6 && calls.every(c => /\[1\]|- 1\)/.test(c)); })()); }
+/* ───── §15: власні коди бордів, пошук, збереження вибору, легенда ───── */
+{ const C = globalThis.OutdoorCore, js = read('assets/outdoor-public.js');
+  const mk = (cd, side, tr, addr) => C.publicItem({ id: 'abcdef12', cd, side, tr, addr: addr || 'вул. Тестова, 1', zone: 'Біла Церква', type: 'board', price: 5000, lat: 49.8, lng: 30.1 });
+  const A = mk('БЦ-014', 'А', ''), BV = mk('БЦ-014', 'Б (в', 'верх'), A1 = mk('БЦ-005', 'А1', ''), NB = mk('БЦ-014', 'Б (н', 'низ'), V3 = mk('БЦ-021', 'В', '');
+  eq('код+суфікс: А, Б верх, А1, Б низ, третя сторона В', [C.codeTag(A), C.codeTag(BV), C.codeTag(A1), C.codeTag(NB), C.codeTag(V3)], ['БЦ-014 А', 'БЦ-014 ВБ', 'БЦ-005 А1', 'БЦ-014 НБ', 'БЦ-021 В']);
+  eq('чіп «БЦ-014» знаходить усі сторони борда, а не чужі', [A, BV, NB, A1, V3].map(x => C.codeMatch(x, C.chipOf('бц014'))), [true, true, true, false, false]);
+  eq('чіп «БЦ-014 ВБ» знаходить лише верхній Б', [A, BV, NB].map(x => C.codeMatch(x, C.chipOf('БЦ-014 ВБ'))), [false, true, false]);
+  eq('чіп «БЦ-005 А1» знаходить підсторону А1', [A1, A].map(x => C.codeMatch(x, C.chipOf('БЦ-005 А1'))), [true, false]);
+  const r = { r: O.calc([A1], sale, { start: '2027-03-01', n: 1, banner: false, print: false, mount: false, taxRate: 0 }) };
+  ok('текст заявки й КП починаються з нашого коду сторони', C.requestText({ kind: 'board', tag: 'Т', num: 'КП-1', client: { company: '', contact: '', phone: '', email: '' }, r: r.r, o: { banner: false }, taxName: 'Без податку', hy: 2027 }).indexOf('БЦ-005 А1 · ') > 0);
+  ok('скрипт: код борда в сітці, каталозі, popup і таблиці розрахунку', (js.match(/codeBadge\(it\)/g) || []).length >= 3 && /codeTag\(it\) \? '<b>'/.test(js));
+  ok('скрипт: чіпи кодів і підказки, Enter/кома додають код', /data-act="cdel"|data-act="cdel"/.test(js) && /function commitCodes/.test(js) && /\[,;\]/.test(js));
+  ok('скрипт: перемикання вигляду не підганяє карту й не перемальовує без потреби (mapDirty), стан у sessionStorage', /mapDirty/.test(js) && /sessionStorage/.test(js) && !/function setLay[\s\S]{0,400}S\.fit = true/.test(js));
+  ok('скрипт: код постачальника в сторінці не згадується', !/\bsupplier\b|\.sup\b/.test(js));
+  ok('легенда під сіткою: символи, заголовок місяця, помаранчева межа, що робити', /Як читати таблицю/.test(js) && /op-gsym/.test(js) && /помаранчева межа/.test(js) && /Що робити/.test(js));
+}
 print(fails ? 'OUTDOOR PUBLIC UI FAILED ' + fails + ' з ' + n : n + ' перевірок: OUTDOOR PUBLIC UI OK');

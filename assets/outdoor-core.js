@@ -154,6 +154,63 @@
     return (base + (it.tr ? ' ' + it.tr : '')).trim();
   }
   function passSide(it, f) { return !f || f === 'all' || it.sd === f; }
+  // ───── Власний код борда (SPEC_OUTDOOR_PUBLIC_V2 §15): «БЦ-014» + суфікс сторони. Код постачальника сюди НЕ потрапляє (у фіді його немає) ─────
+  // Суфікс береться з даних сторони як є: А, Б, В (три сторони), А1/А2/А3 (призматрон, трикутна конструкція), ярус верх/низ → В/Н перед стороною (ВА, ВБ, НА, НБ, ВА2).
+  // Одинока «В»/«Н» (позначки без А/Б) лишається як у даних. Нічого не вигадуємо.
+  var LATIN = { A: 'А', B: 'Б', C: 'С', E: 'Е', H: 'Н', I: 'І', K: 'К', M: 'М', O: 'О', P: 'Р', T: 'Т', X: 'Х', Y: 'У' };
+  function codeNorm(v) { return String(v == null ? '' : v).toUpperCase().replace(/[A-Z]/g, function (c) { return LATIN[c] || c; }).replace(/[\s\-–—_.·]+/g, ''); }
+  function sideSfx(it) {
+    var raw = String((it && it.side) == null ? '' : it.side).trim().toUpperCase().replace(/^[A-Z]/, function (c) { return LATIN[c] || c; }), tt = String((it && (it.tr || it.tier)) || '') + ' ' + raw;
+    var tier = /ВЕРХ/i.test(tt) ? 'В' : /НИЗ/i.test(tt) ? 'Н' : '', m = raw.match(/^([А-ЯІЇЄ])\s*(\d?)/), letter = m ? m[1] : '', dig = m ? m[2] : '';
+    if (!letter) return tier;
+    return (tier && tier !== letter ? tier : '') + letter + dig;
+  }
+  // Підпис для таблиць: «БЦ-014 ВА»; без коду (старий фід, екрани) — порожній рядок; суфікс завжди після коду
+  function codeTag(it) { var c = it && it.cd ? String(it.cd) : ''; if (!c) return ''; var f = sideSfx(it); return c + (f ? ' ' + f : ''); }
+  // Порядок сторін усередині борда: літера А<Б<В<Н, потім цифра, потім ярус (верх перед низом)
+  function sfxKey(f) { var m = String(f || '').match(/^([ВН])?([А-ЯІЇЄ])(\d?)$/), l = m ? m[2] : String(f || ''), t = m && m[1] ? (m[1] === 'В' ? 0 : 1) : -1; return l + '|' + (m ? m[3] || '0' : '0') + '|' + t; }
+  function cmpSides(a, b) { var x = sfxKey(sideSfx(a)), y = sfxKey(sideSfx(b)); return x < y ? -1 : x > y ? 1 : 0; }
+  var CODE_RE = /^([А-ЯІЇЄ]{1,3})(\d{1,4})((?:[ВН])?[А-ЯІЇЄ]?\d?)$/, SFX_RE = /^(?:[ВН])?[АБВН]\d?$/;
+  function pad3(n) { return ('000' + n).slice(-3); }
+  // Розбір рядка пошуку на токени: роздільники — кома, крапка з комою, новий рядок, пробіл. Суфікс після коду («БЦ-014 ВА») склеюється з попереднім кодом, «БЦ 014» — теж.
+  // Токен: {p: префікс, d: цифри як введено, n: число, s: суфікс, c: «БЦ-014» (лише для повного коду), part: лише префікс}.
+  function codeParts(text) {
+    var out = [];
+    String(text == null ? '' : text).split(/[,;\n]+/).forEach(function (part) {
+      part.split(/\s+/).forEach(function (w) {
+        var n = codeNorm(w); if (!n) return;
+        var last = out[out.length - 1], m = n.match(CODE_RE), dg = n.match(/^\d{1,4}$/);
+        if (last && last.part && dg) { last.part = false; last.d = n; last.n = Number(n); return; }
+        if (last && last.p && last.n != null && !last.s && SFX_RE.test(n)) { last.s = n; return; }   // «А1», «ВА»: у префіксах кодів сторони/яруси заборонені, тому це суфікс
+        if (m) out.push({ p: m[1], d: m[2], n: Number(m[2]), s: m[3] || '', part: false });
+        else if (dg) out.push({ p: '', d: n, n: Number(n), s: '', part: false });
+        else out.push({ p: n, d: '', n: null, s: '', part: true });
+      });
+    });
+    return out.map(function (t) { t.c = t.p && t.n != null ? t.p + '-' + pad3(t.n) : ''; return t; });
+  }
+  // Збіг сторони з чіпом {c, s}: код борда збігається; суфікс (якщо заданий) збігається зі суфіксом сторони
+  function codeMatch(it, chip) { if (!it || !it.cd || !chip || codeNorm(it.cd) !== codeNorm(chip.c)) return false; return !chip.s || codeNorm(sideSfx(it)) === codeNorm(chip.s); }
+  function chipStr(chip) { return chip.c + (chip.s ? ' ' + chip.s : ''); }
+  function chipOf(str) { var t = codeParts(str)[0]; return t && t.c ? { c: t.c, s: t.s } : null; }
+  // Підказки до останнього токена: борди (код + адреса), чий код починається з введеного, або чий номер збігається з введеним числом; з суфіксом — конкретні сторони цього борда. [{c, s, label, n}]
+  function codeSuggest(items, text, max) {
+    var t = codeParts(text), q = t.length ? t[t.length - 1] : null, out = [], boards = {};
+    if (!q) return out;
+    items.forEach(function (it) { if (it.cd) { (boards[it.cd] = boards[it.cd] || []).push(it); } });
+    Object.keys(boards).sort().forEach(function (c) {
+      var cn = codeNorm(c), num = c.split('-')[1], pre = codeNorm(c.split('-')[0]), ok;
+      if (q.part) ok = cn.indexOf(q.p) === 0;
+      else if (!q.p) ok = Number(num) === q.n || num.indexOf(q.d) === 0;
+      else if (q.s) ok = pre === q.p && Number(num) === q.n;
+      else ok = cn.indexOf(q.p + q.d) === 0;
+      if (!ok) return;
+      var sides = boards[c].slice().sort(cmpSides);
+      if (q.s) sides.forEach(function (it) { var f = sideSfx(it); if (codeNorm(f).indexOf(codeNorm(q.s)) === 0) out.push({ c: c, s: f, label: it.addr, n: sides.length }); });
+      else out.push({ c: c, s: '', label: sides[0].addr, n: sides.length });
+    });
+    return out.slice(0, max || 10);
+  }
   // Поклейка: 'ladder' — з драбини, 'lift' — з вишки
   function passMount(it, f) { return !f || f === 'all' || (f === 'lift' ? it.mount === 'lift' : it.mount !== 'lift'); }
   // Вибір дизайну/ролика: list — масив {k,name,price} із фіду; sel {k, qty}; k порожній або 'own' = матеріал клієнта (0 грн). Ціна за один макет, кількість 1–10
@@ -328,7 +385,7 @@
       t.push(r.video && r.video.sum ? 'Ролик: ' + r.video.name + ' × ' + r.video.qty + ' = ' + money(r.video.sum) + '.' : 'Ролик: матеріал клієнта.');
     } else {
       t.push('Сторони (' + r.lines.length + '): ' + r.lines.map(function (l, i) {
-        return (i + 1) + ') ' + l.it.addr + ', сторона ' + (sideTxt(l.it) || '—') + (l.it.mount === 'lift' ? ', поклейка з вишки' : '') + (l.it.ref ? ' (ref ' + l.it.ref + ')' : '') + ': місяці: ' + lineMonthsTxt(l) + '; ' + money(l.price) + '/міс. × ' + l.months.length + ' = ' + money(l.rent) +
+        return (i + 1) + ') ' + (codeTag(l.it) ? codeTag(l.it) + ' · ' : '') + l.it.addr + ', сторона ' + (sideTxt(l.it) || '—') + (l.it.mount === 'lift' ? ', поклейка з вишки' : '') + (l.it.ref ? ' (ref ' + l.it.ref + ')' : '') + ': місяці: ' + lineMonthsTxt(l) + '; ' + money(l.price) + '/міс. × ' + l.months.length + ' = ' + money(l.rent) +
           '; послуги: ' + svcTxt(l, o.banner) + (l.print ? ', друк ' + money(l.print) : '') + (l.mount ? ', ' + (o.banner ? 'монтаж ' : 'поклейка ') + money(l.mount) : '') + (l.demount ? ', демонтаж ' + money(l.demount) : '') + ', разом ' + money(l.sum) + ' [' + availMark(l) + (estMark(l) ? '; ' + estMark(l) : '') + ']';
       }).join('; ') + '.');
       t.push('Виріб: ' + (o.banner ? 'банер' : 'постер') + '. Друк і ' + (o.banner ? 'монтаж (з демонтажем)' : 'поклейка') + ' за вибором клієнта по кожній стороні (лише оренда, оренда + ' + (o.banner ? 'монтаж' : 'поклейка') + ' або з друком); рахуються на кожен захід кожної сторони, дизайн один раз.');
@@ -357,7 +414,7 @@
       var cP = r.print > 0, cM = r.mount > 0, cD = r.demount > 0, mt = o.banner ? 'Монтаж' : 'Поклейка';
       head = '<th>Борд</th><th>Сторона</th><th>Місяці</th><th class="r">Ціна за 1 міс.</th><th class="r">Місяців</th><th class="r">Оренда</th>' + (cP ? '<th class="r">Друк</th>' : '') + (cM ? '<th class="r">' + mt + '</th>' : '') + (cD ? '<th class="r">Демонтаж</th>' : '') + '<th class="r">Разом</th>';
       rows = r.lines.map(function (l) {
-        return '<tr>' + td(esc(l.it.addr)) + td(esc(sideTxt(l.it)) + (l.it.mount === 'lift' ? '<br><small>поклейка з вишки</small>' : '')) + td(esc(lineMonthsTxt(l)) + '<br><small>' + esc(svcTxt(l, o.banner)) + '</small>' + (l.req && l.req.length ? '<br><small>наявність підтвердить менеджер: ' + esc(monthList(l.req)) + '</small>' : '') + (estMark(l) ? '<br><small>' + esc(estMark(l)) + '</small>' : '')) + td(money(l.price), 'r') + td(l.months.length, 'r') + td(money(l.rent), 'r') + (cP ? td(money(l.print), 'r') : '') + (cM ? td(money(l.mount), 'r') : '') + (cD ? td(money(l.demount), 'r') : '') + td(money(l.sum), 'r') + '</tr>';
+        return '<tr>' + td((codeTag(l.it) ? '<b>' + esc(codeTag(l.it)) + '</b><br>' : '') + esc(l.it.addr)) + td(esc(sideTxt(l.it)) + (l.it.mount === 'lift' ? '<br><small>поклейка з вишки</small>' : '')) + td(esc(lineMonthsTxt(l)) + '<br><small>' + esc(svcTxt(l, o.banner)) + '</small>' + (l.req && l.req.length ? '<br><small>наявність підтвердить менеджер: ' + esc(monthList(l.req)) + '</small>' : '') + (estMark(l) ? '<br><small>' + esc(estMark(l)) + '</small>' : '')) + td(money(l.price), 'r') + td(l.months.length, 'r') + td(money(l.rent), 'r') + (cP ? td(money(l.print), 'r') : '') + (cM ? td(money(l.mount), 'r') : '') + (cD ? td(money(l.demount), 'r') : '') + td(money(l.sum), 'r') + '</tr>';
       }).join('');
       var span = 6 + (cP ? 1 : 0) + (cM ? 1 : 0) + (cD ? 1 : 0);
       foot += '<tr class="sum"><td colspan="5">Разом по сторонах</td>' + td(money(r.rent), 'r') + (cP ? td(money(r.print), 'r') : '') + (cM ? td(money(r.mount), 'r') : '') + (cD ? td(money(r.demount), 'r') : '') + td(money(r.sub), 'r') + '</tr>';
@@ -399,7 +456,7 @@
   // старий формат фіду (id іншого вигляду) приймається теж, але такий id в сторінку не потрапляє: k тоді порядковий. Внутрішніх номерів сторін клієнт не бачить.
   function publicItem(raw, idx) {
     var pc = coordOf(raw.lat, raw.lng), nk = typeof raw.id === 'string' && /^[0-9a-f]{8}$/.test(raw.id) ? raw.id : '';
-    return { k: nk ? 'k' + nk : 'i' + idx, ref: nk, side: raw.side, sd: raw.sd != null ? raw.sd : sideOf(raw.side), tr: raw.tr || '', size: raw.size, addr: raw.addr, zone: raw.zone, type: raw.type, price: raw.price, priceY: raw.priceY, lat: pc ? pc.lat : null, lng: pc ? pc.lng : null, acc: raw.acc, img: raw.img, mount: raw.mount, inc: raw.inc, st: raw.st };
+    return { k: nk ? 'k' + nk : 'i' + idx, ref: nk, side: raw.side, sd: raw.sd != null ? raw.sd : sideOf(raw.side), tr: raw.tr || '', size: raw.size, addr: raw.addr, zone: raw.zone, type: raw.type, price: raw.price, priceY: raw.priceY, lat: pc ? pc.lat : null, lng: pc ? pc.lng : null, acc: raw.acc, img: raw.img, mount: raw.mount, inc: raw.inc, st: raw.st, cd: typeof raw.cd === 'string' && /^[А-ЯІЇЄ]{1,3}-\d{3,4}$/.test(raw.cd) ? raw.cd : '' };
   }
 
   // Тіло запиту автоматичної відправки заявки (POST bos.blitz.com.ua/outdoor-lead): текст, дані клієнта й вибір. Лише клієнтські ціни й суми; ніяких виплат дизайнеру чи полів постачальників (білий список полів нижче).
@@ -412,7 +469,7 @@
       text: requestText(x),
       sel: {
         period: periodTxtOf(r.months), months: r.months.length, monthList: r.months.map(isoOf), flights: (r.flights || []).map(function (f) { return { from: isoOf(f.from), to: isoOf(f.to), n: f.n }; }), tax: x.taxName,
-        lines: r.lines.map(function (l) { return { addr: l.it.addr, ref: l.it.ref || '', side: sideTxt(l.it) || '', price: l.price, rent: l.rent, print: l.print || 0, mount: l.mount || 0, demount: l.demount || 0, sum: l.sum || l.rent, months: (l.months || []).map(isoOf), flights: l.nFlights || (l.flights ? l.flights.length : 0), svc: svcTxt(l, x.o && x.o.banner), req: (l.req || []).map(isoOf), est: (l.est || []).map(isoOf), estFrom: l.estFrom || 0 }; }),
+        lines: r.lines.map(function (l) { return { addr: l.it.addr, ref: l.it.ref || '', bc: codeTag(l.it), side: sideTxt(l.it) || '', price: l.price, rent: l.rent, print: l.print || 0, mount: l.mount || 0, demount: l.demount || 0, sum: l.sum || l.rent, months: (l.months || []).map(isoOf), flights: l.nFlights || (l.flights ? l.flights.length : 0), svc: svcTxt(l, x.o && x.o.banner), req: (l.req || []).map(isoOf), est: (l.est || []).map(isoOf), estFrom: l.estFrom || 0 }; }),
         design: item(r.design), video: item(r.video), pkg: r.pkgMonths ? { count: r.count, month: r.pkgMonth, saving: r.saving } : null,
         rent: r.rent, print: r.print || 0, mount: r.mount || 0, demount: r.demount || 0, subAll: r.subAll, taxSum: r.tax || 0, total: r.total,
         plan: (r.plan || []).map(function (p) { return { n: p.n, period: p.period, due: p.dueTxt, sum: p.sum, incl: p.incl }; }), warranty: (r.warranty || []).slice()
@@ -446,5 +503,5 @@
   // Місяці вікна, вільні в стороні: [[рік, місяць0], …]
   function freeMonths(it, ms) { return ms.filter(function (m) { return monthState(it, m) === 'free'; }); }
 
-  root.OutdoorCore = { tariffYear: tariffYear, estFromOf: estFromOf, prelimNote: prelimNote, availNote: availNote, onYears: onYears, yearsOfMonths: yearsOfMonths, cellsOf: cellsOf, gridPass: gridPass, gridPassCells: gridPassCells, freeMonths: freeMonths, MON_N: MON_N, MON: MON, TYPE_LBL: TYPE_LBL, TAXES: TAXES, RADII: RADII, LED_MIN_SEC: LED_MIN_SEC, MONTH_COUNTS: MONTH_COUNTS, PAY_DAYS: PAY_DAYS, WARR: WARR, DISCLAIMER: DISCLAIMER, CONSENT: CONSENT, CO: CO, DESIGN_DESC: DESIGN_DESC, VIDEO_DESC: VIDEO_DESC, esc: esc, money: money, priceAt: priceAt, monthsOf: monthsOf, monthIdx: monthIdx, flightsOf: flightsOf, monthsFrom: monthsFrom, busyMonths: busyMonths, monthTxt: monthTxt, monthList: monthList, rentOf: rentOf, monthState: monthState, stateOf: stateOf, unkMonths: unkMonths, priceKnown: priceKnown, estMonths: estMonths, haversine: haversine, withinRadius: withinRadius, groupByCoord: groupByCoord, parseCoords: parseCoords, dTxt: dTxt, printSale: printSale, mountSale: mountSale, sideOf: sideOf, sideTxt: sideTxt, passSide: passSide, passMount: passMount, designOf: designOf, itemMonthsOf: itemMonthsOf, svcOf: svcOf, calc: calc, pkgPrice: pkgPrice, calcLed: calcLed, toNum: toNum, inUa: inUa, coordOf: coordOf, phoneNsn: phoneNsn, phoneFmt: phoneFmt, phoneE164: phoneE164, horizonYear: horizonYear, startOptionList: startOptionList, horizonNote: horizonNote, dueIso: dueIso, isoTxt: isoTxt, todayIso: todayIso, paymentPlan: paymentPlan, warranties: warranties, isoMonthStart: isoMonthStart, nextMonthStart: nextMonthStart, pad: pad, kpNumber: kpNumber, dateTxt: dateTxt, phoneOk: phoneOk, flightTxt: flightTxt, periodTxtOf: periodTxtOf, lineMonthsTxt: lineMonthsTxt, svcTxt: svcTxt, availMark: availMark, estMark: estMark, isoOf: isoOf, clientTxt: clientTxt, requestText: requestText, kpHtml: kpHtml, publicItem: publicItem, leadPayload: leadPayload };
+  root.OutdoorCore = { codeNorm: codeNorm, sideSfx: sideSfx, codeTag: codeTag, cmpSides: cmpSides, codeParts: codeParts, codeMatch: codeMatch, chipStr: chipStr, chipOf: chipOf, codeSuggest: codeSuggest, tariffYear: tariffYear, estFromOf: estFromOf, prelimNote: prelimNote, availNote: availNote, onYears: onYears, yearsOfMonths: yearsOfMonths, cellsOf: cellsOf, gridPass: gridPass, gridPassCells: gridPassCells, freeMonths: freeMonths, MON_N: MON_N, MON: MON, TYPE_LBL: TYPE_LBL, TAXES: TAXES, RADII: RADII, LED_MIN_SEC: LED_MIN_SEC, MONTH_COUNTS: MONTH_COUNTS, PAY_DAYS: PAY_DAYS, WARR: WARR, DISCLAIMER: DISCLAIMER, CONSENT: CONSENT, CO: CO, DESIGN_DESC: DESIGN_DESC, VIDEO_DESC: VIDEO_DESC, esc: esc, money: money, priceAt: priceAt, monthsOf: monthsOf, monthIdx: monthIdx, flightsOf: flightsOf, monthsFrom: monthsFrom, busyMonths: busyMonths, monthTxt: monthTxt, monthList: monthList, rentOf: rentOf, monthState: monthState, stateOf: stateOf, unkMonths: unkMonths, priceKnown: priceKnown, estMonths: estMonths, haversine: haversine, withinRadius: withinRadius, groupByCoord: groupByCoord, parseCoords: parseCoords, dTxt: dTxt, printSale: printSale, mountSale: mountSale, sideOf: sideOf, sideTxt: sideTxt, passSide: passSide, passMount: passMount, designOf: designOf, itemMonthsOf: itemMonthsOf, svcOf: svcOf, calc: calc, pkgPrice: pkgPrice, calcLed: calcLed, toNum: toNum, inUa: inUa, coordOf: coordOf, phoneNsn: phoneNsn, phoneFmt: phoneFmt, phoneE164: phoneE164, horizonYear: horizonYear, startOptionList: startOptionList, horizonNote: horizonNote, dueIso: dueIso, isoTxt: isoTxt, todayIso: todayIso, paymentPlan: paymentPlan, warranties: warranties, isoMonthStart: isoMonthStart, nextMonthStart: nextMonthStart, pad: pad, kpNumber: kpNumber, dateTxt: dateTxt, phoneOk: phoneOk, flightTxt: flightTxt, periodTxtOf: periodTxtOf, lineMonthsTxt: lineMonthsTxt, svcTxt: svcTxt, availMark: availMark, estMark: estMark, isoOf: isoOf, clientTxt: clientTxt, requestText: requestText, kpHtml: kpHtml, publicItem: publicItem, leadPayload: leadPayload };
 })(typeof window !== 'undefined' ? window : globalThis);
