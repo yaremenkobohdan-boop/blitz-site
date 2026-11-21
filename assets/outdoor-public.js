@@ -162,7 +162,7 @@
   function ledList() { return S.items.filter(function (it) { return typesOk(it) && (!S.zone || it.zone === S.zone); }); }
   function pkgStrip() {
     var pk = S.pk; if (!pk) return '';
-    var list = ledList(), base = list.length ? priceAt(list[0], Number(S.start.slice(0, 4))) : 0, h = '';
+    var list = ledList(), base = list.length ? priceAt(list[0], Number(S.start.slice(0, 4)), Number(S.start.slice(5, 7)) - 1) : 0, h = '';
     [1, 2, 3, 4, 5, 6].forEach(function (c) {
       var p = pkgPrice(c, pk); if (!p) return;
       var plain = base * c, save = plain - p;
@@ -172,7 +172,7 @@
   }
   function ledCard(it) {
     var ms = curMonths(), st = stateOf(it, ms), inCart = S.sel.indexOf(it.k) >= 0;
-    var pr = priceAt(it, ms[0][0]), img = it.img ? '<img src="' + esc(IMG + it.img) + '" alt="' + esc(it.addr) + '" loading="lazy" width="360" height="203">' : '<div class="op-noimg">Фото відсутнє</div>';
+    var pr = priceAt(it, ms[0][0], ms[0][1]), img = it.img ? '<img src="' + esc(IMG + it.img) + '" alt="' + esc(it.addr) + '" loading="lazy" width="360" height="203">' : '<div class="op-noimg">Фото відсутнє</div>';
     return '<article class="op-card' + (inCart ? ' op-picked' : '') + '"><div class="op-photo">' + img + '</div><div class="op-body"><div class="op-tags"><span>' + esc(TYPE_LBL[it.type] || it.type) + '</span><span>' + esc(it.zone) + '</span>' + (it.size && it.size !== 'LED' ? '<span>' + esc(it.size) + ' м</span>' : '') + '</div>' +
       '<h4>' + esc(it.addr) + '</h4>' +
       '<div class="op-foot"><div><b>' + money(pr) + '</b> <small>за місяць, без податків</small></div><span class="op-st op-' + st + '" title="' + esc(stHint(it)) + '">' + stTxt(st, it) + '</span></div>' +
@@ -197,7 +197,7 @@
       var pts = [];
       list.forEach(function (it) { if (it.lat == null || it.lng == null) return; pts.push([it.lat, it.lng]);
         L.circleMarker([it.lat, it.lng], { radius: 8, color: '#fff', weight: 2, fillColor: COL.free, fillOpacity: .95 }).addTo(S.map)
-          .bindPopup('<b>' + esc(it.addr) + '</b><br>' + money(priceAt(it, curMonths()[0][0])) + ' за місяць<br><button type="button" data-act="add" data-id="' + esc(it.k) + '">Додати до розрахунку</button>'); });
+          .bindPopup('<b>' + esc(it.addr) + '</b><br>' + money(priceAt(it, curMonths()[0][0], curMonths()[0][1])) + ' за місяць<br><button type="button" data-act="add" data-id="' + esc(it.k) + '">Додати до розрахунку</button>'); });
       if (pts.length) S.map.fitBounds(pts, { padding: [20, 20] });
     });
   }
@@ -272,7 +272,7 @@
     if (S.map) { S.fit = true; setTimeout(function () { S.map.invalidateSize(); redraw(true); }, 30); }
   }
   function rowHtml(r) {
-    var it = r.it, inCart = S.sel.indexOf(it.k) >= 0, pr = priceAt(it, curMonths()[0][0]);
+    var it = r.it, inCart = S.sel.indexOf(it.k) >= 0, pr = priceAt(it, curMonths()[0][0], curMonths()[0][1]);
     var img = it.img ? '<img src="' + esc(IMG + it.img) + '" alt="" loading="lazy" width="120" height="68">' : '<div class="op-noimg">Фото відсутнє</div>';
     return '<article class="op-row" data-act="focus" data-id="' + esc(it.k) + '"><div class="op-th">' + img + '</div><div class="op-rb"><h4>' + esc(it.addr) + '</h4><div class="op-meta">' + sideLbl(it) + ' · ' + esc(it.zone) + '</div>' +
       '<div class="op-rl">' + (r.d != null ? '<span class="op-dist">' + (it.acc === 'approx' ? '≈ ' : '') + dTxt(r.d) + '</span>' : '') + '<span class="op-st op-' + r.st + '" title="' + esc(stHint(it)) + '">' + stTxt(r.st, it, r.bm) + '</span><b>' + money(pr) + '</b><small>/міс., без податків</small></div>' +
@@ -285,7 +285,7 @@
     var head = '<tr><th class="op-gs" scope="col">Сторона</th>' + ms.map(function (m, i) { var ny = i === 0 || m[1] === 0; return '<th class="op-gm' + (ny ? ' ny' : '') + '" scope="col">' + MON_N[m[1]].slice(0, 3) + '<small>' + (ny ? m[0] : '') + '</small></th>'; }).join('') + '</tr>';
     var body = rows.map(function (r) {
       var it = r.it, im = S.sel.indexOf(it.k) >= 0 ? (S.im[it.k] || []) : [];
-      return '<tr><th class="op-gs" scope="row"><b>' + esc(it.addr) + '</b><small>' + sideLbl(it) + ' · ' + esc(it.zone) + ' · ' + money(priceAt(it, ms[0][0])) + '/міс.</small></th>' + ms.map(function (m) {
+      return '<tr><th class="op-gs" scope="row"><b>' + esc(it.addr) + '</b><small>' + sideLbl(it) + ' · ' + esc(it.zone) + ' · ' + money(priceAt(it, ms[0][0], ms[0][1])) + '/міс.</small></th>' + ms.map(function (m) {
         var st = monthState(it, m), iso = isoMonthStart(m[0], m[1]), on = im.indexOf(iso) >= 0;
         return '<td><button type="button" class="op-gc ' + st + (on ? ' on' : '') + '" data-act="gbm" data-id="' + esc(it.k) + '" data-v="' + iso + '"' + (st === 'busy' ? ' disabled' : '') + ' aria-pressed="' + on + '" aria-label="' + esc(it.addr + ', ' + MON_N[m[1]] + ' ' + m[0] + ': ' + GTXT[st] + (on ? ', обрано' : '')) + '" title="' + esc(MON_N[m[1]] + ' ' + m[0] + ': ' + GTXT[st]) + '">' + (on ? '✔' : GSYM[st]) + '</button></td>';
       }).join('') + '</tr>';
@@ -308,7 +308,7 @@
     var th = null; g.rows.forEach(function (r) { if (!th && r.it.img) th = r.it.img; });
     return '<div class="op-pop">' + (th ? '<img src="' + esc(IMG + th) + '" alt="" width="240" height="135">' : '') + '<b>' + esc(g.rows[0].it.addr) + '</b>' + g.rows.map(function (r) {
       var it = r.it, inCart = S.sel.indexOf(it.k) >= 0;
-      return '<div class="op-ps"><div>' + sideLbl(it) + '<br><span class="op-st op-' + r.st + '">' + stTxt(r.st, it, r.bm) + '</span> <b>' + money(priceAt(it, curMonths()[0][0])) + '</b>' + (r.d != null ? ' · ' + (it.acc === 'approx' ? '≈ ' : '') + dTxt(r.d) : '') + '</div>' +
+      return '<div class="op-ps"><div>' + sideLbl(it) + '<br><span class="op-st op-' + r.st + '">' + stTxt(r.st, it, r.bm) + '</span> <b>' + money(priceAt(it, curMonths()[0][0], curMonths()[0][1])) + '</b>' + (r.d != null ? ' · ' + (it.acc === 'approx' ? '≈ ' : '') + dTxt(r.d) : '') + '</div>' +
         '<button type="button" class="btn ' + (inCart ? 'btn-outline' : 'btn-primary') + ' btn-sm" data-act="' + (inCart ? 'del' : 'add') + '" data-id="' + esc(it.k) + '">' + (inCart ? 'Прибрати' : 'Обрати') + '</button></div>'; }).join('') + '</div>';
   }
   function groupColor(g) { return g.rows.some(function (r) { return r.st === 'free'; }) ? COL.free : g.rows.some(function (r) { return r.st === 'part'; }) ? COL.part : g.rows.some(function (r) { return r.st === 'unk'; }) ? COL.unk : COL.busy; }

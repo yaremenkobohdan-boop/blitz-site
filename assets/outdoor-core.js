@@ -32,7 +32,15 @@
 
   /* ───── чисті функції (тестуються в jsc) ───── */
   // Ціна місяця року y: ціна найближчого року не пізніше y (для років без окремої колонки — остання відома); раніше першого відомого — it.price.
-  function priceAt(it, y) {
+  // Кроки цін за версіями BOS (it.ps = [[«РРРР-ММ», ціна], …] за зростанням; діє останній крок не пізніше місяця; без кроків або до першого діє ціна за роком). mi — місяць0.
+  function psAt(it, y, mi) {
+    var ps = it.ps; if (!ps || !ps.length || mi == null) return null;
+    var ym = y + '-' + (mi < 9 ? '0' : '') + (mi + 1), hit = null;
+    for (var i = 0; i < ps.length; i++) { if (ps[i][0] <= ym) hit = ps[i]; else break; }
+    return hit;
+  }
+  function priceAt(it, y, mi) {
+    var h = psAt(it, y, mi); if (h) return Number(h[1]);
     var m = it.priceY;
     if (m) { var ks = Object.keys(m).map(Number).filter(function (k) { return k <= y; }).sort(function (a, b) { return b - a; }); if (ks.length) return Number(m[ks[0]]); }
     return Number(it.price);
@@ -68,7 +76,7 @@
   function monthTxt(m) { return MON_N[m[1]] + ' ' + m[0]; }
   // «травень 2027, вересень 2027 — жовтень 2027»: місяці підряд скорочуються до діапазону
   function monthList(ms) { return flightsOf(ms).map(function (f) { return f.n === 1 ? monthTxt(f.from) : monthTxt(f.from) + ' — ' + monthTxt(f.to); }).join(', '); }
-  function rentOf(it, ms) { var s = 0; ms.forEach(function (x) { s += priceAt(it, x[0]); }); return Math.round(s); }
+  function rentOf(it, ms) { var s = 0; ms.forEach(function (x) { s += priceAt(it, x[0], x[1]); }); return Math.round(s); }
   // Стан місяця: 'busy' | 'res' | 'free' | 'unk'. it.st = {рік: 12 символів}: '1' зайнято, '2' резерв/бронь у постачальника (лише внутрішні дані; публічний фід його не містить), '0' вільно.
   // НЕМАЄ даних про рік (у Алтая зайнятість лише на 2026) або це екран (даних про зайнятість немає взагалі) = 'unk': «наявність уточнює менеджер», а НЕ «вільно» (SPEC_OUTDOOR_PUBLIC_V2 §13.9)
   function monthState(it, m) { if (it.type === 'led' || !it.st) return 'unk'; var row = it.st[m[0]]; if (!row) return 'unk'; var c = row.charAt(m[1]); return c === '1' ? 'busy' : c === '2' ? 'res' : 'free'; }
@@ -80,14 +88,15 @@
   }
   function unkMonths(it, ms) { return ms.filter(function (m) { return monthState(it, m) === 'unk'; }); }
   // Ціна місяця року y відома? У сторони є колонка ціни цього року; а без колонок (priceY немає) ціна it.price діє до базового року (рік фіду). Інакше «тариф уточнюється»: сума рахується за останнім відомим тарифом і позначається як орієнтовна.
-  function priceKnown(it, y, base) {
+  function priceKnown(it, y, base, mi) {
     if (!base) return true;
+    if (psAt(it, y, mi)) return true;   // ціна задана кроком версії BOS: відома
     var m = it.priceY, ks = m ? Object.keys(m).map(Number) : [];
     if (m && m[y] != null) return true;
     if (ks.length) return y < Math.min.apply(null, ks);
     return y <= base;
   }
-  function estMonths(it, ms, base) { return ms.filter(function (m) { return !priceKnown(it, m[0], base); }); }
+  function estMonths(it, ms, base) { return ms.filter(function (m) { return !priceKnown(it, m[0], base, m[1]); }); }
   // Відстань між двома точками, км (haversine)
   function haversine(lat1, lng1, lat2, lng2) {
     var R = 6371, rad = function (x) { return x * Math.PI / 180; }, dLa = rad(lat2 - lat1), dLo = rad(lng2 - lng1);
@@ -165,7 +174,7 @@
       var pr = pr1 * F, mt = mt1 * F, dm = dm1 * F;
       rent += r; print += pr; mount += mt; demount += dm;
       lines.push({ req: unkMonths(it, ims), est: estMonths(it, ims, o.baseYear), it: it, months: ims, flights: fl, nFlights: F, price: ims.length ? Math.round(r / ims.length) : 0, rent: r, print: pr, mount: mt, demount: dm, sum: r + pr + mt + dm, state: stateOf(it, ims), busy: busyMonths(it, ims), svc: sv });
-      ims.forEach(function (m) { var k = monthIdx(m); all[k] = m; rentBy[k] = (rentBy[k] || 0) + priceAt(it, m[0]); });
+      ims.forEach(function (m) { var k = monthIdx(m); all[k] = m; rentBy[k] = (rentBy[k] || 0) + priceAt(it, m[0], m[1]); });
       fl.forEach(function (f) { var k = monthIdx(ims[f.first]), w = workBy[k] || (workBy[k] = { pr: 0, mt: 0, dm: 0 }); w.pr += pr1; w.mt += mt1; w.dm += dm1; });
     });
     var ms = Object.keys(all).map(Number).sort(function (a, b) { return a - b; }).map(function (k) { return all[k]; });
@@ -185,7 +194,7 @@
     var ms = monthsFrom(o), cnt = sel.length, lines = [], indiv = 0, rent = 0, pkgM = 0, p = pkgPrice(cnt, pk), monthRent = [];
     sel.forEach(function (it) { lines.push({ it: it, req: unkMonths(it, ms), est: estMonths(it, ms, o.baseYear), price: Math.round(rentOf(it, ms) / ms.length), rent: rentOf(it, ms) }); });
     ms.forEach(function (m) {
-      var ind = 0; sel.forEach(function (it) { ind += priceAt(it, m[0]); });
+      var ind = 0; sel.forEach(function (it) { ind += priceAt(it, m[0], m[1]); });
       indiv += ind;
       if (p > 0 && p < ind) { rent += p; pkgM++; monthRent.push(p); } else { rent += ind; monthRent.push(Math.round(ind)); }
     });

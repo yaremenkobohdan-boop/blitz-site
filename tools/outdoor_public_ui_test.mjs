@@ -381,4 +381,9 @@ const tl2 = O.requestText({ kind: 'led', tag: 'Замовлення', num: 'КП
 ok('екрани: у тексті «наявність підтвердить менеджер», у заявці req для кожного екрана', tl2.indexOf('наявність підтвердить менеджер') >= 0 && pl2.sel.lines.every(function (l) { return l.req.length === 2; }));
 ok('скрипт: у списку, сітці місяців і легенді є стан «уточнюється» (unk)', /op-unk/.test(read('assets/outdoor-public.js')) && /op-unk/.test(read('assets/outdoor-public.css')) && /COL\.unk/.test(read('assets/outdoor-public.js')));
 eq('список місяців скорочується до діапазонів', [O.monthList(O.monthsFrom({ months: ['2027-01-01', '2027-02-01', '2027-03-01', '2027-05-01', '2027-09-01', '2027-10-01'] })), O.monthList(O.monthsFrom({ start: '2026-12-01', n: 13 }))], ['січень 2027 — березень 2027, травень 2027, вересень 2027 — жовтень 2027', 'грудень 2026 — грудень 2027']);
+// кроки цін за версіями BOS (етап 3): ціна місяця береться з it.ps, а скрипт сторінки передає місяць у priceAt
+{ const itp = { k: 'k1', type: 'board', price: 5000, priceY: { 2026: 5000, 2027: 6000 }, ps: [['2027-03', 9000], ['2027-06', 7000]] };
+  eq('кроки: ціна місяця (лютий / березень / червень 2027)', [O.priceAt(itp, 2027, 1), O.priceAt(itp, 2027, 2), O.priceAt(itp, 2027, 5)], [6000, 9000, 7000]);
+  eq('кроки: оренда за лютий–квітень 2027 = 6000 + 9000 + 9000', O.rentOf(itp, [[2027, 1], [2027, 2], [2027, 3]]), 24000);
+  ok('скрипт сторінки передає місяць у кожен виклик priceAt (картка, мапа, список, таблиця)', (() => { const js = read('assets/outdoor-public.js'), calls = []; let i = -1; while ((i = js.indexOf('priceAt(', i + 1)) >= 0) calls.push(js.slice(i, i + 95)); return calls.length >= 6 && calls.every(c => /\[1\]|- 1\)/.test(c)); })()); }
 print(fails ? 'OUTDOOR PUBLIC UI FAILED ' + fails + ' з ' + n : n + ' перевірок: OUTDOOR PUBLIC UI OK');
