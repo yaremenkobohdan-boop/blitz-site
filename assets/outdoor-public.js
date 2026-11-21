@@ -89,6 +89,8 @@
       publicItem = C.publicItem,
       leadPayload = C.leadPayload,
       codeTag = C.codeTag,
+      codeLabel = C.codeLabel,
+      chipLabel = C.chipLabel,
       codeMatch = C.codeMatch,
       codeParts = C.codeParts,
       codeSuggest = C.codeSuggest,
@@ -163,7 +165,7 @@
   function zones() { var z = {}; S.items.filter(typesOk).forEach(function (it) { z[it.zone] = (z[it.zone] || 0) + 1; }); return Object.keys(z).sort(); }
   function sideLbl(it) { var s = sideTxt(it); return (s ? 'Сторона ' + esc(s) : '') + (it.size ? (s ? ' · ' : '') + esc(it.size) + ' м' : '') + (it.mount === 'lift' ? ' · поклейка з вишки' : ''); }
   // Наш код борда з суфіксом сторони (SPEC_OUTDOOR_PUBLIC_V2 §15): «БЦ-014 ВА»; для екранів і старого фіду порожній
-  function codeBadge(it) { var t = codeTag(it); return t ? '<span class="op-code">' + esc(t) + '</span>' : ''; }
+  function codeBadge(it) { var t = codeLabel(it); return t ? '<span class="op-code">' + esc(t) + '</span>' : ''; }   // «БЦ-124 ВБ (211)»: наш код + суфікс сторони + (номер постачальника, він надрукований на фото)
   function chipList() { return S.codes.map(chipOf).filter(Boolean); }
   function mapShown() { return S.lay !== 'list' && S.lay !== 'grid'; }
   // Фільтри переживають перезавантаження сторінки (лише вкладка): вибір сторін і місяців — це розрахунок, його не зберігаємо
@@ -271,7 +273,7 @@
       '<li><b>Вкажіть точку:</b> введіть адресу й натисніть «Знайти» або клікніть по карті («Вказати на карті»).</li>' +
       '<li><b>Оберіть радіус</b> пошуку навколо точки, за потреби сторону (А або Б) і спосіб поклейки (з драбини чи з вишки).</li>' +
       '<li><b>Зелені сторони доступні, червоні зайняті.</b> За замовчуванням показано лише доступні; фільтр «Показувати» дозволяє побачити й зайняті.</li>' +
-      '<li><b>Код борда</b> (на фото й карті, напр. «БЦ-014 ВА»): введіть його, щоб знайти борд; «БЦ-014» показує всі сторони, «БЦ-014 ВА» одну. Можна додати кілька кодів. Вибір не губиться при переході між картою, каталогом і сіткою.</li>' +
+      '<li><b>Код борда</b> (напр. «БЦ-014 ВА (211)»: наш код, сторона й у дужках номер, надрукований на фото): введіть наш код або номер з фото, щоб знайти борд; «БЦ-014» показує всі сторони, «БЦ-014 ВА» одну. Можна додати кілька кодів. Вибір не губиться при переході між картою, каталогом і сіткою.</li>' +
       '<li><b>Оберіть сторони й період</b> розміщення, за потреби друк, монтаж і дизайн макета.</li>' +
       '<li><b>Оформіть замовлення</b> або завантажте комерційну пропозицію: менеджер підтвердить наявність і зарезервує сторони за вами на 3 дні.</li></ol></div></div>';
   }
@@ -293,9 +295,9 @@
       '<label>Поклейка<select data-f="mountF" class="op-in"><option value="all">Усі</option><option value="ladder">З драбини</option><option value="lift">З вишки</option></select></label>';
     h += '<div class="op-period" id="op-period">' + periodHtml() + '</div>' +
       '<label>Показувати<select data-f="av" class="op-in"><option value="free" selected>Доступні (повністю або частково)</option><option value="busy">Зайняті</option><option value="all">Усі</option></select></label></div>' +
-      '<div class="op-ptrow op-row2 op-coderow"><div class="op-cq"><label for="op-cq-in">Код борда</label><div class="op-cqwrap"><input type="text" id="op-cq-in" class="op-in" placeholder="напр. БЦ-014 або БЦ-014 ВА" autocomplete="off" aria-autocomplete="list" aria-controls="op-sug" aria-expanded="false"><div class="op-sug" id="op-sug" role="listbox" hidden></div></div></div>' +
+      '<div class="op-ptrow op-row2 op-coderow"><div class="op-cq"><label for="op-cq-in">Код борда</label><div class="op-cqwrap"><input type="text" id="op-cq-in" class="op-in" placeholder="наш код (БЦ-014, БЦ-014 ВА) або номер з фото (211)" autocomplete="off" aria-autocomplete="list" aria-controls="op-sug" aria-expanded="false"><div class="op-sug" id="op-sug" role="listbox" hidden></div></div></div>' +
       '<button type="button" class="btn btn-primary btn-sm" data-act="cadd">Додати код</button><button type="button" class="btn btn-outline btn-sm" id="op-cclr" data-act="cclr" hidden>Скинути коди</button></div>' +
-      '<div class="op-chips" id="op-chips" aria-live="polite"></div><div class="op-note" id="op-cmsg">Код борда є на фото й у списку. Обрані коди показують свої борди незалежно від населеного пункту й радіуса.</div>' +
+      '<div class="op-chips" id="op-chips" aria-live="polite"></div><div class="op-note" id="op-cmsg">Номер у дужках — той, що надруковано на фото борда. Обрані коди показують свої борди незалежно від населеного пункту й радіуса.</div>' +
       '<p class="op-disc">' + esc(DISCLAIMER) + '</p></div>';
     h += layBtns();
     h += '<div class="op-legend"><span><i style="background:' + COL.free + '"></i>вільно в усі обрані місяці</span><span><i style="background:' + COL.part + '"></i>вільно частково</span><span><i style="background:' + COL.unk + '"></i>наявність уточнюється</span><span><i style="background:' + COL.busy + '"></i>зайнято</span><span><i class="op-legpt">★</i>ваша точка</span></div>';
@@ -335,7 +337,7 @@
       }).join('') + '</tr>';
     }).join('');
     return '<div class="op-gwrap"><table class="op-gtbl"><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div><div class="op-glegend"><h4>Як читати таблицю</h4><ul class="op-glist"><li><span class="op-gc free op-gsym">✓</span> вільно</li><li><span class="op-gc busy op-gsym">✕</span> зайнято, обрати не можна</li><li><span class="op-gc unk op-gsym">?</span> наявність уточнює менеджер (місяць можна додати як запит)</li><li><span class="op-gc free on op-gsym">✔</span> обрано вами</li></ul>' +
-      '<ul class="op-gtext"><li><b>Рядок</b> — одна сторона борда: код борда зі стороною (наприклад «БЦ-014 А»; ВА і НА — верхній і нижній ярус), адреса, сторона, розмір і ціна за місяць.</li><li><b>Колонка</b> — місяць; <span class="op-gny">помаранчева межа</span> у заголовку — початок нового року.</li><li><b>Що робити:</b> клацніть клітинку — місяць додається в розрахунок нижче, ще раз — знімається. У кожної сторони свої місяці. Початок і кількість місяців задаються вгорі («Початок розміщення», «Місяців підряд»); у таблиці завжди видно не менше 6 місяців.</li></ul></div>';
+      '<ul class="op-gtext"><li><b>Рядок</b> — одна сторона борда: наш код борда зі стороною й у дужках номер, надрукований на фото борда (наприклад «БЦ-124 ВБ (211)»; ВА, ВБ і НА, НБ — верхній і нижній ярус), адреса, сторона, розмір і ціна за місяць.</li><li><b>Колонка</b> — місяць; <span class="op-gny">помаранчева межа</span> у заголовку — початок нового року.</li><li><b>Що робити:</b> клацніть клітинку — місяць додається в розрахунок нижче, ще раз — знімається. У кожної сторони свої місяці. Початок і кількість місяців задаються вгорі («Початок розміщення», «Місяців підряд»); у таблиці завжди видно не менше 6 місяців.</li></ul></div>';
   }
   function updateList(data) {
     var rows = data.rows, shown = rows.slice(0, S.limit), box = $('op-list'); if (!box) return;
@@ -480,7 +482,7 @@
     var h = '<div class="op-tblwrap"><table class="op-tbl op-tbl-wide"><thead><tr><th>Борд</th><th>Сторона</th><th class="r">Місяців / заходів</th><th class="r">Ціна за 1 міс.</th><th class="r">Оренда</th>' + (cP ? '<th class="r">Друк</th>' : '') + (cM ? '<th class="r">' + mt + '</th>' : '') + (cD ? '<th class="r">Демонтаж</th>' : '') + '<th class="r">Разом</th><th></th></tr></thead><tbody>';
     h += r.lines.map(function (l) {
       var it = l.it, inc = !!it.inc;
-      return '<tr class="op-lrow"><td>' + (codeTag(it) ? '<b>' + esc(codeTag(it)) + '</b><br>' : '') + esc(it.addr) + '<br><small' + (l.busy && l.busy.length ? ' class="op-busy"' : '') + '>' + (l.busy && l.busy.length ? 'Зайнято: ' + esc(monthList(l.busy)) : esc(lineMonthsTxt(l))) + '</small>' + (l.req && l.req.length ? '<br><small class="op-unkt">Наявність підтвердить менеджер: ' + esc(monthList(l.req)) + '</small>' : '') + (estMark(l) ? '<br><small class="op-unkt">' + esc(estMark(l)) + '</small>' : '') + '</td><td>' + esc(sideTxt(it) || '—') + (it.mount === 'lift' ? '<br><small>поклейка з вишки</small>' : '') + '</td><td class="r">' + l.months.length + ' / ' + l.nFlights + '</td><td class="r">' + (l.est && l.est.length ? '≈ ' : '') + money(l.price) + '</td><td class="r">' + money(l.rent) + '</td>' +
+      return '<tr class="op-lrow"><td>' + (codeLabel(it) ? '<b>' + esc(codeLabel(it)) + '</b><br>' : '') + esc(it.addr) + '<br><small' + (l.busy && l.busy.length ? ' class="op-busy"' : '') + '>' + (l.busy && l.busy.length ? 'Зайнято: ' + esc(monthList(l.busy)) : esc(lineMonthsTxt(l))) + '</small>' + (l.req && l.req.length ? '<br><small class="op-unkt">Наявність підтвердить менеджер: ' + esc(monthList(l.req)) + '</small>' : '') + (estMark(l) ? '<br><small class="op-unkt">' + esc(estMark(l)) + '</small>' : '') + '</td><td>' + esc(sideTxt(it) || '—') + (it.mount === 'lift' ? '<br><small>поклейка з вишки</small>' : '') + '</td><td class="r">' + l.months.length + ' / ' + l.nFlights + '</td><td class="r">' + (l.est && l.est.length ? '≈ ' : '') + money(l.price) + '</td><td class="r">' + money(l.rent) + '</td>' +
         (cP ? '<td class="r">' + money(l.print) + '</td>' : '') + (cM ? '<td class="r">' + money(l.mount) + '</td>' : '') + (cD ? '<td class="r">' + money(l.demount) + '</td>' : '') +
         '<td class="r"><b>' + money(l.sum) + '</b></td><td><button type="button" class="btn btn-outline btn-sm" data-act="del" data-id="' + esc(it.k) + '" aria-label="Прибрати">×</button></td></tr>' +
         '<tr class="op-mrowwrap"><td colspan="' + span + '"><div class="op-mhead"><span>Місяці цієї сторони:</span>' + monthGrid(l) +
@@ -614,7 +616,7 @@
   function cmsg(t) { var m = $('op-cmsg'); if (m) m.textContent = t; }
   function renderChips() {
     var box = $('op-chips'), clr = $('op-cclr'); if (!box) return;
-    box.innerHTML = S.codes.map(function (c) { return '<span class="op-chip">' + esc(c) + '<button type="button" data-act="cdel" data-c="' + esc(c) + '" aria-label="Прибрати код ' + esc(c) + '">×</button></span>'; }).join('');
+    box.innerHTML = S.codes.map(function (c) { var ch = chipOf(c); return '<span class="op-chip">' + esc(ch ? chipLabel(ch, S.items.filter(typesOk)) : c) + '<button type="button" data-act="cdel" data-c="' + esc(c) + '" aria-label="Прибрати код ' + esc(c) + '">×</button></span>'; }).join('');
     if (clr) clr.hidden = !S.codes.length;
   }
   function hideSug() { var b = $('op-sug'), i = $('op-cq-in'); S.sug = []; S.sugI = -1; if (b) { b.hidden = true; b.innerHTML = ''; } if (i) i.setAttribute('aria-expanded', 'false'); }
@@ -623,7 +625,7 @@
     var list = inp.value.trim() ? codeSuggest(S.items.filter(typesOk), inp.value, 8) : [];
     S.sug = list; S.sugI = -1;
     if (!list.length) { hideSug(); return; }
-    box.innerHTML = list.map(function (x, i) { return '<button type="button" role="option" class="op-sugi" data-act="sug" data-i="' + i + '" data-c="' + esc(x.c) + '" data-s="' + esc(x.s) + '"><b>' + esc(x.c + (x.s ? ' ' + x.s : '')) + '</b><span>' + esc(x.label) + (x.s ? '' : ' · сторін: ' + x.n) + '</span></button>'; }).join('');
+    box.innerHTML = list.map(function (x, i) { return '<button type="button" role="option" class="op-sugi" data-act="sug" data-i="' + i + '" data-c="' + esc(x.c) + '" data-s="' + esc(x.s) + '"><b>' + esc(x.c + (x.s ? ' ' + x.s : '') + (x.sc ? ' (' + x.sc + ')' : '')) + '</b><span>' + esc(x.label) + (x.s ? '' : ' · сторін: ' + x.n) + '</span></button>'; }).join('');
     box.hidden = false; inp.setAttribute('aria-expanded', 'true');
   }
   function markSug() { Array.prototype.forEach.call(app.querySelectorAll('.op-sugi'), function (b, i) { b.classList.toggle('on', i === S.sugI); b.setAttribute('aria-selected', i === S.sugI ? 'true' : 'false'); }); }
@@ -633,11 +635,12 @@
   function commitCodes(text) {
     var rest = [], miss = [], added = 0, pool = S.items.filter(typesOk);
     codeParts(text).forEach(function (t) {
-      if (t.c) { var ch = { c: t.c, s: t.s }; if (pool.some(function (it) { return codeMatch(it, ch); })) { addChip(t.c, t.s); added++; } else miss.push(t.c + (t.s ? ' ' + t.s : '')); return; }
-      var txt = t.p + (t.d || ''), sg = codeSuggest(pool, txt, 10);
-      if (sg.length === 1) { addChip(sg[0].c, ''); added++; } else if (sg.length) rest.push(txt); else miss.push(txt);
+      if (t.c) { var ch = { c: t.c, s: t.s }; if (pool.some(function (it) { return codeMatch(it, ch); })) { addChip(t.c, t.s); added++; return; } if (t.s) { miss.push(t.c + ' ' + t.s); return; } }
+      // не наш код: пробуємо як номер постачальника (точний збіг; «4» може бути в кількох бордів: тоді лишаємо в полі й показуємо підказки)
+      var txt = t.norm || (t.p + (t.d || '')), sg = codeSuggest(pool, txt, 10);
+      if (sg.length === 1) { addChip(sg[0].c, sg[0].s); added++; } else if (sg.length) rest.push(txt); else miss.push(txt);
     });
-    cmsg(miss.length ? 'Код не знайдено: ' + miss.join(', ') + '. Код є на фото й у списку, наприклад «БЦ-014».' : added ? 'Додано кодів: ' + added + '. Коди показують свої борди незалежно від населеного пункту й радіуса.' : 'Код борда є на фото й у списку. Обрані коди показують свої борди незалежно від населеного пункту й радіуса.');
+    cmsg(miss.length ? 'Код не знайдено: ' + miss.join(', ') + '. Наприклад: «БЦ-014», «БЦ-014 ВА» або номер з фото.' : added ? 'Додано кодів: ' + added + '. Коди показують свої борди незалежно від населеного пункту й радіуса.' : 'Код борда є на фото й у списку. Обрані коди показують свої борди незалежно від населеного пункту й радіуса.');
     return { rest: rest.join(' '), added: added };
   }
   function applyCodeInput(pick) {

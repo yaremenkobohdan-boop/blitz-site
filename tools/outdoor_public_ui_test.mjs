@@ -59,7 +59,7 @@ eq('адреса — не координати', O.parseCoords('Біла Цер�
 const rawNew = { id: 'a1b2c3d4', fresh: true, occ: '1', occY: {}, region: 'x', side: 'А', addr: 'a', zone: 'z', type: 'board', price: 1, lat: 1, lng: 2, acc: 'exact', img: 'a1b2c3d4.jpg', mount: 'ladder', inc: false, st: { 2026: '0' } };
 const rawOld = Object.assign({}, rawNew, { id: 'X-5', code: '10', schemeImg: 's.jpg', img: 'X-5.jpg' });
 const pi = O.publicItem(rawNew, 7), po = O.publicItem(rawOld, 7);
-eq('publicItem: ключі', Object.keys(pi).sort().join(), 'acc,addr,cd,img,inc,k,lat,lng,mount,price,priceY,ref,sd,side,size,st,tr,type,zone');
+eq('publicItem: ключі', Object.keys(pi).sort().join(), 'acc,addr,cd,img,inc,k,lat,lng,mount,price,priceY,ref,sc,sd,side,size,st,tr,type,zone');
 eq('publicItem: новий фід → k і ref з нейтрального id', [pi.k, pi.ref], ['ka1b2c3d4', 'a1b2c3d4']);
 eq('publicItem: старий фід → k порядковий, id не потрапляє в сторінку', [po.k, po.ref], ['i7', '']);
 eq('publicItem: ні code, ні schemeImg, ні id', ['code', 'schemeImg', 'id'].filter(function (x) { return x in pi || x in po; }), []);
@@ -403,7 +403,14 @@ eq('список місяців скорочується до діапазоні
   eq('чіп «БЦ-005 А1» знаходить підсторону А1', [A1, A].map(x => C.codeMatch(x, C.chipOf('БЦ-005 А1'))), [true, false]);
   const r = { r: O.calc([A1], sale, { start: '2027-03-01', n: 1, banner: false, print: false, mount: false, taxRate: 0 }) };
   ok('текст заявки й КП починаються з нашого коду сторони', C.requestText({ kind: 'board', tag: 'Т', num: 'КП-1', client: { company: '', contact: '', phone: '', email: '' }, r: r.r, o: { banner: false }, taxName: 'Без податку', hy: 2027 }).indexOf('БЦ-005 А1 · ') > 0);
-  ok('скрипт: код борда в сітці, каталозі, popup і таблиці розрахунку', (js.match(/codeBadge\(it\)/g) || []).length >= 3 && /codeTag\(it\) \? '<b>'/.test(js));
+  { const S1 = C.publicItem({ id: 'abcdef12', cd: 'БЦ-124', sc: '211', side: 'Б ве', tr: 'верх', addr: 'бул. Олександрійський', zone: 'Біла Церква', type: 'board', price: 5500, lat: 49.8, lng: 30.1 }), S2 = C.publicItem({ id: 'abcdef13', cd: 'БЦ-014', sc: '078А', side: 'А', addr: 'Дружби', zone: 'Біла Церква', type: 'board', price: 5500, lat: 49.8, lng: 30.1 });
+    eq('підпис «НАШ КОД СУФІКС (номер постачальника)»: Алтай і Позитив (номер сторони як у постачальника)', [C.codeLabel(S1), C.codeLabel(S2)], ['БЦ-124 ВБ (211)', 'БЦ-014 А (078А)']);
+    eq('publicItem: sc з фіду очищується, сміття відкидається', [C.publicItem({ id: 'abcdef14', sc: '010A*' }).sc, C.publicItem({ id: 'abcdef14', sc: 5 }).sc], ['010А', '']);
+    eq('пошук «211» знаходить борд, «21» і «2» — ні', [C.codeSuggest([S1, S2], '211', 5).length, C.codeSuggest([S1, S2], '21', 5).filter(x => x.sc === '211').length, C.codeSuggest([S1, S2], '2', 5).filter(x => x.sc === '211').length], [1, 0, 0]);
+    eq('чіп «БЦ-124» показується як «БЦ-124 (211)»', C.chipLabel(C.chipOf('БЦ-124'), [S1, S2]), 'БЦ-124 (211)');
+    const rr = O.calc([S1], sale, { start: '2027-03-01', n: 1, banner: false, print: false, mount: false, taxRate: 0 });
+    ok('текст заявки й КП містять «БЦ-124 ВБ (211)»', C.requestText({ kind: 'board', tag: 'Т', num: 'КП-1', client: { company: '', contact: '', phone: '', email: '' }, r: rr, o: { banner: false }, taxName: 'Без податку', hy: 2027 }).indexOf('БЦ-124 ВБ (211) · ') > 0 && C.kpHtml({ kind: 'board', tag: 'Т', num: 'КП-1', client: { company: 'ТЕСТ', contact: 'a', phone: '', email: '' }, r: rr, o: { banner: false }, taxName: 'Без податку', date: new Date(), hy: 2027 }).indexOf('БЦ-124 ВБ (211)') > 0); }
+  ok('скрипт: код борда в сітці, каталозі, popup і таблиці розрахунку', (js.match(/codeBadge\(it\)/g) || []).length >= 3 && /codeLabel\(it\) \? '<b>'/.test(js));
   ok('скрипт: чіпи кодів і підказки, Enter/кома додають код', /data-act="cdel"|data-act="cdel"/.test(js) && /function commitCodes/.test(js) && /\[,;\]/.test(js));
   ok('скрипт: перемикання вигляду не підганяє карту й не перемальовує без потреби (mapDirty), стан у sessionStorage', /mapDirty/.test(js) && /sessionStorage/.test(js) && !/function setLay[\s\S]{0,400}S\.fit = true/.test(js));
   ok('скрипт: код постачальника в сторінці не згадується', !/\bsupplier\b|\.sup\b/.test(js));
