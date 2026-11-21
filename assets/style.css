@@ -261,13 +261,17 @@ section { padding: var(--sp-9) 0; }
 .promo-hero .ph-fine { font-size: 12px; opacity: 0.8; margin: 0; }
 .ph-side { display: flex; flex-direction: column; gap: 12px; align-items: stretch; }
 .ph-num { display: flex; flex-direction: column; gap: 2px; }
-.ph-num b { font-family: var(--font-display); font-weight: 900; font-style: italic; font-size: clamp(40px, 6vw, 60px); line-height: 1; color: var(--blitz-orange-900); }
+.ph-num b { font-family: var(--font-display); font-weight: 900; font-style: italic; font-size: clamp(30px, 3.6vw, 42px); line-height: 1.1; color: var(--blitz-orange-900); }
 .is-bf .ph-num b { color: var(--blitz-orange-400); }
 .ph-num span { font-size: 13.5px; }
 .ph-link { font-size: 13.5px; font-weight: var(--fw-bold); color: var(--blitz-orange-900); text-align: center; text-decoration: underline; text-underline-offset: 3px; }
 .is-bf .pc-btn--solid { background: var(--blitz-orange-400); border-color: var(--blitz-orange-400); color: #1A1A1A; }
 .is-bf .pc-btn--solid:hover { background: var(--blitz-orange-300); }
-@media (max-width: 720px) { .promo-hero { grid-template-columns: minmax(0, 1fr); padding: 20px 16px; border-radius: var(--radius-lg); } }
+.promo-grid.promo-grid--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.promo-grid--2 .promo-hero { grid-column: auto; display: flex; flex-direction: column; align-items: stretch; }
+.promo-grid--2 .ph-side { margin-top: auto; }
+@media (max-width: 720px) { .promo-grid.promo-grid--2 { grid-template-columns: minmax(0, 1fr); }
+  .promo-hero { grid-template-columns: minmax(0, 1fr); padding: 20px 16px; border-radius: var(--radius-lg); } }
 
 /* ---- Radio partner grid ---- */
 .radio-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
