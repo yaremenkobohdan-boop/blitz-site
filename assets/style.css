@@ -95,10 +95,10 @@ section { padding: var(--sp-9) 0; }
 .hero-stats .lbl { font-size: 13px; color: rgba(255,255,255,0.85); margin-top: 2px; }
 
 /* small hero for inner pages */
-.page-hero { background: var(--blitz-gradient); padding: 56px 0 64px; }
+.page-hero { background: var(--blitz-gradient); padding: 26px 0 28px; }
 .page-hero .wrap { }
-.page-hero h1 { font-family: var(--font-display); font-weight: 900; font-style: italic; color: #fff; text-transform: uppercase; font-size: clamp(32px, 4.4vw, 50px); letter-spacing: -0.01em; }
-.page-hero p { color: rgba(255,255,255,0.9); margin-top: 12px; max-width: 640px; font-size: 16px; }
+.page-hero h1 { font-family: var(--font-display); font-weight: 900; font-style: italic; color: #fff; text-transform: uppercase; font-size: clamp(26px, 3.2vw, 38px); line-height: 1.15; letter-spacing: -0.01em; }
+.page-hero p { color: rgba(255,255,255,0.9); margin-top: 8px; max-width: 720px; font-size: 15px; line-height: 1.45; }
 
 /* ---- Section headings ---- */
 .section-head { display: flex; align-items: baseline; gap: 20px; margin-bottom: var(--sp-6); flex-wrap: wrap; }
