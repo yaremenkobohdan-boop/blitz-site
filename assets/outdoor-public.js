@@ -197,13 +197,15 @@
   function ledList() { return S.items.filter(function (it) { return typesOk(it) && (!S.zone || it.zone === S.zone); }); }
   function pkgStrip() {
     var pk = S.pk; if (!pk) return '';
-    var list = ledList(), base = list.length ? priceAt(list[0], Number(S.start.slice(0, 4)), Number(S.start.slice(5, 7)) - 1) : 0, h = '';
+    var list = ledList(), base = list.length ? priceAt(list[0], Number(S.start.slice(0, 4)), Number(S.start.slice(5, 7)) - 1) : 0, h = '', best = 0;
+    [1, 2, 3, 4, 5, 6].forEach(function (c) { var p = pkgPrice(c, pk); if (p && c > 1 && base * c - p > 0) best = c; });
     [1, 2, 3, 4, 5, 6].forEach(function (c) {
       var p = pkgPrice(c, pk); if (!p) return;
-      var plain = base * c, save = plain - p;
-      h += '<li><b>' + c + (c === 1 ? ' екран' : c < 5 ? ' екрани' : ' екранів') + '</b> — ' + money(p) + ' / міс.' + (c > 1 && save > 0 ? ' <small>економія ' + money(save) + ' (−' + Math.round(save / plain * 100) + '%)</small>' : '') + '</li>';
+      var plain = base * c, save = plain - p, ok = c > 1 && save > 0;
+      h += '<li class="op-pk' + (c === best ? ' op-pk-top' : '') + '"><span class="op-pkn">' + c + (c === 1 ? ' екран' : c < 5 ? ' екрани' : ' екранів') + '</span><b class="op-pkp">' + money(p) + '</b>' +
+        (ok ? '<span class="op-pks">−' + Math.round(save / plain * 100) + '% · економія ' + money(save) + '</span>' : '<span class="op-pks op-pks0">за місяць</span>') + '</li>';
     });
-    return h ? '<div class="op-pkgs"><h3>Постійні акції: пакети екранів</h3><p class="op-note">Оберіть екрани, і найвигідніший пакет застосується автоматично. Пакет діє на будь-які екрани з обраних, ціна за місяць розміщення.</p><ul>' + h + '</ul></div>' : '';
+    return h ? '<div class="op-pkgs"><div class="op-pkgh"><h3>Пакети екранів</h3><span>Оберіть екрани: найвигідніший пакет застосується автоматично. Ціна за місяць розміщення.</span></div><ul class="op-pkl">' + h + '</ul></div>' : '';
   }
   function ledCard(it) {
     var ms = curMonths(), st = stateOf(it, ms), inCart = S.sel.indexOf(it.k) >= 0;
