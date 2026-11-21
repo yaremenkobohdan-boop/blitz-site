@@ -1,4 +1,4 @@
-// «Золоті кейси» G1–G15 (SPEC_OUTDOOR_MANAGER_GRID_PARITY §B.4): один файл у blitz-calc і blitz-site; публічний і менеджерський калькулятори проходять їх буква в букву.
+// «Золоті кейси» G1–G20 (SPEC_OUTDOOR_MANAGER_GRID_PARITY §B.4): один файл у blitz-calc і blitz-site; публічний і менеджерський калькулятори проходять їх буква в букву.
 // Кожен кейс: { id, name, run(C, t) }, де C = OutdoorCore, t = { eq(назва, отримано, очікується), ok(назва, умова) }.
 globalThis.OUTDOOR_GOLDEN = (function () {
   var SALE = { printPrice: 1300, mountPrice: 2000, liftPrice: 3500, banPrint: 5800, banMount: 4200, banLift: 6800, clPrint: 0, rlPrint: 0 };
@@ -56,6 +56,26 @@ globalThis.OUTDOOR_GOLDEN = (function () {
     { id: 'G15', name: 'витік: у результатах немає внутрішніх полів', run: function (C, t) {
       var r = C.calc([board('a', 6000)], SALE, bo({ months: ['2027-03-01'], print: true, mount: true })), j = JSON.stringify(r, function (k, v) { return k === 'it' ? undefined : v; });
       t.ok('G15 немає cost/sup/code/mult/margin', !/"(cost|sup|code|mult|margin|supMount|tier)"/.test(j));
-      t.ok('G15 у ядрі немає внутрішніх функцій', !/costRentOf|supCost|printCostOf|\bmargin\b/.test(String(globalThis.OutdoorCore.calc) + String(globalThis.OutdoorCore.calcLed))); } }
+      t.ok('G15 у ядрі немає внутрішніх функцій', !/costRentOf|supCost|printCostOf|\bmargin\b/.test(String(globalThis.OutdoorCore.calc) + String(globalThis.OutdoorCore.calcLed))); } },
+    { id: 'G16', name: 'сторона без тарифу 2027: ціна 2026 року як попередня', run: function (C, t) {
+      var it = board('a', 6000); it.priceY = null; var r = C.calc([it], SALE, bo({ months: ['2027-03-01'], taxRate: 0.07 }));
+      t.eq('G16 сума за тарифом 2026', r.rent, 6000); t.eq('G16 попередній місяць', [r.lines[0].est.length, r.lines[0].estFrom], [1, 2026]);
+      t.eq('G16 податок і платіж як звичайні', [r.tax, r.total, r.plan[0].sum], [420, 6420, 6420]);
+      t.ok('G16 примітка без обіцянок', C.prelimNote(r.lines) === 'Для частини сторін ціна розрахована за тарифом 2026 року; на 2027 рік можливі зміни.' && !/не менш/i.test(C.prelimNote(r.lines) + C.estMark(r.lines[0]))); } },
+    { id: 'G17', name: 'змішаний вибір 2026 + 2027: попередні лише місяці 2027', run: function (C, t) {
+      var it = board('a', 6000); it.priceY = null; var r = C.calc([it], SALE, bo({ months: ['2026-12-01', '2027-01-01', '2027-02-01'] }));
+      t.eq('G17 попередні місяці', r.lines[0].est, [[2027, 0], [2027, 1]]); t.eq('G17 сума', r.rent, 18000); t.eq('G17 платежі = підсумок', sum(r.plan.map(function (p) { return p.sum; })), r.total); } },
+    { id: 'G18', name: 'відома ціна 2027 має пріоритет і не позначається попередньою', run: function (C, t) {
+      var it = board('a', 6000); it.priceY = { 2026: 6000, 2027: 7000 }; var r = C.calc([it], SALE, bo({ months: ['2027-03-01'] }));
+      t.eq('G18 ціна 2027', r.rent, 7000); t.eq('G18 без позначки', [r.lines[0].est.length, C.prelimNote(r.lines)], [0, '']);
+      var s2 = board('b', 6000); s2.priceY = null; s2.ps = [['2027-01', 7500]]; var r2 = C.calc([s2], SALE, bo({ months: ['2027-03-01'] }));
+      t.eq('G18 крок версії BOS: відома, не попередня', [r2.rent, r2.lines[0].est.length], [7500, 0]); } },
+    { id: 'G19', name: 'сторона зовсім без ціни: нуль і «уточнюється», не вигадана ціна', run: function (C, t) {
+      var it = board('a', 0); it.priceY = null; var r = C.calc([it], SALE, bo({ months: ['2027-03-01'] }));
+      t.eq('G19 сума', r.rent, 0); t.ok('G19 немає ціни 2026 для попередньої', !(C.tariffYear(it, 2027, 2026) === 2026 && it.price > 0)); } },
+    { id: 'G20', name: 'відеоекран без тарифу 2027: попередня ціна 2026', run: function (C, t) {
+      var s1 = led('a'), s2 = led('b'); s1.priceY = null; s2.priceY = null;
+      var r = C.calcLed([s1, s2], PK, bo({ months: ['2027-03-01'] }));
+      t.eq('G20 пакет 2 екрани', r.rent, 11000); t.eq('G20 позначка', [r.lines[0].est.length, r.lines[0].estFrom], [1, 2026]); } },
   ];
 })();

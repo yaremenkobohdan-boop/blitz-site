@@ -97,6 +97,13 @@
     return y <= base;
   }
   function estMonths(it, ms, base) { return ms.filter(function (m) { return !priceKnown(it, m[0], base, m[1]); }); }
+  // «Попередня ціна» (est): для місяця року без власного тарифу беремо останній відомий (зазвичай 2026) і позначаємо рядок. estFrom — рік тарифу, за яким пораховано; відома ціна року (колонка або крок версії BOS) має пріоритет і не позначається.
+  function tariffYear(it, y, base) { var m = it.priceY, ks = m ? Object.keys(m).map(Number).filter(function (k) { return k <= y; }) : []; return ks.length ? Math.max.apply(null, ks) : (base || y); }
+  function estFromOf(it, est, base) { var f = 0; (est || []).forEach(function (m) { var t = tariffYear(it, m[0], base); if (t > f) f = t; }); return f; }
+  function yearsOfMonths(est) { var seen = {}, out = []; (est || []).forEach(function (m) { if (!seen[m[0]]) { seen[m[0]] = 1; out.push(m[0]); } }); return out.sort(); }
+  function joinYears(a) { return a.length < 2 ? String(a[0] || '') : a.slice(0, -1).join(', ') + ' і ' + a[a.length - 1]; }
+  // «на 2027 рік» / «на 2027 і 2028 роки»
+  function onYears(a) { return 'на ' + joinYears(a) + (a.length > 1 ? ' роки' : ' рік'); }
   // Відстань між двома точками, км (haversine)
   function haversine(lat1, lng1, lat2, lng2) {
     var R = 6371, rad = function (x) { return x * Math.PI / 180; }, dLa = rad(lat2 - lat1), dLo = rad(lng2 - lng1);
@@ -173,7 +180,8 @@
       if (sv.print && it.type !== 'led' && printSale(it, sale, o.banner) === 0) ask = true;
       var pr = pr1 * F, mt = mt1 * F, dm = dm1 * F;
       rent += r; print += pr; mount += mt; demount += dm;
-      lines.push({ req: unkMonths(it, ims), est: estMonths(it, ims, o.baseYear), it: it, months: ims, flights: fl, nFlights: F, price: ims.length ? Math.round(r / ims.length) : 0, rent: r, print: pr, mount: mt, demount: dm, sum: r + pr + mt + dm, state: stateOf(it, ims), busy: busyMonths(it, ims), svc: sv });
+      var est = estMonths(it, ims, o.baseYear);
+      lines.push({ req: unkMonths(it, ims), est: est, estFrom: estFromOf(it, est, o.baseYear), it: it, months: ims, flights: fl, nFlights: F, price: ims.length ? Math.round(r / ims.length) : 0, rent: r, print: pr, mount: mt, demount: dm, sum: r + pr + mt + dm, state: stateOf(it, ims), busy: busyMonths(it, ims), svc: sv });
       ims.forEach(function (m) { var k = monthIdx(m); all[k] = m; rentBy[k] = (rentBy[k] || 0) + priceAt(it, m[0], m[1]); });
       fl.forEach(function (f) { var k = monthIdx(ims[f.first]), w = workBy[k] || (workBy[k] = { pr: 0, mt: 0, dm: 0 }); w.pr += pr1; w.mt += mt1; w.dm += dm1; });
     });
@@ -192,7 +200,7 @@
   // Відеоекрани: оренда за пакетом, якщо він дешевший за окремі екрани (щомісяця окремо: ціни екранів можуть відрізнятися за роками). o: {start, n, taxRate, video}
   function calcLed(sel, pk, o) {
     var ms = monthsFrom(o), cnt = sel.length, lines = [], indiv = 0, rent = 0, pkgM = 0, p = pkgPrice(cnt, pk), monthRent = [];
-    sel.forEach(function (it) { lines.push({ it: it, req: unkMonths(it, ms), est: estMonths(it, ms, o.baseYear), price: Math.round(rentOf(it, ms) / ms.length), rent: rentOf(it, ms) }); });
+    sel.forEach(function (it) { var est = estMonths(it, ms, o.baseYear); lines.push({ it: it, req: unkMonths(it, ms), est: est, estFrom: estFromOf(it, est, o.baseYear), price: Math.round(rentOf(it, ms) / ms.length), rent: rentOf(it, ms) }); });
     ms.forEach(function (m) {
       var ind = 0; sel.forEach(function (it) { ind += priceAt(it, m[0], m[1]); });
       indiv += ind;
@@ -290,7 +298,18 @@
     if (l.state === 'busy' || !l.req || !l.req.length) return l.state === 'busy' ? 'за нашими даними зайнято' : 'за нашими даними вільно';
     return 'наявність підтвердить менеджер' + (l.months && l.req.length < l.months.length ? ' (' + monthList(l.req) + ')' : '');
   }
-  function estMark(l) { return l.est && l.est.length ? 'тариф уточнюється, сума орієнтовна (останній відомий тариф): ' + monthList(l.est) : ''; }
+  function estMark(l) { return l.est && l.est.length ? 'ціна попередня: за тарифом ' + (l.estFrom || '') + ' року; ' + onYears(yearsOfMonths(l.est)) + ' можливі зміни (' + monthList(l.est) + ')' : ''; }
+  // Примітка під підсумком, лише якщо в розрахунку є хоч один попередній рядок (без обіцянок щодо майбутнього тарифу)
+  function prelimNote(lines) {
+    var yrs = {}, from = {}, any = false;
+    (lines || []).forEach(function (l) { if (l.est && l.est.length) { any = true; yearsOfMonths(l.est).forEach(function (y) { yrs[y] = 1; }); if (l.estFrom) from[l.estFrom] = 1; } });
+    if (!any) return '';
+    var f = Object.keys(from).map(Number).sort(), y = Object.keys(yrs).map(Number).sort();
+    return 'Для частини сторін ціна розрахована за тарифом ' + (f.length > 1 ? joinYears(f) + ' років' : (f[0] || 'попереднього') + ' року') + '; ' + onYears(y) + ' можливі зміни.';
+  }
+  function availNote(lines) {
+    return (lines || []).some(function (l) { return l.req && l.req.length; }) ? 'Позиції з позначкою «наявність підтвердить менеджер»: за ними на відповідні місяці у нас немає даних про зайнятість. Їх можна замовити як запит: менеджер підтвердить наявність.' : '';
+  }
   function isoOf(m) { return m[0] + '-' + pad(m[1] + 1, 2); }
   function clientTxt(c) {
     var p = []; if (c && c.company) p.push('компанія ' + c.company); if (c && c.contact) p.push('контакт ' + c.contact); if (c && c.phone) p.push('тел. ' + c.phone); if (c && c.email) p.push('e-mail ' + c.email);
@@ -357,7 +376,8 @@
     var cl = x.client || {}, notes = ['Ціни довідкові, вказані в гривнях за місяць розміщення. Остаточну вартість і умови фіксує договір.', 'Наявність на обраний період підтверджує менеджер. Після підтвердження доступні сторони можуть бути зарезервовані за вами на 3 календарні дні; резерв не є гарантією розміщення.', 'Пропозиція не є офертою (ст. 641 ЦК України). Договір вважається укладеним після його підписання сторонами.'];
     (r.warranty || []).forEach(function (w) { notes.unshift('Гарантія. ' + w); });
     var hn = horizonNote(r.months, x.hy); if (hn) notes.push(hn);
-    if (r.lines.some(function (l) { return (l.req && l.req.length) || (l.est && l.est.length); })) notes.push('Позиції, позначені «наявність підтвердить менеджер» або «тариф уточнюється», потребують підтвердження: за ними у нас немає даних про зайнятість чи тариф на відповідні місяці; суми за такі місяці орієнтовні.');
+    if (availNote(r.lines)) notes.push(availNote(r.lines));
+    if (prelimNote(r.lines)) notes.push(prelimNote(r.lines));
     if (led) notes.unshift('Мінімальний обсяг показів: ' + r.minSec + ' сек на місяць (' + LED_MIN_SEC + ' сек на екран). Ролик погоджується з менеджером.');
     var css = '@page{size:A4;margin:14mm 12mm}*{box-sizing:border-box}body{font:13px/1.45 Montserrat,Arial,sans-serif;color:#1C1917;margin:0;padding:18px}' +
       '.bar{display:flex;justify-content:space-between;align-items:center;gap:16px;border-bottom:4px solid #EA580C;padding-bottom:12px;margin-bottom:14px}.bar img{height:54px;width:auto}.co{text-align:right;font-size:11.5px;color:#44403C}.co b{font-size:13px;color:#EA580C}' +
@@ -392,7 +412,7 @@
       text: requestText(x),
       sel: {
         period: periodTxtOf(r.months), months: r.months.length, monthList: r.months.map(isoOf), flights: (r.flights || []).map(function (f) { return { from: isoOf(f.from), to: isoOf(f.to), n: f.n }; }), tax: x.taxName,
-        lines: r.lines.map(function (l) { return { addr: l.it.addr, ref: l.it.ref || '', side: sideTxt(l.it) || '', price: l.price, rent: l.rent, print: l.print || 0, mount: l.mount || 0, demount: l.demount || 0, sum: l.sum || l.rent, months: (l.months || []).map(isoOf), flights: l.nFlights || (l.flights ? l.flights.length : 0), svc: svcTxt(l, x.o && x.o.banner), req: (l.req || []).map(isoOf), est: (l.est || []).map(isoOf) }; }),
+        lines: r.lines.map(function (l) { return { addr: l.it.addr, ref: l.it.ref || '', side: sideTxt(l.it) || '', price: l.price, rent: l.rent, print: l.print || 0, mount: l.mount || 0, demount: l.demount || 0, sum: l.sum || l.rent, months: (l.months || []).map(isoOf), flights: l.nFlights || (l.flights ? l.flights.length : 0), svc: svcTxt(l, x.o && x.o.banner), req: (l.req || []).map(isoOf), est: (l.est || []).map(isoOf), estFrom: l.estFrom || 0 }; }),
         design: item(r.design), video: item(r.video), pkg: r.pkgMonths ? { count: r.count, month: r.pkgMonth, saving: r.saving } : null,
         rent: r.rent, print: r.print || 0, mount: r.mount || 0, demount: r.demount || 0, subAll: r.subAll, taxSum: r.tax || 0, total: r.total,
         plan: (r.plan || []).map(function (p) { return { n: p.n, period: p.period, due: p.dueTxt, sum: p.sum, incl: p.incl }; }), warranty: (r.warranty || []).slice()
@@ -426,5 +446,5 @@
   // Місяці вікна, вільні в стороні: [[рік, місяць0], …]
   function freeMonths(it, ms) { return ms.filter(function (m) { return monthState(it, m) === 'free'; }); }
 
-  root.OutdoorCore = { cellsOf: cellsOf, gridPass: gridPass, gridPassCells: gridPassCells, freeMonths: freeMonths, MON_N: MON_N, MON: MON, TYPE_LBL: TYPE_LBL, TAXES: TAXES, RADII: RADII, LED_MIN_SEC: LED_MIN_SEC, MONTH_COUNTS: MONTH_COUNTS, PAY_DAYS: PAY_DAYS, WARR: WARR, DISCLAIMER: DISCLAIMER, CONSENT: CONSENT, CO: CO, DESIGN_DESC: DESIGN_DESC, VIDEO_DESC: VIDEO_DESC, esc: esc, money: money, priceAt: priceAt, monthsOf: monthsOf, monthIdx: monthIdx, flightsOf: flightsOf, monthsFrom: monthsFrom, busyMonths: busyMonths, monthTxt: monthTxt, monthList: monthList, rentOf: rentOf, monthState: monthState, stateOf: stateOf, unkMonths: unkMonths, priceKnown: priceKnown, estMonths: estMonths, haversine: haversine, withinRadius: withinRadius, groupByCoord: groupByCoord, parseCoords: parseCoords, dTxt: dTxt, printSale: printSale, mountSale: mountSale, sideOf: sideOf, sideTxt: sideTxt, passSide: passSide, passMount: passMount, designOf: designOf, itemMonthsOf: itemMonthsOf, svcOf: svcOf, calc: calc, pkgPrice: pkgPrice, calcLed: calcLed, toNum: toNum, inUa: inUa, coordOf: coordOf, phoneNsn: phoneNsn, phoneFmt: phoneFmt, phoneE164: phoneE164, horizonYear: horizonYear, startOptionList: startOptionList, horizonNote: horizonNote, dueIso: dueIso, isoTxt: isoTxt, todayIso: todayIso, paymentPlan: paymentPlan, warranties: warranties, isoMonthStart: isoMonthStart, nextMonthStart: nextMonthStart, pad: pad, kpNumber: kpNumber, dateTxt: dateTxt, phoneOk: phoneOk, flightTxt: flightTxt, periodTxtOf: periodTxtOf, lineMonthsTxt: lineMonthsTxt, svcTxt: svcTxt, availMark: availMark, estMark: estMark, isoOf: isoOf, clientTxt: clientTxt, requestText: requestText, kpHtml: kpHtml, publicItem: publicItem, leadPayload: leadPayload };
+  root.OutdoorCore = { tariffYear: tariffYear, estFromOf: estFromOf, prelimNote: prelimNote, availNote: availNote, onYears: onYears, yearsOfMonths: yearsOfMonths, cellsOf: cellsOf, gridPass: gridPass, gridPassCells: gridPassCells, freeMonths: freeMonths, MON_N: MON_N, MON: MON, TYPE_LBL: TYPE_LBL, TAXES: TAXES, RADII: RADII, LED_MIN_SEC: LED_MIN_SEC, MONTH_COUNTS: MONTH_COUNTS, PAY_DAYS: PAY_DAYS, WARR: WARR, DISCLAIMER: DISCLAIMER, CONSENT: CONSENT, CO: CO, DESIGN_DESC: DESIGN_DESC, VIDEO_DESC: VIDEO_DESC, esc: esc, money: money, priceAt: priceAt, monthsOf: monthsOf, monthIdx: monthIdx, flightsOf: flightsOf, monthsFrom: monthsFrom, busyMonths: busyMonths, monthTxt: monthTxt, monthList: monthList, rentOf: rentOf, monthState: monthState, stateOf: stateOf, unkMonths: unkMonths, priceKnown: priceKnown, estMonths: estMonths, haversine: haversine, withinRadius: withinRadius, groupByCoord: groupByCoord, parseCoords: parseCoords, dTxt: dTxt, printSale: printSale, mountSale: mountSale, sideOf: sideOf, sideTxt: sideTxt, passSide: passSide, passMount: passMount, designOf: designOf, itemMonthsOf: itemMonthsOf, svcOf: svcOf, calc: calc, pkgPrice: pkgPrice, calcLed: calcLed, toNum: toNum, inUa: inUa, coordOf: coordOf, phoneNsn: phoneNsn, phoneFmt: phoneFmt, phoneE164: phoneE164, horizonYear: horizonYear, startOptionList: startOptionList, horizonNote: horizonNote, dueIso: dueIso, isoTxt: isoTxt, todayIso: todayIso, paymentPlan: paymentPlan, warranties: warranties, isoMonthStart: isoMonthStart, nextMonthStart: nextMonthStart, pad: pad, kpNumber: kpNumber, dateTxt: dateTxt, phoneOk: phoneOk, flightTxt: flightTxt, periodTxtOf: periodTxtOf, lineMonthsTxt: lineMonthsTxt, svcTxt: svcTxt, availMark: availMark, estMark: estMark, isoOf: isoOf, clientTxt: clientTxt, requestText: requestText, kpHtml: kpHtml, publicItem: publicItem, leadPayload: leadPayload };
 })(typeof window !== 'undefined' ? window : globalThis);

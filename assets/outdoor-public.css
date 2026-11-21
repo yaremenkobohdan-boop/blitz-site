@@ -145,7 +145,7 @@
 .op-mbtn.op-unk{background:#FAFAF9;color:#57534E;border:1px dashed #A8A29E;display:flex;flex-direction:column;align-items:center;gap:2px}.op-mbtn.op-unk small{font-size:9px;color:#78716C;font-weight:600}
 .op-mbtn.op-unk.on{background:#78716C;border-style:solid;border-color:#78716C;color:#fff}.op-mbtn.op-unk.on small{color:#E7E5E4}
 .op-unkt{color:#57534E}
-
+.op-prelim{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;background:#FFF7ED;border:1px solid #FED7AA;color:#9A3412;font-size:11px;font-weight:600;white-space:nowrap}
 /* Сітка місяців (E2б): borders × місяці, спрощена версія для клієнта */
 .op-split.op-lay-grid{grid-template-columns:minmax(0,1fr)}.op-split.op-lay-grid .op-mapbox{display:none}.op-split.op-lay-grid .op-list{max-height:none;overflow:visible;display:block}
 .op-gwrap{overflow-x:auto;border:1px solid #E7E5E4;border-radius:12px;background:#fff;max-width:100%}

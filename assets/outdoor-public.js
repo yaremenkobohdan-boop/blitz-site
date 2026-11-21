@@ -80,6 +80,8 @@
       svcTxt = C.svcTxt,
       availMark = C.availMark,
       estMark = C.estMark,
+      prelimNote = C.prelimNote,
+      availNote = C.availNote,
       isoOf = C.isoOf,
       clientTxt = C.clientTxt,
       requestText = C.requestText,
@@ -87,7 +89,7 @@
       publicItem = C.publicItem,
       leadPayload = C.leadPayload;
 
-  var API = { priceAt: priceAt, monthsOf: monthsOf, rentOf: rentOf, stateOf: stateOf, haversine: haversine, withinRadius: withinRadius, groupByCoord: groupByCoord, parseCoords: parseCoords, dTxt: dTxt, printSale: printSale, mountSale: mountSale, calc: calc, nextMonthStart: nextMonthStart, publicItem: publicItem,
+  var API = { prelimNote: prelimNote, availNote: availNote, estMark: estMark, priceAt: priceAt, monthsOf: monthsOf, rentOf: rentOf, stateOf: stateOf, haversine: haversine, withinRadius: withinRadius, groupByCoord: groupByCoord, parseCoords: parseCoords, dTxt: dTxt, printSale: printSale, mountSale: mountSale, calc: calc, nextMonthStart: nextMonthStart, publicItem: publicItem,
     sideOf: sideOf, sideTxt: sideTxt, passSide: passSide, passMount: passMount, designOf: designOf, pkgPrice: pkgPrice, calcLed: calcLed, kpNumber: kpNumber, phoneOk: phoneOk, requestText: requestText, leadPayload: leadPayload, kpHtml: kpHtml, TAXES: TAXES, LED_MIN_SEC: LED_MIN_SEC,
     coordOf: coordOf, phoneFmt: phoneFmt, phoneE164: phoneE164, horizonYear: horizonYear, startOptionList: startOptionList, horizonNote: horizonNote, dueIso: dueIso, paymentPlan: paymentPlan, flightsOf: flightsOf, monthsFrom: monthsFrom, unkMonths: unkMonths, priceKnown: priceKnown, estMonths: estMonths, monthState: monthState, busyMonths: busyMonths, monthList: monthList, flightTxt: flightTxt, periodTxtOf: periodTxtOf, warranties: warranties, MONTH_COUNTS: MONTH_COUNTS };
   root.OutdoorPublic = API;
@@ -271,11 +273,13 @@
     Array.prototype.forEach.call(app.querySelectorAll('[data-lay]'), function (b) { var on = b.dataset.lay === v; b.className = 'btn btn-sm ' + (on ? 'btn-primary' : 'btn-outline'); b.setAttribute('aria-pressed', on ? 'true' : 'false'); });
     if (S.map) { S.fit = true; setTimeout(function () { S.map.invalidateSize(); redraw(true); }, 30); }
   }
+  // Позначка «попередньо» біля ціни першого обраного місяця, якщо для його року ще немає власного тарифу (береться останній відомий)
+  function prelimTag(it) { var m = curMonths()[0]; return m && !priceKnown(it, m[0], S.baseYear, m[1]) ? ' <small class="op-prelim" title="Ціна за тарифом попереднього року; можливі зміни">попередньо</small>' : ''; }
   function rowHtml(r) {
     var it = r.it, inCart = S.sel.indexOf(it.k) >= 0, pr = priceAt(it, curMonths()[0][0], curMonths()[0][1]);
     var img = it.img ? '<img src="' + esc(IMG + it.img) + '" alt="" loading="lazy" width="120" height="68">' : '<div class="op-noimg">Фото відсутнє</div>';
     return '<article class="op-row" data-act="focus" data-id="' + esc(it.k) + '"><div class="op-th">' + img + '</div><div class="op-rb"><h4>' + esc(it.addr) + '</h4><div class="op-meta">' + sideLbl(it) + ' · ' + esc(it.zone) + '</div>' +
-      '<div class="op-rl">' + (r.d != null ? '<span class="op-dist">' + (it.acc === 'approx' ? '≈ ' : '') + dTxt(r.d) + '</span>' : '') + '<span class="op-st op-' + r.st + '" title="' + esc(stHint(it)) + '">' + stTxt(r.st, it, r.bm) + '</span><b>' + money(pr) + '</b><small>/міс., без податків</small></div>' +
+      '<div class="op-rl">' + (r.d != null ? '<span class="op-dist">' + (it.acc === 'approx' ? '≈ ' : '') + dTxt(r.d) + '</span>' : '') + '<span class="op-st op-' + r.st + '" title="' + esc(stHint(it)) + '">' + stTxt(r.st, it, r.bm) + '</span><b>' + money(pr) + '</b>' + prelimTag(it) + '<small>/міс., без податків</small></div>' +
       '<button type="button" class="btn ' + (inCart ? 'btn-outline' : 'btn-primary') + ' btn-sm" data-act="' + (inCart ? 'del' : 'add') + '" data-id="' + esc(it.k) + '">' + (inCart ? 'Прибрати' : 'Додати до розрахунку') + '</button></div></article>';
   }
   // Сітка «борд × місяці» (SPEC_OUTDOOR_MANAGER_GRID_PARITY §A.13): рядок = сторона, колонки = місяці періоду з вибору вище; клацання додає сторону й місяць у розрахунок
@@ -308,7 +312,7 @@
     var th = null; g.rows.forEach(function (r) { if (!th && r.it.img) th = r.it.img; });
     return '<div class="op-pop">' + (th ? '<img src="' + esc(IMG + th) + '" alt="" width="240" height="135">' : '') + '<b>' + esc(g.rows[0].it.addr) + '</b>' + g.rows.map(function (r) {
       var it = r.it, inCart = S.sel.indexOf(it.k) >= 0;
-      return '<div class="op-ps"><div>' + sideLbl(it) + '<br><span class="op-st op-' + r.st + '">' + stTxt(r.st, it, r.bm) + '</span> <b>' + money(priceAt(it, curMonths()[0][0], curMonths()[0][1])) + '</b>' + (r.d != null ? ' · ' + (it.acc === 'approx' ? '≈ ' : '') + dTxt(r.d) : '') + '</div>' +
+      return '<div class="op-ps"><div>' + sideLbl(it) + '<br><span class="op-st op-' + r.st + '">' + stTxt(r.st, it, r.bm) + '</span> <b>' + money(priceAt(it, curMonths()[0][0], curMonths()[0][1])) + '</b>' + prelimTag(it) + (r.d != null ? ' · ' + (it.acc === 'approx' ? '≈ ' : '') + dTxt(r.d) : '') + '</div>' +
         '<button type="button" class="btn ' + (inCart ? 'btn-outline' : 'btn-primary') + ' btn-sm" data-act="' + (inCart ? 'del' : 'add') + '" data-id="' + esc(it.k) + '">' + (inCart ? 'Прибрати' : 'Обрати') + '</button></div>'; }).join('') + '</div>';
   }
   function groupColor(g) { return g.rows.some(function (r) { return r.st === 'free'; }) ? COL.free : g.rows.some(function (r) { return r.st === 'part'; }) ? COL.part : g.rows.some(function (r) { return r.st === 'unk'; }) ? COL.unk : COL.busy; }
@@ -471,7 +475,8 @@
     h += '<label>Оподаткування<select data-o="tax">' + TAXES.map(function (t, i) { return '<option value="' + i + '"' + (i === S.tax ? ' selected' : '') + '>' + t[0] + '</option>'; }).join('') + '</select></label></div>';
     if (!led) h += '<p class="op-note">Послуги незалежні: можна лише оренда (без друку й ' + (S.banner ? 'монтажу' : 'поклейки') + '), оренда + ' + (S.banner ? 'монтаж' : 'поклейка') + ' (макет друкуєте ви) або з друком. Друк і ' + (S.banner ? 'монтаж' : 'поклейка') + ' рахуються на кожен захід кожної сторони: перший вихід сторони в кампанію й кожен новий захід після перерви; місяці підряд — один захід. ' + (S.banner ? 'Якщо монтаж обрано, демонтаж банера додається обов’язково. ' : '') + 'Місяці й послуги можна змінити по кожній стороні нижче; дизайн рахується один раз.</p>';
     if (!led && S.info) h += '<p class="op-note op-info">' + esc(S.info) + '</p>';
-    if (r.lines.some(function (l) { return (l.req && l.req.length) || (l.est && l.est.length); })) h += '<p class="op-note op-unkt">Позиції з позначкою «наявність підтвердить менеджер» або «тариф уточнюється»: за ними на ці місяці у нас немає даних про зайнятість чи тариф. Їх можна замовити як запит: менеджер підтвердить наявність і ціну; суми за такі місяці орієнтовні.</p>';
+    if (availNote(r.lines)) h += '<p class="op-note op-unkt">' + esc(availNote(r.lines)) + '</p>';
+    if (prelimNote(r.lines)) h += '<p class="op-note op-unkt op-prelimnote">' + esc(prelimNote(r.lines)) + '</p>';
     if (r.warranty && r.warranty.length) h += '<p class="op-warr"><b>Гарантія.</b> ' + esc(r.warranty.join(' ')) + '</p>';
     var hnote = horizonNote(r.months, S.hy); if (hnote) h += '<p class="op-note op-hz">' + esc(hnote) + '</p>';
     var bz = busyReport(r); if (bz) h += '<div class="op-err" role="alert">' + esc(bz) + '</div>';
@@ -479,7 +484,7 @@
     h += '<p class="op-note">Період: повні календарні місяці, початок з 1 числа. Ціни вказані без податків. Обраний вами податок додається до підсумку; якщо його обрано неправильно, його буде визначено при підготовці договору.</p>';
     h += led ? ledTable(r) : boardTable(r);
     if (!led && r.ask) h += '<p class="op-note">Вартість друку для деяких обраних сторін уточнюйте в менеджера.</p>';
-    h += '<div class="op-total"><span>Загальний підсумок' + (r.tax ? ' (з податком ' + money(r.tax) + ')' : '') + '</span><b>' + money(r.total) + '</b></div><p class="op-note">Остаточна вартість і умови визначаються в договорі.</p>';
+    h += '<div class="op-total"><span>Загальний підсумок' + (r.lines.some(function (l) { return l.est && l.est.length; }) ? ' (попередньо)' : '') + (r.tax ? ' (з податком ' + money(r.tax) + ')' : '') + '</span><b>' + money(r.total) + '</b></div><p class="op-note">Остаточна вартість і умови визначаються в договорі.</p>';
     h += planTable(r);
     h += '<p class="op-disc">' + esc(DISCLAIMER) + '</p>';
     h += clientBlock();
