@@ -211,16 +211,62 @@ section { padding: var(--sp-9) 0; }
 .cat-pills a { font-size: 13px; font-weight: var(--fw-semibold); padding: 7px 14px; border-radius: var(--radius-pill); background: var(--bg-2); color: var(--fg-2); border: 1px solid var(--blitz-line); }
 .cat-pills a:hover, .cat-pills a.active { background: var(--blitz-gradient); color: #fff; border-color: transparent; }
 
-/* ---- Promo / akcii cards ---- */
-.promo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-@media (max-width: 900px) { .promo-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 600px) { .promo-grid { grid-template-columns: 1fr; } }
-.promo-card { border-radius: var(--radius-lg); padding: 26px; background: var(--bg-2); border: 1px solid var(--blitz-line); position: relative; }
-.promo-card .tag { display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: #fff; background: var(--blitz-gradient); padding: 5px 12px; border-radius: var(--radius-pill); margin-bottom: 14px; }
-.promo-card h4 { font-family: var(--font-display); font-weight: 800; font-size: 17px; line-height: 1.3; margin-bottom: 10px; }
-.promo-card p { font-size: 14.5px; color: var(--fg-3); line-height: 1.5; margin-bottom: 16px; min-height: 40px;}
-.promo-card .price { font-family: var(--font-display); font-weight: 900; font-style: italic; font-size: 24px; color: var(--fg-1); }
-.promo-card .price small { font-size: 13px; font-weight: 600; color: var(--fg-3); font-style: normal; margin-left: 4px;}
+/* ---- Promo / akcii cards: єдиний стандарт (головна і /akcii) ---- */
+.promo-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: stretch; }
+@media (max-width: 900px) { .promo-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .promo-grid { grid-template-columns: minmax(0, 1fr); } }
+.promo-card { display: flex; flex-direction: column; gap: 8px; min-width: 0; position: relative; overflow: hidden; padding: 16px; border-radius: var(--radius-lg); background: #fff; border: 1px solid var(--blitz-line); box-shadow: var(--shadow-sm); transition: box-shadow var(--dur-base), border-color var(--dur-base); }
+.promo-card::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 4px; background: var(--blitz-gradient); }
+.promo-card:hover { box-shadow: var(--shadow-md); border-color: var(--blitz-orange-300); }
+.promo-card[hidden], .promo-card.is-filtered, .promo-filters[hidden], .promo-empty[hidden] { display: none; }
+.promos { padding: 32px 0 48px; }
+.promo-order { padding-top: 0; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.pc-terms a { color: var(--blitz-orange-900); font-weight: var(--fw-semibold); text-decoration: underline; text-underline-offset: 2px; }
+.pc-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 4px; }
+.pc-type { font-size: 11.5px; font-weight: var(--fw-bold); letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg-3); }
+.pc-badge { font-size: 11.5px; font-weight: 800; line-height: 1.3; padding: 3px 10px; border-radius: var(--radius-pill); white-space: nowrap; background: var(--blitz-orange-100); color: #7C2D12; }
+.pc-badge.is-live { background: #DCFCE7; color: #14532D; }
+.pc-badge.is-soon { background: #FEF3C7; color: #78350F; }
+.pc-badge.is-until { background: var(--blitz-orange-900); color: #fff; }
+.pc-title { font-family: var(--font-display); font-weight: 800; font-size: 15px; line-height: 1.3; margin: 0; min-height: 2.6em; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.pc-desc { font-size: 13.5px; line-height: 1.45; color: var(--fg-3); margin: 0; min-height: 2.9em; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.pc-price { display: flex; flex-direction: column; gap: 2px; margin-top: 4px; }
+.pc-price b { font-family: var(--font-display); font-weight: 900; font-style: italic; font-size: 28px; line-height: 1.1; color: var(--fg-1); }
+.pc-price span { font-size: 12.5px; line-height: 1.35; color: var(--fg-3); }
+.pc-terms { font-size: 12px; line-height: 1.4; color: var(--fg-3); margin: 0; }
+.pc-cta { margin-top: auto; padding-top: 8px; }
+.pc-btn { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 40px; padding: 9px 16px; border-radius: var(--radius-pill); border: 1.5px solid var(--blitz-orange-900); background: #fff; color: var(--blitz-orange-900); font-family: var(--font-display); font-weight: 800; font-size: 13px; letter-spacing: 0.02em; text-transform: uppercase; text-align: center; line-height: 1.2; cursor: pointer; transition: background var(--dur-base), color var(--dur-base), border-color var(--dur-base); }
+.pc-btn:hover { background: var(--blitz-orange-100); }
+.pc-btn:focus-visible, .pf-pill:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
+.pc-btn--solid { background: var(--blitz-orange-900); color: #fff; }
+.pc-btn--solid:hover { background: #A33A06; }
+/* Фільтри за типами (/akcii) */
+.promo-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 16px; }
+.pf-pill { font-family: inherit; font-size: 13px; font-weight: var(--fw-semibold); line-height: 1.2; min-height: 36px; padding: 7px 16px; border-radius: var(--radius-pill); background: var(--bg-2); color: var(--fg-2); border: 1px solid var(--blitz-line); cursor: pointer; transition: background var(--dur-base), color var(--dur-base), border-color var(--dur-base); }
+.pf-pill:hover { border-color: var(--blitz-orange-900); color: var(--blitz-orange-900); }
+.pf-pill[aria-pressed="true"] { background: var(--blitz-orange-900); border-color: var(--blitz-orange-900); color: #fff; }
+.promo-count { margin: 0 0 0 auto; font-size: 13px; color: var(--fg-3); }
+.promo-empty { padding: 14px 16px; border-radius: var(--radius-md); background: var(--bg-2); font-size: 14px; color: var(--fg-3); }
+/* Виразний банер на головній (Чорна п'ятниця / Грудневий старт) */
+.promo-hero { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 16px 32px; align-items: center; padding: 24px 28px; border-radius: var(--radius-xl); border: 1px solid var(--blitz-line); background: var(--blitz-orange-50); color: var(--fg-1); }
+.promo-hero::before { display: none; }
+.promo-hero.is-bf:hover { border-color: var(--fm-black); }
+.promo-hero.is-bf { background: var(--fm-black); border-color: var(--fm-black); color: #fff; }
+.ph-tag { display: inline-block; font-size: 11.5px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 12px; border-radius: var(--radius-pill); background: var(--blitz-orange-900); color: #fff; margin-bottom: 10px; }
+.is-bf .ph-tag { background: var(--blitz-gradient); color: #1A1A1A; }
+.promo-hero h3 { font-family: var(--font-display); font-weight: 900; font-size: clamp(22px, 3vw, 30px); line-height: 1.15; margin: 0 0 8px; text-wrap: balance; }
+.promo-hero p { font-size: 14.5px; line-height: 1.5; margin: 0 0 8px; max-width: 640px; }
+.promo-hero .ph-fine { font-size: 12px; opacity: 0.8; margin: 0; }
+.ph-side { display: flex; flex-direction: column; gap: 12px; align-items: stretch; }
+.ph-num { display: flex; flex-direction: column; gap: 2px; }
+.ph-num b { font-family: var(--font-display); font-weight: 900; font-style: italic; font-size: clamp(40px, 6vw, 60px); line-height: 1; color: var(--blitz-orange-900); }
+.is-bf .ph-num b { color: var(--blitz-orange-400); }
+.ph-num span { font-size: 13.5px; }
+.ph-link { font-size: 13.5px; font-weight: var(--fw-bold); color: var(--blitz-orange-900); text-align: center; text-decoration: underline; text-underline-offset: 3px; }
+.is-bf .pc-btn--solid { background: var(--blitz-orange-400); border-color: var(--blitz-orange-400); color: #1A1A1A; }
+.is-bf .pc-btn--solid:hover { background: var(--blitz-orange-300); }
+@media (max-width: 720px) { .promo-hero { grid-template-columns: minmax(0, 1fr); padding: 20px 16px; border-radius: var(--radius-lg); } }
 
 /* ---- Radio partner grid ---- */
 .radio-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }

@@ -33,6 +33,7 @@
   }
 
   cards.forEach(function (c, i) {
+    if (c.hasAttribute('data-lead-name')) return; /* картки акцій мають власну кнопку «Залишити заявку» (window.blitzLead) */
     var body = c.querySelector('.body') || c; if (!body) return;
     var name = txt(c.querySelector('h4')) || ('Позиція ' + (i + 1));
     var b = document.createElement('button');
@@ -101,5 +102,11 @@
       bar.classList.toggle('want-away', en[0].isIntersecting);
     }, { threshold: 0.05 }).observe(formEl);
   }
+  /* Заявка з картки акції: одна позиція → у форму → прокрутка */
+  window.blitzLead = function (name, price) {
+    cart = {}; cart[name] = { price: price || '', qty: '' };
+    save(); refresh();
+    bar.querySelector('.want-go').click();
+  };
   refresh();
 })();
