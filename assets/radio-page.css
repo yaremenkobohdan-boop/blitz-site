@@ -1,0 +1,125 @@
+/* Сторінка «Реклама на радіо» (poslugy/radio.html) у стандарті сторінок бігбордів: компактний банер, тулбар міст і вигляду, компактні рядки або крупні плитки, рубрика-акордеон.
+   Підключається лише радіо-сторінкою (body.radio-page); style.css і лендінги міст не чіпаються. Логіка кошика/модалки/форми Uspacy лишається в order.js і inline-скриптах сторінки.
+   Старі класи (.product-card, .want-btn, .price, .qty, h4, .rp-*) збережено: за ними працюють order.js і analytics.js. */
+.radio-page .crumb-bar { padding: 8px 0 0 !important; }
+.radio-page .crumb-bar .breadcrumbs { margin-bottom: 6px !important; padding: 0; font-size: 12.5px; }
+.radio-page .cat-pills { margin-bottom: 10px; }
+.radio-page .page-hero { padding: 14px 0 16px; }
+.radio-page .page-hero h1 { font-size: clamp(22px, 2.4vw, 32px); line-height: 1.15; }
+.radio-page .page-hero p { margin-top: 5px; font-size: 14px; max-width: none; }
+.radio-page .radio-tools { padding: 12px 0 0; }
+.radio-page .radio-list { padding: 4px 0 var(--sp-7, 40px); }
+
+/* рубрика-акордеон (як на сторінках бігбордів) */
+.rx-info { margin: 0 0 8px; }
+.rx-infobtns { display: flex; flex-wrap: wrap; gap: 6px; }
+.rx-accbtn { display: inline-flex; align-items: center; gap: 8px; font-family: inherit; font-weight: 600; font-size: 13px; line-height: 1.2; padding: 7px 12px; border: 1px solid var(--blitz-line, #E8E5E0); border-radius: 99px; background: #fff; color: #1A1A1A; cursor: pointer; }
+.rx-accbtn:hover { border-color: #EA580C; }
+.rx-accbtn:focus-visible, .rx-pill:focus-visible, .rx-views button:focus-visible, .rx-more:focus-visible { outline: 2px solid #1A1A1A; outline-offset: 2px; }
+.rx-accbtn[aria-expanded="true"] { background: #FFF7ED; border-color: #FED7AA; }
+.rx-chev { flex: 0 0 auto; width: 7px; height: 7px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg) translate(-2px, -2px); transition: transform .15s; }
+.rx-accbtn[aria-expanded="true"] .rx-chev, .rx-more[aria-expanded="true"] .rx-chev { transform: rotate(-135deg) translate(-1px, -1px); }
+.rx-accbody { margin: 8px 0 0; padding: 12px 16px; border: 1px solid var(--blitz-line, #E8E5E0); border-radius: 14px; background: #fff; font-size: 13.5px; color: #292524; }
+.rx-accbody[hidden] { display: none; }
+.rx-accbody p { margin: 0 0 10px; color: #292524; font-size: 13.5px; max-width: 760px; }
+.rx-accbody .radio-calc-cities { display: flex; flex-wrap: wrap; gap: 6px; }
+.rx-accbody .radio-calc-cities .btn { padding: 6px 14px; font-size: 13px; }
+
+/* тулбар: пілюлі міст (з даних сторінки) + перемикач вигляду */
+.radio-toolbar { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; justify-content: space-between; margin: 8px 0 10px; }
+.rx-cities { display: flex; flex-wrap: wrap; gap: 6px; }
+.rx-pill { font-family: inherit; font-weight: 600; font-size: 13px; line-height: 1.2; padding: 7px 13px; border: 1px solid var(--blitz-line, #E8E5E0); border-radius: 99px; background: #fff; color: #1A1A1A; cursor: pointer; }
+.rx-pill:hover { border-color: #EA580C; }
+.rx-pill b { font-weight: 700; color: #6B6B6B; margin-left: 4px; }
+.rx-pill[aria-pressed="true"] { background: var(--blitz-gradient, linear-gradient(95deg, #EA580C, #F8A900)); color: #fff; border-color: transparent; }
+.rx-pill[aria-pressed="true"] b { color: rgba(255,255,255,.88); }
+.rx-views { display: inline-flex; border: 1px solid var(--blitz-line, #E8E5E0); border-radius: 99px; overflow: hidden; background: #fff; }
+.rx-views button { font-family: inherit; font-weight: 600; font-size: 13px; line-height: 1.2; padding: 7px 14px; border: 0; background: transparent; color: #1A1A1A; cursor: pointer; }
+.rx-views button[aria-pressed="true"] { background: #1A1A1A; color: #fff; }
+
+/* підзаголовки міст: маленькі, лише як групування */
+.radio-page .radio-city-block { margin: 0 0 14px; }
+.rx-cityhead { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px 12px; margin: 12px 0 6px; padding-bottom: 4px; border-bottom: 1px solid var(--blitz-line, #E8E5E0); }
+.radio-page .radio-city-title { display: inline-flex; align-items: baseline; gap: 8px; margin: 0; padding: 0; background: none; box-shadow: none; border-radius: 0; color: #1A1A1A; font-style: normal; font-size: 15px; text-transform: none; letter-spacing: 0; }
+.radio-page .radio-city-title .city-link { border-bottom: 0; color: inherit; }
+.radio-page .radio-city-title .city-link:hover { color: var(--fg-accent, #EA580C); }
+.radio-page .radio-city-count { margin-left: 0; padding: 2px 9px; font-size: 11.5px; color: #6B6B6B; background: #F4F1EC; }
+.radio-page .radio-city-calc { margin: 0; font-size: 12.5px; }
+.rx-single .rx-cityhead { justify-content: flex-end; border-bottom: 0; margin-top: 2px; }
+.rx-single .rx-cityhead .radio-city-title { display: none; }
+
+/* картка: спільне для обох виглядів */
+.radio-page .product-card { display: grid; align-items: center; transform: none; }
+.radio-page .product-card:hover { transform: none; }
+.radio-page .product-card .thumb { background: #fff; border: 1px solid var(--blitz-line, #E8E5E0); }
+.radio-page .product-card .thumb img { padding: 3px; object-fit: contain; }
+.radio-page .product-card .body { display: contents; }
+.radio-page .product-card .st-main { min-width: 0; }
+.radio-page .product-card h4 { display: inline; min-height: 0; margin: 0; font-size: 14.5px; line-height: 1.3; }
+.radio-page .st-freq { color: #6B6B6B; font-weight: 600; font-size: 13px; white-space: nowrap; }
+.radio-page .product-card .desc { display: none; }
+.radio-page .product-card .rp { display: contents; }
+.radio-page .rp-chips { min-width: 0; }
+.radio-page .rp-chips span { font-size: 11.5px; }
+.radio-page .product-card .meta-row { margin: 0; line-height: 1.15; }
+.radio-page .product-card .price { font-size: 16px; }
+.radio-page .product-card .qty { font-size: 11.5px; }
+.radio-page .product-card .qty::before { content: "/ "; }
+.radio-page .product-card .want-btn { margin: 0; width: auto; padding: 7px 14px; font-size: 13px; white-space: nowrap; }
+.rx-more { display: inline-flex; align-items: center; gap: 6px; font-family: inherit; font-weight: 600; font-size: 12.5px; padding: 6px 10px; border: 0; background: transparent; color: #6B6B6B; cursor: pointer; border-radius: 8px; }
+.rx-more:hover { color: var(--fg-accent, #EA580C); }
+.radio-page .rp-more { padding: 6px 0 2px; }
+.radio-page .rp-more[hidden] { display: none; }
+.radio-page .rp-more p, .radio-page .rp-more li { font-size: 13px; }
+
+/* ===== Компактний вигляд: рядок станції ~56px ===== */
+.rx-view-compact .product-grid { display: flex; flex-direction: column; gap: 6px; }
+.rx-view-compact .product-card { grid-template-columns: 40px minmax(0, 1.5fr) minmax(0, 1.7fr) 124px 92px 112px; grid-template-areas: "th main aud price want more" "short short short short short short" "det det det det det det"; gap: 0 14px; padding: 8px 12px; min-height: 56px; border-radius: 12px; box-shadow: none; }
+.rx-view-compact .product-card .thumb { grid-area: th; width: 40px; height: 40px; aspect-ratio: auto; border-radius: 8px; }
+.rx-view-compact .st-main { grid-area: main; }
+.rx-view-compact .rp-tag { display: none; }
+.rx-view-compact .rp-chips { grid-area: aud; flex-wrap: nowrap; overflow: hidden; gap: 4px; }
+.rx-view-compact .rp-chips span { white-space: nowrap; }
+.rx-view-compact .rp-short { display: none; grid-area: short; padding: 8px 0 0 54px; }
+.rx-view-compact .product-card.open .rp-short { display: block; }
+.rx-view-compact .product-card .meta-row { grid-area: price; display: flex; flex-direction: column; align-items: flex-start; }
+.rx-view-compact .product-card .qty { text-align: left; }
+.rx-view-compact .qty-sec { display: none; }
+.rx-view-compact .product-card .want-btn { grid-area: want; }
+.rx-view-compact .rx-more { grid-area: more; justify-self: end; }
+.rx-view-compact .rp-more { grid-area: det; padding-left: 54px; }
+
+/* ===== Крупний вигляд: плитки 4 в ряд на 1440 (≈220px мінімум, адаптивно 3/2/1), висота ≤ ~280px ===== */
+.rx-view-tiles .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+.rx-view-tiles .product-card { grid-template-columns: 48px minmax(0, 1fr) auto; grid-template-areas: "th main main" "aud aud aud" "short short short" "price price want" "more more more" "det det det"; align-items: center; gap: 6px 10px; padding: 12px 14px; border-radius: 14px; align-content: start; }
+.rx-view-tiles .product-card .thumb { grid-area: th; width: 48px; height: 48px; aspect-ratio: auto; border-radius: 10px; }
+.rx-view-tiles .st-main { grid-area: main; }
+.rx-view-tiles .rp-tag { display: none; }
+.rx-view-tiles .rp-chips { grid-area: aud; }
+.rx-view-tiles .rp-short { grid-area: short; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 12.5px; margin: 0; }
+.rx-view-tiles .product-card.open .rp-short { display: block; -webkit-line-clamp: unset; }
+.rx-view-tiles .product-card .meta-row { grid-area: price; display: flex; flex-direction: column; align-items: flex-start; }
+.rx-view-tiles .qty-sec { display: none; }
+.rx-view-tiles .product-card .want-btn { grid-area: want; }
+.rx-view-tiles .rx-more { grid-area: more; justify-self: start; padding-left: 0; }
+.rx-view-tiles .rp-more { grid-area: det; }
+
+/* вузькі екрани */
+@media (max-width: 1100px) {
+  .rx-view-compact .product-card { grid-template-columns: 40px minmax(0, 1.4fr) minmax(0, 1.4fr) 110px 88px 104px; gap: 0 10px; }
+}
+@media (max-width: 860px) {
+  .rx-view-compact .product-card { grid-template-columns: 40px minmax(0, 1fr) auto; grid-template-areas: "th main want" "th aud aud" "th price more" "short short short" "det det det"; gap: 2px 10px; padding: 8px 10px; }
+  .rx-view-compact .rp-chips { flex-wrap: wrap; }
+  .rx-view-compact .product-card .meta-row { flex-direction: row; align-items: baseline; gap: 6px; }
+  .rx-view-compact .rx-more { justify-self: end; }
+  .rx-view-compact .rp-short, .rx-view-compact .rp-more { padding-left: 0; }
+}
+@media (max-width: 640px) {
+  .radio-toolbar { gap: 8px; }
+  .rx-views { width: 100%; }
+  .rx-views button { flex: 1 1 0; }
+}
+@media (max-width: 480px) {
+  .rx-view-tiles .product-grid { grid-template-columns: 1fr; }
+}
