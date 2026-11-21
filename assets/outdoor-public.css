@@ -257,3 +257,9 @@
 .op-gmbtn[aria-pressed="true"]{background:#1A1A1A;border-color:#1A1A1A;color:#fff}
 .op-gmbtn:focus-visible{outline:2px solid #1A1A1A;outline-offset:2px}
 @media (max-width:640px){.op-gtbl th.op-gs{width:190px;min-width:190px;max-width:190px;padding:6px 8px}.op-gtbl th.op-gs .op-gaddr{font-size:12.5px}.op-gc,.op-gtbl thead th.op-gm{width:52px;min-width:52px}}
+
+/* Шапка сітки: крупні жирні підписи на чорному фоні, рік на кожному місяці дрібно знизу */
+.op-gtbl thead th{font-size:15px;font-weight:700;padding:9px 4px 7px;letter-spacing:.01em}
+.op-gtbl thead th small{font-size:11px;font-weight:500;opacity:.8;min-height:13px;margin-top:2px}
+.op-gtbl thead th.op-gs{font-size:16px;font-weight:800;padding:9px 12px;letter-spacing:.02em}
+.op-gtbl thead th.op-gm{min-width:68px;width:68px}

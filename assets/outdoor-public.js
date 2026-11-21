@@ -374,7 +374,7 @@
   }
   function gridHtml(rows) {
     var ms = S.mode === 'custom' ? curMonths() : monthsOf(S.start, Math.max(S.n, S.gm));   // за замовчуванням 12 місяців від початку (6/12/18/24 вибирає людина); місяці поза горизонтом даних лишаються «?»
-    var head = '<tr><th class="op-gs" scope="col">Сторона</th>' + ms.map(function (m, i) { var ny = i === 0 || m[1] === 0; return '<th class="op-gm' + (ny ? ' ny' : '') + '" scope="col">' + MON_N[m[1]].slice(0, 3) + '<small>' + (ny ? m[0] : '') + '</small></th>'; }).join('') + '</tr>';
+    var head = '<tr><th class="op-gs" scope="col">Сторона</th>' + ms.map(function (m, i) { var ny = i === 0 || m[1] === 0; return '<th class="op-gm' + (ny ? ' ny' : '') + '" scope="col">' + MON_N[m[1]].slice(0, 3) + '<small>' + m[0] + '</small></th>'; }).join('') + '</tr>';
     var body = rows.map(function (r) {
       var it = r.it, im = S.sel.indexOf(it.k) >= 0 ? (S.im[it.k] || []) : [];
       return '<tr>' + gridSideCell(it, priceAt(it, ms[0][0], ms[0][1])) + ms.map(function (m) {
