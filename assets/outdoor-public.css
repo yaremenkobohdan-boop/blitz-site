@@ -241,3 +241,19 @@
 @media (max-width:860px){.op-split .op-map{height:340px}.op-list{max-height:none}}
 @media (max-width:640px){.op-fbtn{max-width:none;margin-left:0}.op-ftitle{white-space:normal}.op-toprow .op-cq{flex-basis:100%}}
 .op-accbody,.op-accbody p,.op-accbody li,.op-accbody span{color:#292524}.op-accbody h4{color:#1A1A1A}.op-accbody .op-gny{color:#292524}
+
+/* Сітка місяців: читабельна перша колонка, вужчі місяці, вибір кількості місяців */
+.op-gtbl th.op-gs{width:310px;min-width:310px;max-width:310px;padding:8px 12px;text-align:left;font-weight:400;vertical-align:middle;box-shadow:2px 0 5px -2px rgba(0,0,0,.22);border-right:1px solid #E7E5E4}
+.op-gtbl thead th.op-gs{font-size:12px;box-shadow:none}
+.op-gtbl th.op-gs .op-gs1{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 6px;margin-bottom:2px}
+.op-gtbl th.op-gs b.op-gcode{display:inline;font-size:13.5px;font-weight:700;color:#1A1A1A;letter-spacing:.01em}
+.op-gtbl th.op-gs .op-gsc{font-size:12px;font-weight:400;color:#6B6B6B}
+.op-gtbl th.op-gs .op-gaddr{font-size:13px;line-height:1.35;color:#292524;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.op-gtbl th.op-gs small{display:block;margin-top:2px;color:#6B6B6B;font-size:11.5px;line-height:1.35}
+.op-gtbl thead th.op-gm{min-width:64px;width:64px}
+.op-gc{width:64px;min-width:64px}
+.op-gctl{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0 0 8px;font-size:12.5px;color:#44403C}
+.op-gmbtn{min-width:38px;padding:5px 10px;border:1px solid var(--op-line,#E8E5E0);border-radius:99px;background:#fff;color:#1A1A1A;font-family:inherit;font-weight:600;font-size:12.5px;cursor:pointer}
+.op-gmbtn[aria-pressed="true"]{background:#1A1A1A;border-color:#1A1A1A;color:#fff}
+.op-gmbtn:focus-visible{outline:2px solid #1A1A1A;outline-offset:2px}
+@media (max-width:640px){.op-gtbl th.op-gs{width:190px;min-width:190px;max-width:190px;padding:6px 8px}.op-gtbl th.op-gs .op-gaddr{font-size:12.5px}.op-gc,.op-gtbl thead th.op-gm{width:52px;min-width:52px}}

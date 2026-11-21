@@ -433,4 +433,13 @@ eq('список місяців скорочується до діапазоні
   ok('радіо: пілюлі міст будуються з даних сторінки (без хардкоду назв міст у скрипті)', !/Біла Церква|Фастів|Умань|Сміла|Богуслав|Рокитне|Ставище/.test(rj));
   ok('радіо: «Детальніше» з aria-expanded/aria-controls; h4 і текст .qty не змінюються за змістом (кошик order.js)', /aria-controls/.test(rj) && /btn\.setAttribute\('aria-expanded'/.test(rj) && /sp\.className = 'qty-sec'/.test(rj) && !/h4\.textContent\s*=/.test(rj) && !/h4\.innerHTML\s*=/.test(rj));
   ok('радіо: стилі обох виглядів (компактні рядки, плитки 220px) і лише під .radio-page (style.css і лендінги не чіпаються)', /rx-view-compact/.test(rc) && /rx-view-tiles/.test(rc) && /minmax\(220px/.test(rc) && !/^\.product-card/m.test(rc)); }
+/* ───── сітка: перша колонка й кількість місяців ───── */
+{ const js = read('assets/outdoor-public.js'), css = read('assets/outdoor-public.css');
+  ok('сітка: за замовчуванням 12 місяців, вибір 6/12/18/24 лише на вигляд (localStorage), не змінює «Місяців підряд» S.n', /gm: 12,/.test(js) && /GM_OPTS = \[6, 12, 18, 24\]/.test(js) && /monthsOf\(S\.start, Math\.max\(S\.n, S\.gm\)\)/.test(js) && /data-act="gm"/.test(js) && /localStorage\.setItem\(GM_KEY/.test(js) && !/S\.n = gn/.test(js));
+  ok('сітка: перша колонка — наш код жирним без пілюлі, номер постачальника в дужках сірим, адреса 2 рядки з title, місто · ціна дрібно', /function gridSideCell/.test(js) && /class="op-gcode"/.test(js) && /class="op-gsc"/.test(js) && /class="op-gaddr" title=/.test(js) && !/gridSideCell[\s\S]{0,900}codeBadge\(it\)/.test(js));
+  ok('сітка: перша колонка липка зліва з фоном і тінню, 310px; місяці 64px; клас data-act="gbm" збережено', /th\.op-gs\{width:310px/.test(css) && /position:sticky;left:0/.test(css) && /box-shadow:2px 0 5px/.test(css) && /op-gc\{width:64px/.test(css) && /data-act="gbm"/.test(js));
+  // швидкість побудови розмітки сітки: 279 рядків × 24 місяці у чистому коді (без DOM), щоб не повільнішала
+  const C = globalThis.OutdoorCore, itn = []; for (let k = 0; k < 279; k++) itn.push(C.publicItem({ id: ('0000000' + k.toString(16)).slice(-8), cd: 'БЦ-' + ('000' + k).slice(-3), sc: String(k), side: 'А', addr: 'вул. Тестова ' + k, zone: 'Біла Церква', type: 'board', price: 5000, st: { 2026: '000000000000', 2027: '000000100000' } }));
+  const t0 = Date.now(), ms = C.monthsOf('2026-12-01', 24); let cells = 0; itn.forEach(x => { ms.forEach(m => { C.monthState(x, m); cells++; }); });
+  ok('сітка: стан 279 × 24 = ' + cells + ' клітинок рахується швидко (' + (Date.now() - t0) + ' мс < 300)', cells === 279 * 24 && Date.now() - t0 < 300); }
 print(fails ? 'OUTDOOR PUBLIC UI FAILED ' + fails + ' з ' + n : n + ' перевірок: OUTDOOR PUBLIC UI OK');

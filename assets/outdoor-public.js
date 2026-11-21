@@ -112,10 +112,12 @@
   var LEAD = app.getAttribute('data-lead') || 'https://bos.blitz.com.ua/outdoor-lead';   // публічний прийом заявок (BOS); без ключів: захист на сервері
   var T0 = Date.now();
   var COL = { free: '#16A34A', part: '#D97706', unk: '#78716C', busy: '#DC2626' };
-  var LAY_KEY = 'op_layout_v1', STATE_KEY = 'op_state_v1';
+  var LAY_KEY = 'op_layout_v1', STATE_KEY = 'op_state_v1', GM_KEY = 'op_gm_v1';   // GM: скільки місяців показувати в сітці (лише вигляд, не «Місяців підряд»)
+  var GM_OPTS = [6, 12, 18, 24];
   var S = { items: [], sale: {}, pk: null, dz: null, hy: 0, baseYear: 0, byId: {}, sel: [], zone: '', type: '', limit: 30, start: nextMonthStart(), n: 1, mode: 'range', picked: {}, im: {}, ov: {}, imManual: {}, info: '', banner: false, print: false, mount: false, tax: 0, consent: false, consentErr: false,
-    av: 'free', sideF: 'all', mountF: 'all', codes: [], sug: [], sugI: -1, mapDirty: true, lay: 'both', pt: null, radius: 3, pick: false, helpOpen: false, view: 'list', map: null, fit: true, busy: false,
+    gm: 12, av: 'free', sideF: 'all', mountF: 'all', codes: [], sug: [], sugI: -1, mapDirty: true, lay: 'both', pt: null, radius: 3, pick: false, helpOpen: false, view: 'list', map: null, fit: true, busy: false,
     dK: 'own', dQty: 1, vK: 'own', vQty: 1, cl: { company: '', contact: '', phone: '', email: '' }, msg: '' };
+  try { var gv0 = Number(localStorage.getItem(GM_KEY)); if (GM_OPTS.indexOf(gv0) >= 0) S.gm = gv0; } catch (e) { /* без запам'ятовування */ }
   try { var sv = localStorage.getItem(LAY_KEY); if (sv === 'both' || sv === 'map' || sv === 'list') S.lay = sv; } catch (e) { /* без запам'ятовування */ }
   var $ = function (id) { return document.getElementById(id); };
 
@@ -362,17 +364,25 @@
   }
   // Сітка «борд × місяці» (SPEC_OUTDOOR_MANAGER_GRID_PARITY §A.13): рядок = сторона, колонки = місяці періоду з вибору вище; клацання додає сторону й місяць у розрахунок
   var GSYM = { free: '✓', busy: '✕', unk: '?' }, GTXT = { free: 'вільно', busy: 'зайнято', unk: 'наявність уточнює менеджер' };
+  // Перша колонка сітки: наш код жирним (без пілюлі), номер постачальника сірим у дужках, адреса звичайним шрифтом (до 2 рядків, повний текст у title), дрібно місто · ціна/міс.
+  function gridSideCell(it, price) {
+    var tag = codeTag(it), l1 = tag ? '<b class="op-gcode">' + esc(tag) + '</b>' + (it.sc ? ' <span class="op-gsc">(' + esc(it.sc) + ')</span>' : '') : '<b class="op-gcode">' + sideLbl(it) + '</b>';
+    return '<th class="op-gs" scope="row"><div class="op-gs1">' + l1 + '</div><div class="op-gaddr" title="' + esc(it.addr) + '">' + esc(it.addr) + '</div><small>' + esc(it.zone) + ' · ' + money(price) + '/міс.' + (it.size ? ' · ' + esc(it.size) + ' м' : '') + (it.mount === 'lift' ? ' · з вишки' : '') + '</small></th>';
+  }
+  function gridCtl() {
+    return '<div class="op-gctl" role="group" aria-label="Скільки місяців показати в сітці"><span>Показати місяців:</span>' + GM_OPTS.map(function (n) { return '<button type="button" class="op-gmbtn" data-act="gm" data-v="' + n + '" aria-pressed="' + (S.gm === n) + '">' + n + '</button>'; }).join('') + '</div>';
+  }
   function gridHtml(rows) {
-    var ms = S.mode === 'custom' ? curMonths() : monthsOf(S.start, Math.max(S.n, 6));   // у сітці завжди видно не менше 6 місяців від початку
+    var ms = S.mode === 'custom' ? curMonths() : monthsOf(S.start, Math.max(S.n, S.gm));   // за замовчуванням 12 місяців від початку (6/12/18/24 вибирає людина); місяці поза горизонтом даних лишаються «?»
     var head = '<tr><th class="op-gs" scope="col">Сторона</th>' + ms.map(function (m, i) { var ny = i === 0 || m[1] === 0; return '<th class="op-gm' + (ny ? ' ny' : '') + '" scope="col">' + MON_N[m[1]].slice(0, 3) + '<small>' + (ny ? m[0] : '') + '</small></th>'; }).join('') + '</tr>';
     var body = rows.map(function (r) {
       var it = r.it, im = S.sel.indexOf(it.k) >= 0 ? (S.im[it.k] || []) : [];
-      return '<tr><th class="op-gs" scope="row"><b>' + codeBadge(it) + ' ' + esc(it.addr) + '</b><small>' + sideLbl(it) + ' · ' + esc(it.zone) + ' · ' + money(priceAt(it, ms[0][0], ms[0][1])) + '/міс.</small></th>' + ms.map(function (m) {
+      return '<tr>' + gridSideCell(it, priceAt(it, ms[0][0], ms[0][1])) + ms.map(function (m) {
         var st = monthState(it, m), iso = isoMonthStart(m[0], m[1]), on = im.indexOf(iso) >= 0;
         return '<td><button type="button" class="op-gc ' + st + (on ? ' on' : '') + '" data-act="gbm" data-id="' + esc(it.k) + '" data-v="' + iso + '"' + (st === 'busy' ? ' disabled' : '') + ' aria-pressed="' + on + '" aria-label="' + esc(it.addr + ', ' + MON_N[m[1]] + ' ' + m[0] + ': ' + GTXT[st] + (on ? ', обрано' : '')) + '" title="' + esc(MON_N[m[1]] + ' ' + m[0] + ': ' + GTXT[st]) + '">' + (on ? '✔' : GSYM[st]) + '</button></td>';
       }).join('') + '</tr>';
     }).join('');
-    return '<div class="op-gwrap"><table class="op-gtbl"><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div><p class="op-gline"><span class="op-gc free op-gsym">✓</span> вільно <span class="op-gc busy op-gsym">✕</span> зайнято <span class="op-gc unk op-gsym">?</span> уточнює менеджер <span class="op-gc free on op-gsym">✔</span> обрано вами · <a href="#" data-act="openleg">що означають рядки, колонки й код борда</a></p>';
+    return gridCtl() + '<div class="op-gwrap"><table class="op-gtbl"><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div><p class="op-gline"><span class="op-gc free op-gsym">✓</span> вільно <span class="op-gc busy op-gsym">✕</span> зайнято <span class="op-gc unk op-gsym">?</span> уточнює менеджер <span class="op-gc free on op-gsym">✔</span> обрано вами · <a href="#" data-act="openleg">що означають рядки, колонки й код борда</a></p>';
   }
   function updateList(data) {
     var rows = data.rows, shown = rows.slice(0, S.limit), box = $('op-list'); if (!box) return;
@@ -714,6 +724,7 @@
     if (a === 'focus') { var mk = S.markerOf && S.markerOf[id]; if (mk && S.map) { S.map.setView(mk.getLatLng(), Math.max(S.map.getZoom(), 15)); mk.openPopup(); var mb = app.querySelector('.op-mapbox'); if (mb && mb.getBoundingClientRect().top < 0) mb.scrollIntoView({ behavior: 'smooth', block: 'start' }); } return; }
     if (a === 'more') { S.limit += 30; if (KIND === 'led') renderLed(); else updateList(boardRows()); return; }
     if (a === 'openleg') { e.preventDefault(); var lb = document.querySelector('[data-acc="legend"]'); if (lb) { accSet(lb, true); lb.scrollIntoView({ behavior: 'smooth', block: 'center' }); } return; }
+    if (a === 'gm') { var gn = Number(b.dataset.v); if (GM_OPTS.indexOf(gn) >= 0) { S.gm = gn; try { localStorage.setItem(GM_KEY, String(gn)); } catch (er) { /* без запам'ятовування */ } updateList(boardRows()); } return; }
     if (a === 'cadd') { applyCodeInput(); return; }
     if (a === 'sug') { applyCodeInput({ c: b.dataset.c, s: b.dataset.s }); var ci = $('op-cq-in'); if (ci) ci.focus(); return; }
     if (a === 'cdel') { S.codes = S.codes.filter(function (x) { return x !== b.dataset.c; }); cmsg(''); codesChanged(); return; }
