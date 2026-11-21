@@ -3,7 +3,7 @@
 (function () {
   'use strict';
   /* ───── ВИГЛЯД ЗА ЗАМОВЧУВАННЯМ: змінити одним параметром ('compact' = компактні рядки, 'tiles' = крупні плитки) ───── */
-  var DEFAULT_VIEW = 'compact';
+  var DEFAULT_VIEW = 'tiles';
   var VIEWS = [['compact', 'Компактно'], ['tiles', 'Крупно']];
   var KEY_VIEW = 'radio_view_v1', KEY_CITY = 'radio_city_v1', KEY_ACC = 'radio_acc_v1';
 
