@@ -382,3 +382,8 @@ span.freq-chip--pending { cursor: default; }
 .radio-city-calc a { color: var(--fg-accent); text-decoration: underline; text-underline-offset: 3px; overflow-wrap: anywhere; }
 .radio-city-calc a:hover { text-decoration-thickness: 2px; }
 @media (max-width: 560px) { .radio-calc { padding: 22px 18px; } .radio-city-calc { margin-left: 4px; } }
+
+/* Хлібні крихти: тонка смуга в самому верху сторінки над шапкою (не липка, прокручується разом зі сторінкою) */
+.crumbs-top { background: var(--bg-2, #FAFAF9); border-bottom: 1px solid var(--blitz-line); }
+.crumbs-top .wrap { padding-top: 7px; padding-bottom: 7px; }
+.crumbs-top .breadcrumbs { padding: 0; margin: 0; font-size: 12.5px; line-height: 1.4; color: var(--fg-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
