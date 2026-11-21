@@ -148,7 +148,7 @@
     S.info = skipped.length ? 'Однакові місяці застосовано до всіх обраних. Зайняті місяці пропущено: ' + skipped.join('; ') + '.' : 'Однакові місяці застосовано до всіх обраних сторін.';
   }
   function periodHtml() {
-    if (KIND === 'board') return '<div class="op-prange"><label>Початок розміщення<select data-o="start" class="op-in">' + periodOptions() + '</select></label><label>Місяців підряд<select data-o="n" class="op-in">' + monthsOptions() + '</select></label></div><p class="op-note op-psum">Ці місяці підставляються при додаванні сторони. Для кожної сторони місяці можна змінити окремо в розрахунку нижче. <a href="#" data-act="papply">Застосувати до всіх обраних</a></p>';
+    if (KIND === 'board') return '<div class="op-prange"><label>Початок розміщення<select data-o="start" class="op-in">' + periodOptions() + '</select></label><label>Місяців підряд<select data-o="n" class="op-in">' + monthsOptions() + '</select></label>' + (S.sel.length ? '<a href="#" class="op-papply" data-act="papply" title="Для кожної сторони місяці можна змінити окремо в розрахунку нижче">Застосувати до всіх обраних</a>' : '') + '</div>';
     var modes = [['range', 'Підряд'], ['custom', 'Довільні місяці']];
     var h = '<div class="op-pmodes" role="group" aria-label="Як обрати місяці">' + modes.map(function (x) { return '<button type="button" class="btn btn-sm ' + (S.mode === x[0] ? 'btn-primary' : 'btn-outline') + '" data-act="pmode" data-v="' + x[0] + '" aria-pressed="' + (S.mode === x[0]) + '">' + x[1] + '</button>'; }).join('') + '</div>';
     if (S.mode === 'range') return h + '<div class="op-prange"><label>Початок розміщення<select data-o="start" class="op-in">' + periodOptions() + '</select></label><label>Місяців<select data-o="n" class="op-in">' + monthsOptions() + '</select></label></div>';
@@ -185,7 +185,7 @@
     var q = $('op-q'); if (q && S.pt && S.pt.label) q.value = S.pt.label;
     Array.prototype.forEach.call(app.querySelectorAll('[data-lay]'), function (b) { var on = b.dataset.lay === S.lay; b.className = 'btn btn-sm ' + (on ? 'btn-primary' : 'btn-outline'); b.setAttribute('aria-pressed', on ? 'true' : 'false'); });
     var sp = $('op-split'); if (sp) sp.className = 'op-split op-lay-' + S.lay;
-    renderChips();
+    renderChips(); updateFilterSummary();
   }
   function sel() { return S.sel.map(function (k) { return S.byId[k]; }).filter(Boolean); }
   function periodTxt() { return periodTxtOf(curMonths()); }
@@ -215,7 +215,7 @@
     var list = ledList(), shown = list.slice(0, S.limit), zs = zones();
     var h = pkgStrip() + '<div class="op-filters"><label>Населений пункт<select data-f="zone"><option value="">Усі (' + S.items.filter(typesOk).length + ')</option>' + zs.map(function (z) { return '<option value="' + esc(z) + '"' + (z === S.zone ? ' selected' : '') + '>' + esc(z) + '</option>'; }).join('') + '</select></label>';
     h += '<div class="op-views"><button type="button" class="btn btn-sm ' + (S.view === 'list' ? 'btn-primary' : 'btn-outline') + '" data-view="list">Список</button><button type="button" class="btn btn-sm ' + (S.view === 'map' ? 'btn-primary' : 'btn-outline') + '" data-view="map">Карта</button></div></div>';
-    h += '<p class="op-disc">' + esc(DISCLAIMER) + '</p><p class="op-count">Знайдено: ' + list.length + '. Мінімальний обсяг показів: ' + LED_MIN_SEC + ' сек на екран на місяць.</p>';
+    h += '<p class="op-count">Знайдено: ' + list.length + '. Мінімальний обсяг показів: ' + LED_MIN_SEC + ' сек на екран на місяць.</p>';
     h += S.view === 'map' ? '<div id="op-map" class="op-map" role="img" aria-label="Карта поверхонь"></div><p class="op-note">Розташування на карті орієнтовне.</p>' : '<div class="op-grid">' + shown.map(ledCard).join('') + '</div>' + (list.length > shown.length ? '<button type="button" class="btn btn-outline" data-act="more">Показати ще</button>' : '') + '<p class="op-note">Фото й схеми довідкові.</p>';
     h += '<div id="op-cart"></div>';
     app.innerHTML = h;
@@ -267,23 +267,64 @@
     if (!chips.length && S.av !== 'all') rows = rows.filter(function (r) { return S.av === 'busy' ? r.st === 'busy' : r.st !== 'busy'; });
     return { rows: rows, all: all };
   }
-  function helpHtml() {
-    return '<div class="op-help"><button type="button" class="op-helpbtn" data-act="help" aria-expanded="' + (S.helpOpen ? 'true' : 'false') + '" aria-controls="op-helpbody"><span>Як користуватися</span><span class="op-helpact">' + (S.helpOpen ? 'Згорнути' : 'Показати') + '</span></button>' +
-      '<div id="op-helpbody" class="op-helpbody"' + (S.helpOpen ? '' : ' hidden') + '><ol>' +
-      '<li><b>Вкажіть точку:</b> введіть адресу й натисніть «Знайти» або клікніть по карті («Вказати на карті»).</li>' +
-      '<li><b>Оберіть радіус</b> пошуку навколо точки, за потреби сторону (А або Б) і спосіб поклейки (з драбини чи з вишки).</li>' +
-      '<li><b>Зелені сторони доступні, червоні зайняті.</b> За замовчуванням показано лише доступні; фільтр «Показувати» дозволяє побачити й зайняті.</li>' +
-      '<li><b>Код борда</b> (напр. «БЦ-014 ВА (211)»: наш код, сторона й у дужках номер, надрукований на фото): введіть наш код або номер з фото, щоб знайти борд; «БЦ-014» показує всі сторони, «БЦ-014 ВА» одну. Можна додати кілька кодів. Вибір не губиться при переході між картою, каталогом і сіткою.</li>' +
-      '<li><b>Оберіть сторони й період</b> розміщення, за потреби друк, монтаж і дизайн макета.</li>' +
-      '<li><b>Оформіть замовлення</b> або завантажте комерційну пропозицію: менеджер підтвердить наявність і зарезервує сторони за вами на 3 дні.</li></ol></div></div>';
+  /* ───── рубрики-акордеони (кнопка з aria-expanded; за замовчуванням згорнуті; стан у sessionStorage) ───── */
+  var ACC_KEY = 'op_acc_v1_' + KIND;   // окремий стан для сторінки бордів і сторінки екранів
+  function accState() { try { return JSON.parse(sessionStorage.getItem(ACC_KEY) || '{}') || {}; } catch (e) { return {}; } }
+  function accSave(k, on) { try { var o = accState(); o[k] = !!on; sessionStorage.setItem(ACC_KEY, JSON.stringify(o)); } catch (e) { /* без запам'ятовування */ } }
+  function accSet(btn, on) {
+    var body = $(btn.getAttribute('aria-controls')); btn.setAttribute('aria-expanded', on ? 'true' : 'false'); if (body) body.hidden = !on; accSave(btn.dataset.acc, on);
+  }
+  // Застосовує збережений стан до всіх кнопок-рубрик на сторінці (статичних і створених скриптом)
+  function accInit(root) {
+    var st = accState();
+    Array.prototype.forEach.call((root || document).querySelectorAll('[data-acc]'), function (b) { var body = $(b.getAttribute('aria-controls')); var on = !!st[b.dataset.acc]; b.setAttribute('aria-expanded', on ? 'true' : 'false'); if (body) body.hidden = !on; });
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('[data-acc]'); if (!b) return;
+    e.preventDefault(); accSet(b, b.getAttribute('aria-expanded') !== 'true');
+  });
+  // «Як користуватися» (лише бігборди) додається скриптом до того самого ряду рубрик, що й статичні «Як це працює», «Умовні позначення», «Важливо знати»
+  function helpBody() {
+    return '<ol>' +
+      '<li><b>Оберіть період</b> (початок і кількість місяців) і, якщо знаєте, <b>код борда</b>: наш («БЦ-014», «БЦ-014 ВА») або номер з фото («211»). Можна додати кілька кодів. Обрані коди показують свої борди незалежно від населеного пункту й радіуса.</li>' +
+      '<li><b>Виберіть вигляд:</b> карта, каталог, карта + каталог або сітка місяців. Фільтри, коди й обрані сторони не губляться при переході між видами.</li>' +
+      '<li>У рубриці <b>«Відфільтрувати бігборди»</b>: точка (адреса бізнесу або клік по карті) і радіус, населений пункт, сторона А/Б, спосіб поклейки (з драбини чи з вишки), статус («Показувати»). За замовчуванням показано лише доступні сторони.</li>' +
+      '<li><b>Додайте сторони</b> у розрахунок (кнопка на картці, у сітці — клітинка місяця), за потреби друк, монтаж і дизайн макета.</li>' +
+      '<li><b>Оформіть замовлення</b> або завантажте комерційну пропозицію: менеджер підтвердить наявність і зарезервує сторони за вами на 3 дні.</li></ol>';
+  }
+  function mountInfo() {
+    var info = document.getElementById('op-info'); if (KIND !== 'board' || !info || document.getElementById('acc-help')) return;   // «Як користуватися» є лише для бордів
+    var bar = info.querySelector('.op-infobtns'), host = info.querySelector('.op-infobodies'); if (!bar || !host) return;
+    var btn = document.createElement('button'); btn.type = 'button'; btn.className = 'op-accbtn'; btn.dataset.acc = 'help'; btn.setAttribute('aria-controls', 'acc-help'); btn.setAttribute('aria-expanded', 'false'); btn.innerHTML = '<span>Як користуватися</span><i class="op-chev" aria-hidden="true"></i>';
+    bar.insertBefore(btn, bar.children[1] || null);
+    var body = document.createElement('div'); body.id = 'acc-help'; body.className = 'op-accbody'; body.hidden = true; body.innerHTML = helpBody(); host.insertBefore(body, host.children[1] || null);
+    accInit(info);
   }
   function layBtns() {
     return '<div class="op-lay" role="group" aria-label="Вигляд">' + [['map', 'Карта'], ['list', 'Каталог'], ['both', 'Карта + каталог']].concat(KIND === 'board' ? [['grid', 'Сітка місяців']] : []).map(function (x) { return '<button type="button" class="btn btn-sm ' + (S.lay === x[0] ? 'btn-primary' : 'btn-outline') + '" data-lay="' + x[0] + '" aria-pressed="' + (S.lay === x[0]) + '">' + x[1] + '</button>'; }).join('') + '</div>';
   }
+  // Стисла назва активних фільтрів для рубрики «Відфільтрувати бігборди»
+  function plural(n, one, few, many) { var m = n % 100, d = n % 10; return n + ' ' + (m > 10 && m < 15 ? many : d === 1 ? one : d > 1 && d < 5 ? few : many); }
+  function filterSummary() {
+    var p = [], m = Number(S.start.slice(5, 7)) - 1;
+    p.push(S.pt ? 'до ' + S.radius + ' км від точки' : (S.zone || 'Усі населені пункти'));
+    p.push(MON_N[m].charAt(0).toUpperCase() + MON_N[m].slice(1) + ' ' + S.start.slice(0, 4)); p.push(plural(S.n, 'міс.', 'міс.', 'міс.'));
+    if (S.sideF !== 'all') p.push('сторона ' + S.sideF); if (S.mountF !== 'all') p.push(S.mountF === 'lift' ? 'з вишки' : 'з драбини');
+    if (S.type) p.push(TYPE_LBL[S.type] || S.type); if (S.av !== 'free') p.push(S.av === 'busy' ? 'зайняті' : 'усі статуси');
+    if (S.codes.length) p.push(plural(S.codes.length, 'код', 'коди', 'кодів'));
+    return p.join(' · ');
+  }
+  function updateFilterSummary() { var el = $('op-fsum'); if (el) el.textContent = filterSummary(); }
+  function layBtnsBar() { return '<div class="op-bar2">' + layBtns() + '<button type="button" class="op-accbtn op-fbtn" data-acc="filters" aria-controls="acc-filters" aria-expanded="false"><span class="op-ftitle">Відфільтрувати бігборди</span><span class="op-fsum" id="op-fsum"></span><i class="op-chev" aria-hidden="true"></i></button></div>'; }
   function shellBoard() {
     var zs = zones(), types = {}; S.items.filter(typesOk).forEach(function (it) { types[it.type] = 1; });
-    var h = helpHtml();
-    h += '<div class="op-find"><div class="op-ptrow"><label class="op-addr">Ваша точка (адреса бізнесу)<input type="text" id="op-q" class="op-in" placeholder="напр. Біла Церква, Млинова 5" autocomplete="off"></label>' +
+    // Поза рубрикою: період, пошук за кодом, вигляд. Усе інше (точка, радіус, населений пункт, сторона, поклейка, «показувати») — у згортній рубриці
+    var h = '<div class="op-top"><div class="op-toprow"><div class="op-period" id="op-period">' + periodHtml() + '</div>' +
+      '<div class="op-cq"><label for="op-cq-in">Код борда</label><div class="op-cqwrap"><input type="text" id="op-cq-in" class="op-in" placeholder="наш код (БЦ-014 ВА) або номер з фото (211)" autocomplete="off" aria-autocomplete="list" aria-controls="op-sug" aria-expanded="false"><div class="op-sug" id="op-sug" role="listbox" hidden></div></div></div>' +
+      '<button type="button" class="btn btn-primary btn-sm" data-act="cadd">Додати код</button><button type="button" class="btn btn-outline btn-sm" id="op-cclr" data-act="cclr" hidden>Скинути коди</button></div>' +
+      '<div class="op-chips" id="op-chips" aria-live="polite"></div><div class="op-note op-cmsg" id="op-cmsg" hidden></div></div>';
+    h += layBtnsBar();
+    h += '<div class="op-accbody op-find" id="acc-filters" hidden><div class="op-ptrow"><label class="op-addr">Ваша точка (адреса бізнесу)<input type="text" id="op-q" class="op-in" placeholder="напр. Біла Церква, Млинова 5" autocomplete="off"></label>' +
       '<button type="button" class="btn btn-primary btn-sm" id="op-find" data-act="find">Знайти</button>' +
       '<button type="button" class="btn btn-outline btn-sm" id="op-pickbtn" data-act="pick">Вказати на карті</button>' +
       '<label>Радіус<select data-f="radius" class="op-in">' + RADII.map(function (k) { return '<option value="' + k + '"' + (k === S.radius ? ' selected' : '') + '>до ' + k + ' км</option>'; }).join('') + '</select></label>' +
@@ -292,18 +333,13 @@
       '<div class="op-ptrow op-row2"><label>Населений пункт<select data-f="zone" id="op-zone" class="op-in"><option value="">Усі (' + S.items.filter(typesOk).length + ')</option>' + zs.map(function (z) { return '<option value="' + esc(z) + '">' + esc(z) + '</option>'; }).join('') + '</select></label>';
     if (Object.keys(types).length > 1) h += '<label>Тип<select data-f="type" class="op-in"><option value="">Усі</option>' + Object.keys(types).map(function (t) { return '<option value="' + t + '">' + esc(TYPE_LBL[t] || t) + '</option>'; }).join('') + '</select></label>';
     h += '<label>Сторона<select data-f="sideF" class="op-in"><option value="all">Усі (А і Б)</option><option value="А">Сторона А</option><option value="Б">Сторона Б</option></select></label>' +
-      '<label>Поклейка<select data-f="mountF" class="op-in"><option value="all">Усі</option><option value="ladder">З драбини</option><option value="lift">З вишки</option></select></label>';
-    h += '<div class="op-period" id="op-period">' + periodHtml() + '</div>' +
-      '<label>Показувати<select data-f="av" class="op-in"><option value="free" selected>Доступні (повністю або частково)</option><option value="busy">Зайняті</option><option value="all">Усі</option></select></label></div>' +
-      '<div class="op-ptrow op-row2 op-coderow"><div class="op-cq"><label for="op-cq-in">Код борда</label><div class="op-cqwrap"><input type="text" id="op-cq-in" class="op-in" placeholder="наш код (БЦ-014, БЦ-014 ВА) або номер з фото (211)" autocomplete="off" aria-autocomplete="list" aria-controls="op-sug" aria-expanded="false"><div class="op-sug" id="op-sug" role="listbox" hidden></div></div></div>' +
-      '<button type="button" class="btn btn-primary btn-sm" data-act="cadd">Додати код</button><button type="button" class="btn btn-outline btn-sm" id="op-cclr" data-act="cclr" hidden>Скинути коди</button></div>' +
-      '<div class="op-chips" id="op-chips" aria-live="polite"></div><div class="op-note" id="op-cmsg">Номер у дужках — той, що надруковано на фото борда. Обрані коди показують свої борди незалежно від населеного пункту й радіуса.</div>' +
-      '<p class="op-disc">' + esc(DISCLAIMER) + '</p></div>';
-    h += layBtns();
-    h += '<div class="op-legend"><span><i style="background:' + COL.free + '"></i>вільно в усі обрані місяці</span><span><i style="background:' + COL.part + '"></i>вільно частково</span><span><i style="background:' + COL.unk + '"></i>наявність уточнюється</span><span><i style="background:' + COL.busy + '"></i>зайнято</span><span><i class="op-legpt">★</i>ваша точка</span></div>';
-    h += '<p class="op-count" id="op-count"></p><div class="op-split op-lay-' + S.lay + '" id="op-split"><div class="op-mapbox"><div id="op-map" class="op-map" role="application" aria-label="Карта бігбордів"></div><div class="op-pickbar" id="op-pickbar" hidden>Клікніть на карті місце вашого бізнесу</div></div>' +
+      '<label>Поклейка<select data-f="mountF" class="op-in"><option value="all">Усі</option><option value="ladder">З драбини</option><option value="lift">З вишки</option></select></label>' +
+      '<label>Показувати<select data-f="av" class="op-in"><option value="free" selected>Доступні (повністю або частково)</option><option value="busy">Зайняті</option><option value="all">Усі</option></select></label></div></div>';
+    h += '<div class="op-metaline"><span class="op-count" id="op-count"></span><span class="op-mleg"><i style="background:' + COL.free + '"></i>вільно <i style="background:' + COL.part + '"></i>частково <i style="background:' + COL.unk + '"></i>уточнюється <i style="background:' + COL.busy + '"></i>зайнято <i class="op-legpt">★</i>ваша точка</span></div>';
+    h += '<div class="op-split op-lay-' + S.lay + '" id="op-split"><div class="op-mapbox"><div id="op-map" class="op-map" role="application" aria-label="Карта бігбордів"></div><div class="op-pickbar" id="op-pickbar" hidden>Клікніть на карті місце вашого бізнесу</div></div>' +
       '<div id="op-list" class="op-list"></div></div><p class="op-note">Розташування на карті орієнтовне. Фото й схеми довідкові.</p><div id="op-cart"></div>';
     app.innerHTML = h;
+    accInit(app);
   }
   function setLay(v) {
     // Перемикання вигляду нічого не скидає: ні фільтри й коди, ні обрані сторони, ні «Показати ще»; карта не перемальовується й не підганяється, якщо набір не змінився
@@ -336,8 +372,7 @@
         return '<td><button type="button" class="op-gc ' + st + (on ? ' on' : '') + '" data-act="gbm" data-id="' + esc(it.k) + '" data-v="' + iso + '"' + (st === 'busy' ? ' disabled' : '') + ' aria-pressed="' + on + '" aria-label="' + esc(it.addr + ', ' + MON_N[m[1]] + ' ' + m[0] + ': ' + GTXT[st] + (on ? ', обрано' : '')) + '" title="' + esc(MON_N[m[1]] + ' ' + m[0] + ': ' + GTXT[st]) + '">' + (on ? '✔' : GSYM[st]) + '</button></td>';
       }).join('') + '</tr>';
     }).join('');
-    return '<div class="op-gwrap"><table class="op-gtbl"><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div><div class="op-glegend"><h4>Як читати таблицю</h4><ul class="op-glist"><li><span class="op-gc free op-gsym">✓</span> вільно</li><li><span class="op-gc busy op-gsym">✕</span> зайнято, обрати не можна</li><li><span class="op-gc unk op-gsym">?</span> наявність уточнює менеджер (місяць можна додати як запит)</li><li><span class="op-gc free on op-gsym">✔</span> обрано вами</li></ul>' +
-      '<ul class="op-gtext"><li><b>Рядок</b> — одна сторона борда: наш код борда зі стороною й у дужках номер, надрукований на фото борда (наприклад «БЦ-124 ВБ (211)»; ВА, ВБ і НА, НБ — верхній і нижній ярус), адреса, сторона, розмір і ціна за місяць.</li><li><b>Колонка</b> — місяць; <span class="op-gny">помаранчева межа</span> у заголовку — початок нового року.</li><li><b>Що робити:</b> клацніть клітинку — місяць додається в розрахунок нижче, ще раз — знімається. У кожної сторони свої місяці. Початок і кількість місяців задаються вгорі («Початок розміщення», «Місяців підряд»); у таблиці завжди видно не менше 6 місяців.</li></ul></div>';
+    return '<div class="op-gwrap"><table class="op-gtbl"><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div><p class="op-gline"><span class="op-gc free op-gsym">✓</span> вільно <span class="op-gc busy op-gsym">✕</span> зайнято <span class="op-gc unk op-gsym">?</span> уточнює менеджер <span class="op-gc free on op-gsym">✔</span> обрано вами · <a href="#" data-act="openleg">що означають рядки, колонки й код борда</a></p>';
   }
   function updateList(data) {
     var rows = data.rows, shown = rows.slice(0, S.limit), box = $('op-list'); if (!box) return;
@@ -393,7 +428,7 @@
   function redraw(fit) {
     if (KIND === 'led') { renderLed(); return; }
     if (fit) S.fit = true;
-    var data = boardRows(); updateList(data); if (mapShown()) drawMap(data); else S.mapDirty = true; renderCart(); saveState();
+    var data = boardRows(); updateList(data); if (mapShown()) drawMap(data); else S.mapDirty = true; renderCart(); saveState(); updateFilterSummary();
   }
   function setPt(lat, lng, label) { S.pt = { lat: lat, lng: lng, label: label }; S.pick = false; redraw(true); }
   function say(t) { var m = $('op-msg'); if (m) m.textContent = t; }
@@ -613,7 +648,7 @@
   }
 
   /* ───── пошук за кодом борда (чіпи) ───── */
-  function cmsg(t) { var m = $('op-cmsg'); if (m) m.textContent = t; }
+  function cmsg(t) { var m = $('op-cmsg'); if (m) { m.textContent = t; m.hidden = !t; } }
   function renderChips() {
     var box = $('op-chips'), clr = $('op-cclr'); if (!box) return;
     box.innerHTML = S.codes.map(function (c) { var ch = chipOf(c); return '<span class="op-chip">' + esc(ch ? chipLabel(ch, S.items.filter(typesOk)) : c) + '<button type="button" data-act="cdel" data-c="' + esc(c) + '" aria-label="Прибрати код ' + esc(c) + '">×</button></span>'; }).join('');
@@ -640,12 +675,12 @@
       var txt = t.norm || (t.p + (t.d || '')), sg = codeSuggest(pool, txt, 10);
       if (sg.length === 1) { addChip(sg[0].c, sg[0].s); added++; } else if (sg.length) rest.push(txt); else miss.push(txt);
     });
-    cmsg(miss.length ? 'Код не знайдено: ' + miss.join(', ') + '. Наприклад: «БЦ-014», «БЦ-014 ВА» або номер з фото.' : added ? 'Додано кодів: ' + added + '. Коди показують свої борди незалежно від населеного пункту й радіуса.' : 'Код борда є на фото й у списку. Обрані коди показують свої борди незалежно від населеного пункту й радіуса.');
+    cmsg(miss.length ? 'Код не знайдено: ' + miss.join(', ') + '. Наприклад: «БЦ-014», «БЦ-014 ВА» або номер з фото.' : '');
     return { rest: rest.join(' '), added: added };
   }
   function applyCodeInput(pick) {
     var inp = $('op-cq-in'); if (!inp) return;
-    if (pick) { addChip(pick.c, pick.s); inp.value = ''; hideSug(); cmsg('Додано код ' + (pick.c + (pick.s ? ' ' + pick.s : '')) + '.'); codesChanged(); return; }
+    if (pick) { addChip(pick.c, pick.s); inp.value = ''; hideSug(); cmsg(''); codesChanged(); return; }
     var r = commitCodes(inp.value); inp.value = r.rest; hideSug(); if (r.rest) renderSug();
     if (r.added) codesChanged();
   }
@@ -673,16 +708,16 @@
     if (a === 'pm') { S.picked[b.dataset.v] = !S.picked[b.dataset.v]; periodChanged(); return; }
     if (a === 'pclr') { e.preventDefault(); S.picked = {}; periodChanged(); return; }
     if (a === 'toper') { e.preventDefault(); var pe = $('op-period'); if (pe) { pe.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; } var st = app.querySelector('[data-o="start"]'); if (st) { st.scrollIntoView({ behavior: 'smooth', block: 'center' }); st.focus(); } return; }
-    if (a === 'help') { S.helpOpen = !S.helpOpen; b.setAttribute('aria-expanded', S.helpOpen ? 'true' : 'false'); var hb = $('op-helpbody'); if (hb) hb.hidden = !S.helpOpen; var ha = b.querySelector('.op-helpact'); if (ha) ha.textContent = S.helpOpen ? 'Згорнути' : 'Показати'; return; }
     if (a === 'find') { geocode(); return; }
     if (a === 'pick') { S.pick = !S.pick; redraw(false); return; }
     if (a === 'clear') { S.pt = null; S.pick = false; S.fit = true; var q = $('op-q'); if (q) q.value = ''; say('Точку скинуто. Показано всі сторони обраного населеного пункту.'); redraw(true); return; }
     if (a === 'focus') { var mk = S.markerOf && S.markerOf[id]; if (mk && S.map) { S.map.setView(mk.getLatLng(), Math.max(S.map.getZoom(), 15)); mk.openPopup(); var mb = app.querySelector('.op-mapbox'); if (mb && mb.getBoundingClientRect().top < 0) mb.scrollIntoView({ behavior: 'smooth', block: 'start' }); } return; }
     if (a === 'more') { S.limit += 30; if (KIND === 'led') renderLed(); else updateList(boardRows()); return; }
+    if (a === 'openleg') { e.preventDefault(); var lb = document.querySelector('[data-acc="legend"]'); if (lb) { accSet(lb, true); lb.scrollIntoView({ behavior: 'smooth', block: 'center' }); } return; }
     if (a === 'cadd') { applyCodeInput(); return; }
     if (a === 'sug') { applyCodeInput({ c: b.dataset.c, s: b.dataset.s }); var ci = $('op-cq-in'); if (ci) ci.focus(); return; }
     if (a === 'cdel') { S.codes = S.codes.filter(function (x) { return x !== b.dataset.c; }); cmsg(''); codesChanged(); return; }
-    if (a === 'cclr') { S.codes = []; var cq = $('op-cq-in'); if (cq) cq.value = ''; hideSug(); cmsg('Коди скинуто.'); codesChanged(); return; }
+    if (a === 'cclr') { S.codes = []; var cq = $('op-cq-in'); if (cq) cq.value = ''; hideSug(); cmsg(''); codesChanged(); return; }
     if (a === 'send') { send(); return; }
     if (a === 'copy') { copyText(); return; }
     if (a === 'kp') { downloadKp(); return; }
@@ -735,6 +770,7 @@
   app.innerHTML = '<p class="op-note">Завантаження каталогу…</p>';
   fetch(FEED).then(function (r) { if (!r.ok) throw new Error('feed'); return r.json(); }).then(function (d) {
     S.items = (d.items || []).map(publicItem); S.sale = d.sale || {}; S.pk = d.ledPackages || null; S.dz = d.design || null; S.items.forEach(function (it) { S.byId[it.k] = it; }); S.hy = horizonYear(S.items); S.baseYear = Number(String((d.meta && d.meta.generated) || '').slice(0, 4)) || new Date().getFullYear();
+    mountInfo(); accInit(document);
     if (KIND === 'led') renderLed(); else { loadState(); shellBoard(); restoreDom(); redraw(true); }
   }).catch(function () { app.innerHTML = '<div class="op-err">Каталог тимчасово недоступний. Залиште заявку або зателефонуйте нам: ми підготуємо розрахунок вручну.</div>'; });
 })(typeof window !== 'undefined' ? window : globalThis);

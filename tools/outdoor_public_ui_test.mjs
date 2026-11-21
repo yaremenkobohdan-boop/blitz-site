@@ -414,6 +414,14 @@ eq('список місяців скорочується до діапазоні
   ok('скрипт: чіпи кодів і підказки, Enter/кома додають код', /data-act="cdel"|data-act="cdel"/.test(js) && /function commitCodes/.test(js) && /\[,;\]/.test(js));
   ok('скрипт: перемикання вигляду не підганяє карту й не перемальовує без потреби (mapDirty), стан у sessionStorage', /mapDirty/.test(js) && /sessionStorage/.test(js) && !/function setLay[\s\S]{0,400}S\.fit = true/.test(js));
   ok('скрипт: код постачальника в сторінці не згадується', !/\bsupplier\b|\.sup\b/.test(js));
-  ok('легенда під сіткою: символи, заголовок місяця, помаранчева межа, що робити', /Як читати таблицю/.test(js) && /op-gsym/.test(js) && /помаранчева межа/.test(js) && /Що робити/.test(js));
+  const pgB = read('poslugy/bigbordy.html'), pgL = read('poslugy/videoborday.html');
+  ok('легенда: коротка під сіткою + повна в рубриці «Умовні позначення» (символи, місяць, помаранчева межа, що робити)', /op-gline/.test(js) && /data-act="openleg"/.test(js) && /acc-legend/.test(pgB) && /помаранчева межа/.test(pgB) && /Що робити/.test(pgB) && /op-gsym/.test(pgB));
+  for (const [nm, pg] of [['бігборди', pgB], ['екрани', pgL]]) {
+    ok(nm + ': body.op-page, три рубрики з aria-expanded=false і aria-controls на наявні блоки', /<body class="op-page">/.test(pg) && ['how', 'legend', 'notes'].every(k => new RegExp('data-acc="' + k + '" aria-controls="acc-' + k + '" aria-expanded="false"').test(pg) && new RegExp('id="acc-' + k + '"').test(pg)));
+    ok(nm + ': юридичний текст і примітка про резерв у рубриці «Важливо знати», а не під калькулятором', /id="acc-notes"[\s\S]{0,400}резервуються/.test(pg) && !/class="op-legal"/.test(pg) && !/class="op-how"/.test(pg));
+    ok(nm + ': hero скорочено (один рядок підзаголовка)', /<section class="page-hero"><div class="wrap"><h1>[^<]*<\/h1><p>[^<]{20,110}<\/p>/.test(pg));
+  }
+  ok('скрипт: рубрики-акордеони з aria-expanded, стан у sessionStorage, «Відфільтрувати бігборди» зі стислим підсумком', /aria-expanded/.test(js) && /ACC_KEY/.test(js) && /Відфільтрувати бігборди/.test(js) && /function filterSummary/.test(js) && /data-acc="filters"/.test(js));
+  ok('скрипт: поза рубрикою фільтрів лише період, код і вигляд; точка/радіус/пункт/сторона/поклейка/«показувати» — у рубриці', (() => { const sh = js.slice(js.indexOf('function shellBoard'), js.indexOf('function setLay')); const top = sh.slice(0, sh.indexOf('id="acc-filters"')), body = sh.slice(sh.indexOf('id="acc-filters"')); return /periodHtml\(\)/.test(top) && /op-cq-in/.test(top) && !/data-f="zone"|data-f="sideF"|data-f="mountF"|data-f="radius"|data-f="av"|op-q"/.test(top) && ['zone', 'sideF', 'mountF', 'radius', 'av'].every(k => body.indexOf('data-f="' + k + '"') >= 0) && /id="op-q"/.test(body); })());
 }
 print(fails ? 'OUTDOOR PUBLIC UI FAILED ' + fails + ' з ' + n : n + ' перевірок: OUTDOOR PUBLIC UI OK');
