@@ -149,6 +149,7 @@
   var FORM_LABEL = { request: 'Замовлення реклами на радіо', contacts: 'Контактні дані', outdoor: 'Зовнішня реклама' };
   function formId() {
     try {
+      var sf = document.getElementById('sf-mount'); if (sf && sf.getAttribute('data-form-id')) return sf.getAttribute('data-form-id');   // власна форма (assets/site-form.js)
       var s = document.querySelectorAll('script[src*="forms-cdn.uspa.cy"]');
       for (var i = 0; i < s.length; i++) {
         var m = (s[i].getAttribute('src') || '').match(/forms-cdn\.uspa\.cy\/[0-9a-f]{2}\/[0-9a-f]{2}\/([0-9a-f]{16,})\//);
@@ -382,11 +383,11 @@
 
   /* ---------- форма Uspacy: спроба ---------- */
   function hForm(t) {
-    var inForm = t.closest('#uspacy-forms');
+    var inForm = t.closest('#uspacy-forms,#sf-mount');
     if (inForm) {
       var hit = t;
       for (var k = 0; k < 5 && hit && hit !== inForm; k++, hit = hit.parentElement) {
-        if (/^\s*Надіслати\s*$/i.test(hit.textContent)) { formAttempt(); break; }
+        if (/^\s*(Надіслати|Надсилаємо…)\s*$/i.test(hit.textContent)) { formAttempt(); break; }
       }
     }
   }
@@ -421,11 +422,11 @@
   document.addEventListener('focusin', function (e) {
     try {
       if (started || !loaded) return;
-      if (e.target.closest && e.target.closest('#uspacy-forms')) { started = true; var fi = formInfo(); ev('form_start', { form: 'uspacy_request', form_id: fi.form_id, form_name: fi.form_name }); }
+      if (e.target.closest && e.target.closest('#uspacy-forms,#sf-mount')) { started = true; var fi = formInfo(); ev('form_start', { form: 'uspacy_request', form_id: fi.form_id, form_name: fi.form_name }); }
     } catch (x) {}
   });
   document.addEventListener('submit', function (e) {
-    try { if (e.target.closest && e.target.closest('#uspacy-forms')) formAttempt(); } catch (x) {}
+    try { if (e.target.closest && e.target.closest('#uspacy-forms,#sf-mount')) formAttempt(); } catch (x) {}
   }, true);
 
   function formAttempt() {
@@ -437,7 +438,7 @@
   /* Успіх: віджет показує «Успішно надіслано!» — ловимо появу цього тексту (один раз на відправку) */
   var leadShown = false, watchT = 0;
   function watchLead() {
-    var w = $('uspacy-forms'); if (!w) return;
+    var w = $('uspacy-forms') || $('sf-mount'); if (!w) return;
     var ok = /Успішно надіслано|Дякуємо|Дякуєм/i.test(w.textContent);
     if (ok && !leadShown) {
       leadShown = true;
