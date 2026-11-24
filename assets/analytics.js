@@ -1,5 +1,29 @@
 /* РІА «БЛІЦ» — аналітика: Google Analytics 4 + Meta Pixel + події.
    Підключається на blitz.com.ua та всіх піддоменах (міста). Один файл — одна правда. */
+/* ---------- шлях відвідувача по сайту (для заявок): до 10 останніх сторінок сеансу + перша сторінка входу ----------
+   Лише шлях (path) і час, БЕЗ query/hash і без персональних даних; зберігається в sessionStorage (закриття вкладки — зникає).
+   Якщо відвідувач відмовився від cookie аналітики (blitz_an=no) — нічого не зберігаємо, віддаємо лише поточну сторінку. */
+(function () {
+  var K = 'blitz_path', MAX = 10;
+  function declined() { var m = document.cookie.match(/(?:^|; )blitz_an=([^;]*)/); return !!m && m[1] === 'no'; }
+  function load() { try { var o = JSON.parse(sessionStorage.getItem(K) || 'null'); if (o && o.l && Array.isArray(o.h)) return o; } catch (e) {} return null; }
+  function cur() { return { p: String(location.pathname || '/').slice(0, 120), t: Math.floor(Date.now() / 1000) }; }
+  window.blitzJourney = function () {
+    var c = cur();
+    if (declined()) return { landing: c.p, path: [c] };
+    var o = load();
+    if (!o) return { landing: c.p, path: [c] };
+    return { landing: o.l.p, path: o.h.slice(-MAX) };
+  };
+  try {
+    if (declined()) { try { sessionStorage.removeItem(K); } catch (e) {} return; }
+    var c = cur(), o = load() || { l: c, h: [] };
+    if (!o.h.length || o.h[o.h.length - 1].p !== c.p) o.h.push(c);   // перезавантаження тієї ж сторінки не дублюється
+    if (o.h.length > MAX) o.h = o.h.slice(-MAX);
+    sessionStorage.setItem(K, JSON.stringify(o));
+  } catch (e) {}
+})();
+
 (function () {
   'use strict';
   if (navigator.webdriver) return; // автоматизовані браузери не рахуємо (як на blits-fm.ua)

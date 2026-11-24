@@ -594,6 +594,7 @@
   }
   // Вставляє текст у форму Uspacy «Суть запиту» (форму клієнт надсилає кнопкою самої форми); noscroll — без прокрутки до форми
   function pushToForm(text, noscroll) {
+    if (window.blitzOpenForm) { window.blitzOpenForm({ message: text, source: 'outdoor' }); return; }   // сторінка з вікном заявки: відкриваємо вікно замість вбудованої форми
     var tgt = $('contact-form-target') || $('uspacy-forms');
     if (tgt && !noscroll) tgt.scrollIntoView({ behavior: 'smooth', block: 'center' });
     (function fill(tries) { var ed = document.querySelector('#uspacy-forms [contenteditable="true"]'); if (ed) { fillEditor(ed, text, 0); return; } var ta = $('fbTxt'); if (ta) { ta.value = text; return; } if (tries < 40) setTimeout(function () { fill(tries + 1); }, 250); })(0);

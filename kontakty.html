@@ -88,12 +88,13 @@
       <p class="blitz-body" style="margin-bottom:18px;"><strong>Міста присутності:</strong><br>Біла Церква, Фастів, Умань, Сміла, Богуслав (Дибинці), Рокитне, Ставище</p>
       <p class="blitz-body"><strong>Сайт:</strong><br>blitz.com.ua</p>
     </div>
-    <!-- Форма заявки (assets/site-form.js): заявку спершу приймає BOS (bos.blitz.com.ua → сам створює лід у Uspacy).
-         Якщо BOS недоступний — форма переходить на СТАРИЙ шлях: вантажить віджет Uspacy (id 6ab6cfe42b0c61dcca78a831,
-         з cache-busting ?v=Date.now()) у #sf-mount і підставляє в нього введені дані. -->
-    <div id="contact-form-target" style="flex:1 1 380px; background:var(--bg-2); border-radius:var(--radius-lg); padding:32px; min-height:200px;">
-      <h3 style="font-family:var(--font-display); font-weight:800; font-size:20px; margin-bottom:14px;">Залиште заявку</h3>
-      <div id="sf-mount" data-form="contacts" data-widget="6a/b6/6ab6cfe42b0c61dcca78a831" data-form-id="6ab6cfe42b0c61dcca78a831"><noscript>Увімкніть JavaScript або зателефонуйте нам: <a href="tel:+380672804030">+380 67 280 40 30</a>.</noscript></div>
+    <!-- Форма заявки (assets/site-form.js): на сторінці НЕ рендериться. Відкривається вікном після кнопки «Написати нам» (або за посиланням kontakty.html#zayavka).
+         Заявку спершу приймає BOS (bos.blitz.com.ua → сам створює лід у Uspacy). Якщо BOS недоступний — вікно переходить на СТАРИЙ шлях:
+         вантажить віджет Uspacy (id 6ab6cfe42b0c61dcca78a831, з cache-busting ?v=Date.now()) усередині цього ж вікна і підставляє в нього введені дані. -->
+    <div style="flex:1 1 380px; background:var(--bg-2); border-radius:var(--radius-lg); padding:32px; align-self:flex-start;">
+      <div class="blitz-headline-stack" style="margin-bottom:14px;"><span class="verb">Напишіть</span><span class="keyword">нам</span><span class="object">розкажемо й порахуємо</span></div>
+      <p class="blitz-body" style="margin-bottom:20px;">Скажіть, що вам потрібно, — менеджер зателефонує та підготує розрахунок.</p>
+      <button type="button" class="btn btn-primary" data-open-form="kontakty">Написати нам</button>
     </div>
   </div>
 </section>
@@ -104,7 +105,7 @@
     <iframe src="https://www.google.com/maps/d/embed?mid=1_-1qvSOPPUOsA3AG7hcGvppjXcAYyig" width="100%" height="420" style="border:0;border-radius:12px" loading="lazy" title="РІА «БЛІЦ» — офіс, вул. Млинова, 5, Біла Церква"></iframe>
   </div>
 </section>
-<script src="assets/site-form.js?v=20261125" defer></script>
+<script src="assets/site-form.js?v=20261126" data-form="contacts" data-widget="6a/b6/6ab6cfe42b0c61dcca78a831" data-form-id="6ab6cfe42b0c61dcca78a831" defer></script>
 
 <footer class="site-footer">
   <div class="wrap">

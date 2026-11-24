@@ -88,6 +88,7 @@
   }
 
   bar.querySelector('.want-go').addEventListener('click', function () {
+    if (window.blitzOpenForm) { window.blitzOpenForm({ message: buildText(), source: 'want' }); return; }   /* сторінка з вікном заявки (site-form.js): форма відкривається вікном, текст кошика — у «Суть запиту» */
     var sec = document.getElementById('radio-order-section');
     if (sec) sec.hidden = false;
     var t = sec || document.getElementById('contact-form-target') || document.getElementById('uspacy-forms');
