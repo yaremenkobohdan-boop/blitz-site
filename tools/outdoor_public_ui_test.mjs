@@ -152,7 +152,7 @@ ok('заявка: ключі верхнього рівня — лише дозв
 ok('заявка: у вибору лише дозволені ключі, без виплат дизайнеру / постачальників', Object.keys(lp.sel).sort().join() === 'demount,design,flights,lines,monthList,months,mount,period,pkg,plan,print,rent,subAll,tax,taxSum,total,video,warranty' && !/payout|designer|multiplier|cost|sup|tier|supMount|occ/.test(JSON.stringify(lp)));
 ok('заявка: серіалізується в JSON без втрат (без undefined/NaN)', !/undefined|NaN|null,"?null/.test(JSON.stringify(lp).replace(/"(design|video|pkg)":null/g, '')));
 ok('скрипт: відправка на /outdoor-lead без ключів і токенів, дані клієнта лише в тілі POST', /bos\.blitz\.com\.ua\/outdoor-lead/.test(read('assets/outdoor-public.js')) && !/(token|secret|api[_-]?key|turnstile)/i.test(read('assets/outdoor-public.js')));
-ok('скрипт: збій відправки веде у запасну форму Uspacy і не блокує КП', /afterSend/.test(read('assets/outdoor-public.js')) && /pushToForm\(requestText\(x\), true\)/.test(read('assets/outdoor-public.js')));
+ok('скрипт: збій відправки відкриває вікно заявки (site-form.js) і не блокує КП', /afterSend/.test(read('assets/outdoor-public.js')) && /pushToForm\(requestText\(x\), true\)/.test(read('assets/outdoor-public.js')));
 ok('сторінка має пастку для ботів у CSS поза екраном', /\.op-hp\{[^}]*-9999px/.test(read('assets/outdoor-public.css')));
 // ВИТІК: у скрипті, стилях і сторінках немає виплат дизайнеру, множника, полів прайсу дизайнера, старої адреси
 SHIPPED.forEach(function (f) {
@@ -427,7 +427,7 @@ eq('список місяців скорочується до діапазоні
 /* ───── радіо-сторінка (poslugy/radio.html): новий стандарт верстки без втрати селекторів аналітики й логіки замовлення ───── */
 { const rp = read('poslugy/radio.html'), rj = read('assets/radio-page.js'), rc = read('assets/radio-page.css');
   ok('радіо: body.radio-page, стилі й скрипт сторінки (скрипт ПІСЛЯ order.js)', /<body class="radio-page">/.test(rp) && /radio-page\.css/.test(rp) && rp.indexOf('order.js') > 0 && rp.indexOf('radio-page.js') > rp.indexOf('order.js'));
-  ok('радіо: збережено селектори аналітики: #radio-modal-order, #radio-modal-title, форма Uspacy 6a60cd562704e3c3a69dd0f2, .product-card з h4/.price/.qty', ['id="radio-modal-order"', 'id="radio-modal-title"', '6a60cd562704e3c3a69dd0f2', 'class="price"', 'class="qty"'].every(x => rp.indexOf(x) >= 0) && (rp.match(/class="product-card"/g) || []).length === 16);
+  ok('радіо: збережено селектори аналітики: #radio-modal-order, #radio-modal-title, вікно заявки (site-form.js), .product-card з h4/.price/.qty', ['id="radio-modal-order"', 'id="radio-modal-title"', 'assets/site-form.js', 'class="price"', 'class="qty"'].every(x => rp.indexOf(x) >= 0) && (rp.match(/class="product-card"/g) || []).length === 16);
   ok('радіо: калькулятор лишився посиланнями на лендінги міст у рубриці (aria-expanded), без видалення логіки', /data-rx-acc="calc"[^>]*aria-expanded="false"/.test(rp) && (rp.match(/blitz\.com\.ua\/#calc/g) || []).length >= 6 && /id="radio-toolbar"/.test(rp));
   ok('радіо: вигляд за замовчуванням — один параметр DEFAULT_VIEW; вибір міста й вигляду у localStorage (try/catch), aria-pressed', /var DEFAULT_VIEW = '(compact|tiles)'/.test(rj) && /radio_view_v1/.test(rj) && /radio_city_v1/.test(rj) && /function lsGet[\s\S]{0,80}try/.test(rj) && /aria-pressed/.test(rj));
   ok('радіо: пілюлі міст будуються з даних сторінки (без хардкоду назв міст у скрипті)', !/Біла Церква|Фастів|Умань|Сміла|Богуслав|Рокитне|Ставище/.test(rj));

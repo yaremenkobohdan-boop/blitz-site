@@ -1,15 +1,16 @@
-/* Форма заявки: заявку СПЕРШУ приймає BOS (POST /api/public/site-lead), який сам створює лід у Uspacy.
-   Якщо BOS недоступний / повільний / відповів помилкою — форма миттєво переходить на СТАРИЙ шлях (віджет Uspacy, дані підставляються у його поля).
-   Без дубля: на старий шлях переходимо лише тоді, коли BOS НЕ підтвердив прийом. Повторна відправка тієї самої заявки йде з тим самим id (BOS ідемпотентний).
-   Контейнер: <div id="sf-mount" data-form="contacts|request" data-widget="6a/b6/6ab6cfe42b0c61dcca78a831" data-form-id="6ab6cfe4…" data-title="…"></div>
+/* Форма заявки: заявку приймає BOS (POST /api/public/site-lead), який сам створює лід у Uspacy. Віджет Uspacy на сайті більше не використовується.
+   Якщо BOS недоступний / повільний / відповів помилкою — у вікні з'являється зрозуміла відмова: «Не вдалося надіслати. Зателефонуйте: +380 67 280 40 30» і кнопка «Спробувати ще раз»
+   (повтор іде з тим самим id заявки: BOS ідемпотентний, дубля не буде).
    Тест без створення ліда в Uspacy: додайте до адреси ?sf_test=1 (заявка збережеться в BOS з прапорцем test і нікуди не піде).
    ВІКНО: форма НЕ рендериться на сторінці. Вона відкривається модальним вікном після натискання кнопки з [data-open-form] / посилання #zayavka
-   (або window.blitzOpenForm({ message, source })). Закриття: хрестик, Esc, клік поза вікном. Віджет Uspacy (старий шлях) вантажиться лише у fallback і теж у цьому вікні.
-   Налаштування — атрибути цього <script>: data-form="contacts|request" data-widget="…" data-form-id="…".
+   (або window.blitzOpenForm({ message, source })). Закриття: хрестик, Esc, клік поза вікном.
+   Підключення: <script src="…/assets/site-form.js?v=…" data-form="request|contacts" defer></script>. data-form: request — «Замовлення реклами» (усі сторінки послуг, акцій, міст), contacts — «Контакти».
+   Код форми в BOS обмежений двома підписами (request, contacts), тому розділ сайту визначається за сторінкою (page) і шляхом відвідувача, а не за окремим кодом форми.
+   Збережені хуки: window.blitzOpenForm / blitzCloseForm (order.js «Хочу»/.want-go, outdoor-public.js, калькулятор міст), [data-open-form], #zayavka, data-message.
    Сторінки, де ще є вбудований <div id="sf-mount"> (старий вигляд), працюють як раніше. */
 (function () {
   var SCRIPT = document.currentScript;
-  var CFG = { form: (SCRIPT && SCRIPT.getAttribute('data-form')) || 'request', widget: (SCRIPT && SCRIPT.getAttribute('data-widget')) || '6a/b6/6ab6cfe42b0c61dcca78a831', formId: (SCRIPT && SCRIPT.getAttribute('data-form-id')) || '6ab6cfe42b0c61dcca78a831' };
+  var CFG = { form: (SCRIPT && SCRIPT.getAttribute('data-form')) || 'request' };
   var api = {};   // робочий стан активної форми: { setMessage(t) }
   function init(mount) {
   if (!mount || mount.getAttribute('data-sf-ready')) return;
@@ -17,7 +18,6 @@
   var API = window.SF_API || 'https://bos.blitz.com.ua/api/public/site-lead';
   var T_FIRST = window.SF_T1 || 4000, T_RETRY = window.SF_T2 || 3000;
   var KIND = mount.getAttribute('data-form') || 'request';
-  var WIDGET = mount.getAttribute('data-widget') || '';
   var TEST = /[?&]sf_test=1(&|$)/.test(location.search);
   var PHONE = '+380 67 280 40 30';
   var T0 = Date.now();
@@ -90,53 +90,32 @@
     });
   }
 
-  /* ───── запасний (старий) шлях: віджет Uspacy, дані підставляються у його поля ───── */
-  function setNative(el, v) {
-    try { var d = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(el), 'value'); (d && d.set ? d.set : function (x) { el.value = x; }).call(el, v); } catch (e) { el.value = v; }
-    el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true }));
-  }
-  function fillEditor(ed, want, tries) {
-    ed.focus();
-    var sl = window.getSelection(), rg = document.createRange(); rg.selectNodeContents(ed); sl.removeAllRanges(); sl.addRange(rg);
-    setTimeout(function () { document.execCommand('insertText', false, want); setTimeout(function () { if (ed.textContent.indexOf(want.slice(0, 12)) < 0 && tries < 6) { ed.blur(); setTimeout(function () { fillEditor(ed, want, tries + 1); }, 120); } }, 400); }, 150);
-  }
-  /* Підстановка у віджет: віджет React-овий, тому значення ставимо «рідним» setter'ом із фокусом, телефон — цифрами (маска форматує сама);
-     перевіряємо й повторюємо (віджет після монтування може скинути поля). Запасний шлях: що не вдалося — людина введе сама. */
-  function prefill(d, tries, round) {
-    var w = document.getElementById('uspacy-forms');
-    var inputs = w ? w.querySelectorAll('input[type=text],input[type=tel]') : [];
-    if (!inputs.length) { if (tries < 60) setTimeout(function () { prefill(d, tries + 1, 0); }, 250); return; }
-    if (!round) { setTimeout(function () { prefill(d, tries, 1); }, 700); return; }   // дати віджету домонтуватись
-    var map = { "Ім'я": d.name, 'Імʼя': d.name, 'Прізвище': d.last_name, 'Назва компанії': d.company, 'Телефон': digits(d.phone).replace(/^0/, '380'), 'Електронна пошта': d.email };
-    var missing = 0;
-    Array.prototype.forEach.call(inputs, function (inp) {
-      var p = inp, key = '';
-      for (var k = 0; k < 12 && p && p !== w && !key; k++, p = p.parentElement) {
-        var t = (p.innerText || '').trim();
-        Object.keys(map).forEach(function (lab) { if (!key && t.indexOf(lab) === 0) key = lab; });
-      }
-      if (!key || !map[key]) return;
-      if (digits(inp.value) === digits(map[key]) && key === 'Телефон' || inp.value === map[key]) return;
-      try { inp.focus(); } catch (e) {}
-      setNative(inp, map[key]);
-      missing++;
-    });
-    var ed = w.querySelector('[contenteditable="true"]');
-    if (ed && d.message && ed.textContent.indexOf(d.message.slice(0, 12)) < 0) { fillEditor(ed, d.message.replace(/\n+/g, ' | '), 0); missing++; }
-    if (missing && round < 4) setTimeout(function () { prefill(d, tries, round + 1); }, 900);
-  }
-  function fallback(d, why) {
-    done = true;
+  /* ───── відмова: BOS не прийняв заявку → зрозуміле повідомлення з телефоном і локальний повтор (той самий id) ───── */
+  var lastPayload = null, failBox = null;
+  function fail(why) {
     form.hidden = true;
-    var note = document.createElement('div');
-    note.className = 'sf-msg sf-note'; note.setAttribute('role', 'status');
-    note.innerHTML = 'Автоматично надіслати не вдалося. Ваші дані підставлено у форму нижче: перевірте їх і натисніть «Надіслати». Або зателефонуйте нам: <a href="tel:+380672804030">' + PHONE + '</a>.';
-    mount.appendChild(note);
-    var slot = document.createElement('div'); slot.id = 'sf-widget-slot'; mount.appendChild(slot);
-    new MutationObserver(function () { var w = document.getElementById('uspacy-forms'); if (w && w.parentNode !== slot) slot.appendChild(w); }).observe(document.body, { childList: true, subtree: true });
-    if (WIDGET) { var s = document.createElement('script'); s.async = true; s.src = 'https://forms-cdn.uspa.cy/' + WIDGET + '/forms.js?v=' + Date.now(); document.head.appendChild(s); }
-    prefill(d, 0, 0);
-    try { if (window.blitzTrack) window.blitzTrack('form_fallback', { form: KIND, why: String(why || '') }); } catch (e) {}
+    if (failBox && failBox.parentNode) failBox.parentNode.removeChild(failBox);
+    failBox = document.createElement('div');
+    failBox.className = 'sf-msg sf-err sf-fail'; failBox.setAttribute('role', 'alert');
+    failBox.innerHTML = '<h4>Не вдалося надіслати</h4><p>Не вдалося надіслати. Зателефонуйте: <a href="tel:+380672804030">' + PHONE + '</a></p>' +
+      '<button type="button" class="btn btn-primary sf-go sf-retry">Спробувати ще раз</button>';
+    mount.appendChild(failBox);
+    failBox.querySelector('.sf-retry').addEventListener('click', function () {
+      if (sending || done || !lastPayload) return;
+      if (failBox && failBox.parentNode) failBox.parentNode.removeChild(failBox);
+      failBox = null; form.hidden = false;
+      run(lastPayload);
+    });
+    try { var rb = failBox.querySelector('.sf-retry'); if (rb) rb.focus(); } catch (e) {}
+    try { if (window.blitzTrack) window.blitzTrack('form_fail', { form: KIND, why: String(why || '') }); } catch (e) {}
+  }
+  function run(payload) {
+    sending = true; btn.disabled = true; btn.textContent = 'Надсилаємо…';
+    sendToBos(payload).then(function (r) {
+      sending = false; btn.disabled = false; btn.textContent = 'Надіслати';
+      if (r.ok) { success(r.ref, TEST); return; }
+      fail(r.fail ? 'http_' + (r.status || '') : 'timeout');
+    });
   }
 
   function success(ref, test) {
@@ -161,17 +140,13 @@
     if (!form.elements.consent.checked) errs.push('Потрібна згода на обробку персональних даних.');
     if (errs.length) { say(errs.join(' ')); return; }
     say('');
-    sending = true; btn.disabled = true; btn.textContent = 'Надсилаємо…';
     if (!sid) sid = rid();   // один id на всі повтори тієї самої відправки
     var u = utm();
     var payload = { v: 1, form: KIND, id: sid, name: d.name, last_name: d.last_name, company: d.company, phone: d.phone, email: d.email, message: d.message, consent: true, hp: val('website'), dt: Date.now() - T0, page: location.pathname, utm: u.utm, ref: u.ref, click: u.click };
     try { var j = window.blitzJourney && window.blitzJourney(); if (j) { payload.landing = j.landing; payload.path = j.path; } } catch (e) {}
     try { if (window.__sfSrc) payload.src = String(window.__sfSrc).slice(0, 24); } catch (e) {}
-    sendToBos(payload).then(function (r) {
-      sending = false;
-      if (r.ok) { success(r.ref, TEST); return; }
-      fallback(d, r.fail ? 'http_' + (r.status || '') : 'timeout');
-    });
+    lastPayload = payload;
+    run(payload);
   });
   }   // init
 
@@ -182,7 +157,9 @@
     '.sf-dialog{position:relative;background:#fff;border-radius:24px;box-shadow:0 8px 24px rgba(234,88,12,.14);width:100%;max-width:560px;max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);overflow-y:auto;overscroll-behavior:contain;padding:32px 32px 28px;outline:none;font-family:var(--font-body,Montserrat,system-ui,sans-serif)}' +
     '.sf-x{position:absolute;top:12px;right:12px;width:40px;height:40px;border:0;border-radius:50%;background:#FFF1DC;color:#C04408;font:700 22px/1 var(--font-body,inherit);cursor:pointer;display:flex;align-items:center;justify-content:center}.sf-x:hover{background:#FFE0B0}.sf-x:focus-visible{outline:3px solid rgba(239,119,0,.5)}' +
     '.sf-head{margin:0 44px 18px 0}.sf-head h2{margin:0}.sf-head .verb{font-size:clamp(20px,5vw,26px)}.sf-head .keyword{font-size:clamp(30px,8vw,40px)}.sf-head .object{font-size:clamp(15px,4vw,18px)}' +
-    '.sf-go{border-radius:9999px}body.sf-lock{overflow:hidden}' +
+    '.sf-go{border-radius:9999px}body.sf-lock{overflow:hidden}body.sf-lock .want-bar{display:none!important}' +
+    '.sf-fail h4{font:800 18px/1.25 var(--font-display,inherit);margin:0 0 8px}.sf-fail p{margin:0 0 14px}.sf-fail a{color:inherit;font-weight:800;white-space:nowrap}' +
+    '.sf-plain .sf-head h2{display:flex;flex-direction:column;gap:.05em;line-height:1.1;margin:0;font-family:var(--font,Montserrat,system-ui,sans-serif);font-style:italic;font-weight:900}.sf-plain .sf-head .verb{font-weight:600;color:#1A1A1A}.sf-plain .sf-head .keyword{font-weight:900;text-transform:uppercase;color:#EA580C;line-height:1}.sf-plain .sf-head .object{font-weight:500;color:#1A1A1A}' +
     '@media(max-width:560px){.sf-modal{align-items:flex-end;padding:0}.sf-dialog{max-width:none;border-radius:24px 24px 0 0;padding:26px 18px calc(22px + env(safe-area-inset-bottom));max-height:92vh;max-height:92dvh}.sf-go{justify-self:stretch;width:100%}}';
   function build() {
     if (modal) return;
@@ -192,9 +169,10 @@
       '<div class="sf-dialog" role="dialog" aria-modal="true" aria-labelledby="sf-title" tabindex="-1">' +
       '<button type="button" class="sf-x" aria-label="Закрити" data-sf-close>×</button>' +
       '<div class="sf-head"><h2 id="sf-title" class="blitz-headline-stack"><span class="verb">Залиште</span><span class="keyword">заявку</span><span class="object">і ми вам передзвонимо</span></h2></div>' +
-      '<div id="sf-mount" data-form="' + CFG.form + '" data-widget="' + CFG.widget + '" data-form-id="' + CFG.formId + '"><noscript>Увімкніть JavaScript або зателефонуйте нам: <a href="tel:+380672804030">+380 67 280 40 30</a>.</noscript></div>' +
+      '<div id="sf-mount" data-form="' + CFG.form + '" data-form-id="sf-' + CFG.form + '"><noscript>Увімкніть JavaScript або зателефонуйте нам: <a href="tel:+380672804030">+380 67 280 40 30</a>.</noscript></div>' +
       '</div>';
     document.body.appendChild(modal);
+    try { if (getComputedStyle(modal.querySelector('#sf-title')).display !== 'flex') modal.classList.add('sf-plain'); } catch (e) {}   // sf-plain: сторінка без tokens.css (лендінги міст) — заголовок вікна стилізуємо самі
     dlg = modal.querySelector('.sf-dialog'); mountEl = modal.querySelector('#sf-mount');
     modal.addEventListener('click', function (e) { var t = e.target; if (t && t.closest && t.closest('[data-sf-close]')) close(); });
     modal.addEventListener('keydown', function (e) {

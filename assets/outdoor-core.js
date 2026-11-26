@@ -404,7 +404,7 @@
     var p = []; if (c && c.company) p.push('компанія ' + c.company); if (c && c.contact) p.push('контакт ' + c.contact); if (c && c.phone) p.push('тел. ' + c.phone); if (c && c.email) p.push('e-mail ' + c.email);
     return p.join('; ');
   }
-  // Повний текст вибору клієнта: для форми Uspacy, буфера обміну й видимого поля. x: {kind, tag, num, client, r, o, taxName, items?}
+  // Повний текст вибору клієнта: для вікна заявки, буфера обміну й видимого поля. x: {kind, tag, num, client, r, o, taxName, items?}
   function requestText(x) {
     var r = x.r, o = x.o, led = x.kind === 'led', n = r.months.length, t = [];
     t.push('ЗАПИТ З САЙТУ (' + x.num + '): онлайн-бронювання ' + (led ? 'відеоекранів' : 'бігбордів') + '. ' + x.tag + '.');

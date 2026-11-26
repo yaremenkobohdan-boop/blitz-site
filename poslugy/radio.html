@@ -50,7 +50,7 @@
         <a href="https://www.instagram.com/ra_blitz/" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24"><path d="M12 2c2.72 0 3.06.01 4.12.06 1.06.05 1.79.22 2.43.47.66.26 1.22.6 1.77 1.15.55.55.89 1.11 1.15 1.77.25.64.42 1.37.47 2.43.05 1.06.06 1.4.06 4.12s-.01 3.06-.06 4.12c-.05 1.06-.22 1.79-.47 2.43a4.9 4.9 0 0 1-1.15 1.77 4.9 4.9 0 0 1-1.77 1.15c-.64.25-1.37.42-2.43.47-1.06.05-1.4.06-4.12.06s-3.06-.01-4.12-.06c-1.06-.05-1.79-.22-2.43-.47a4.9 4.9 0 0 1-1.77-1.15 4.9 4.9 0 0 1-1.15-1.77c-.25-.64-.42-1.37-.47-2.43C2.01 15.06 2 14.72 2 12s.01-3.06.06-4.12c.05-1.06.22-1.79.47-2.43.26-.66.6-1.22 1.15-1.77A4.9 4.9 0 0 1 5.45.53c.64-.25 1.37-.42 2.43-.47C8.94.01 9.28 0 12 0Zm0 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10Zm0 8.25A3.25 3.25 0 1 1 12 6.75a3.25 3.25 0 0 1 0 6.5ZM17.5 6.75a1.17 1.17 0 1 0 0-2.33 1.17 1.17 0 0 0 0 2.33Z" transform="translate(0 2)"/></svg></a>
       </div>
       <a href="tel:+380672804030" class="nav-phone">+38 (067) 280-40-30</a>
-      <a href="../kontakty.html" class="btn btn-primary btn-sm">Замовити</a>
+      <a href="../kontakty.html" class="btn btn-primary btn-sm" data-open-form="header-radio">Замовити</a>
       <button class="burger" id="burgerBtn" aria-label="Меню"><span></span><span></span><span></span></button>
     </div>  </div>
 </header>
@@ -475,13 +475,13 @@
       <h3>Замовити: Реклама на радіо</h3>
       <p style="color:rgba(255,255,255,0.9); margin-top:-8px;">Залиште заявку — менеджер уточнить деталі та розрахує вартість.</p>
       <div class="btns">
-        <a href="#radio-order-section" class="btn btn-invert" data-order-scroll>Залишити заявку</a>
+        <button type="button" class="btn btn-invert" data-open-form="order-radio">Залишити заявку</button>
       </div>
     </div>
     <div class="cta-band" style="margin-top:24px;">
       <h3>Не знайшли потрібну позицію?</h3>
       <div class="btns">
-        <a href="../kontakty.html" class="btn btn-invert">Зробити індивідуальний запит</a>
+        <a href="../kontakty.html" class="btn btn-invert" data-open-form="custom-radio">Зробити індивідуальний запит</a>
       </div>
     </div>
   </div>
@@ -505,61 +505,13 @@
   </div>
 </div>
 
-<section id="radio-order-section" hidden>
-  <div class="wrap">
-    <!-- Форма Uspacy (id 6a60cd562704e3c3a69dd0f2) вантажиться динамічно з cache-busting параметром
-         (?v=Date.now()), щоб CDN ніколи не віддавав застарілу закешовану конфігурацію — інакше заявки
-         переставали долітати в CRM. Віджет монтується в кінець <body>, тому скрипт переносить його
-         (#uspacy-forms) назад у #radio-order-form-mount через MutationObserver.
-         Секція прихована (hidden) поки не натиснуть "Залишити заявку"/"Замовити цю станцію"/ціну —
-         щоб форма не висіла порожньою внизу сторінки. Кнопка нижче її ховає назад. -->
-    <button type="button" id="radio-order-close" class="radio-order-close">Закрити ✕</button>
-    <div id="radio-selection-banner" class="radio-selection-banner" hidden>
-      <div>Ви обираєте: <strong id="radio-selection-text"></strong></div>
-      <button type="button" id="radio-selection-copy" class="btn btn-ghost btn-sm">Скопіювати для заявки</button>
-      <p class="radio-selection-hint">Натисніть «Скопіювати» і вставте текст у поле «Суть запиту» у формі нижче — менеджер одразу побачить, яку станцію і за якою ціною ви обираєте.</p>
-    </div>
-    <div id="radio-order-form-mount" style="max-width:600px; margin:24px auto 0;"></div>
-  </div>
-</section>
 <script>
 (function(){
-  var mount = document.getElementById('radio-order-form-mount');
-  if (mount) {
-    var observer = new MutationObserver(function(){
-      var w = document.getElementById('uspacy-forms');
-      if (w && w.parentNode !== mount) { mount.appendChild(w); }
-    });
-    observer.observe(document.body, {childList:true, subtree:true});
-    var s = document.createElement('script');
-    s.type = 'text/javascript';
-    s.async = true;
-    s.src = 'https://forms-cdn.uspa.cy/6a/60/6a60cd562704e3c3a69dd0f2/forms.js?v=' + Date.now();
-    document.head.appendChild(s);
-  }
-
-  // ---- Вибір станції: клік по ціні картки (або кнопка в модалці) підсвічує вибір над формою ----
+  // ---- Вибір станції: клік по ціні картки (або кнопка в модалці) відкриває вікно заявки з вибраною станцією в полі «Суть запиту» ----
   function selectStation(name, price) {
-    var banner = document.getElementById('radio-selection-banner');
-    var text = document.getElementById('radio-selection-text');
-    if (!banner || !text) return;
-    document.getElementById('radio-order-section').hidden = false;
-    var summary = name + ' — ' + price;
-    text.textContent = summary;
-    banner.hidden = false;
-    var copyBtn = document.getElementById('radio-selection-copy');
-    if (copyBtn) {
-      copyBtn.onclick = function(){
-        var toCopy = name + ', ' + price;
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(toCopy).then(function(){
-            copyBtn.textContent = 'Скопійовано!';
-            setTimeout(function(){ copyBtn.textContent = 'Скопіювати для заявки'; }, 2000);
-          });
-        }
-      };
-    }
-    document.getElementById('radio-order-section').scrollIntoView({behavior:'smooth', block:'start'});
+    var msg = 'ЗАПИТ: Реклама на радіо (обрано з сайту)\n1. ' + name + (price ? ' — ' + price : '') + '\nСторінка: ' + location.href.split('#')[0];
+    if (window.blitzOpenForm) window.blitzOpenForm({ message: msg, source: 'radio' });
+    else location.href = '../kontakty.html#zayavka';
   }
 
   // ---- Модалка з деталями станції ----
@@ -610,23 +562,6 @@
       }
     });
   });
-
-  document.querySelectorAll('[data-order-scroll]').forEach(function(el){
-    el.addEventListener('click', function(e){
-      e.preventDefault();
-      document.getElementById('radio-order-section').hidden = false;
-      document.getElementById('radio-order-section').scrollIntoView({behavior:'smooth', block:'start'});
-    });
-  });
-
-  // ---- Закрити форму заявки (ховає секцію назад; віджет лишається змонтованим, просто не показується) ----
-  var closeOrderBtn = document.getElementById('radio-order-close');
-  if (closeOrderBtn) {
-    closeOrderBtn.addEventListener('click', function(){
-      document.getElementById('radio-order-section').hidden = true;
-      window.scrollTo({top: 0, behavior:'smooth'});
-    });
-  }
 })();
 </script>
 
@@ -685,7 +620,8 @@
 })();
 </script>
 <script src="../assets/main.js"></script>
-<script src="../assets/order.js"></script>
+<script src="../assets/order.js?v=20261126"></script>
+<script src="../assets/site-form.js?v=20261126b" data-form="request" defer></script>
 <script src="../assets/radio-page.js?v=20261121r2"></script>
 </body>
 </html>

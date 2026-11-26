@@ -2,7 +2,7 @@
    Дані: calc.blitz.com.ua/outdoor-public.json (лише публічні поля). Формули й тексти — у спільному ядрі assets/outdoor-core.js (те саме, що в калькуляторі менеджера).
    Бігборди: карта з точкою клієнта й радіусом (Leaflet + OpenStreetMap), список за відстанню, фільтри (наявність, сторона А/Б, поклейка), дизайн, таблиця розрахунку, комерційна пропозиція.
    Відеоекрани: картки, постійні пакети за кількістю екранів, ролик, комерційна пропозиція.
-   Контейнер: <div id="outdoor-app" data-kind="board|led" data-feed="…" data-img="…" data-privacy="…">. Заявка й КП автоматично надсилаються нам (data-lead, за замовчуванням bos.blitz.com.ua/outdoor-lead); запасний шлях — вставка тексту у форму Uspacy. */
+   Контейнер: <div id="outdoor-app" data-kind="board|led" data-feed="…" data-img="…" data-privacy="…">. Заявка й КП автоматично надсилаються нам (data-lead, за замовчуванням bos.blitz.com.ua/outdoor-lead); запасний шлях — вікно заявки (assets/site-form.js, BOS). */
 (function (root) {
   'use strict';
   var C = root.OutdoorCore;
@@ -587,17 +587,10 @@
     h += '<div id="op-sent" class="op-ok" hidden></div></div>';
     box.innerHTML = h;
   }
-  function fillEditor(ed, want, tries) {
-    ed.focus();
-    var sl = window.getSelection(), rg = document.createRange(); rg.selectNodeContents(ed); sl.removeAllRanges(); sl.addRange(rg);
-    setTimeout(function () { document.execCommand('insertText', false, want); setTimeout(function () { if (ed.textContent.indexOf(want.slice(0, 20)) < 0 && tries < 8) { ed.blur(); setTimeout(function () { fillEditor(ed, want, tries + 1); }, 100); } }, 400); }, 150);
-  }
-  // Вставляє текст у форму Uspacy «Суть запиту» (форму клієнт надсилає кнопкою самої форми); noscroll — без прокрутки до форми
+  // Відкриває вікно заявки (assets/site-form.js → BOS) з готовим текстом вибору в полі «Суть запиту». Запасний шлях при збої автовідправки калькулятора
   function pushToForm(text, noscroll) {
-    if (window.blitzOpenForm) { window.blitzOpenForm({ message: text, source: 'outdoor' }); return; }   // сторінка з вікном заявки: відкриваємо вікно замість вбудованої форми
-    var tgt = $('contact-form-target') || $('uspacy-forms');
-    if (tgt && !noscroll) tgt.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    (function fill(tries) { var ed = document.querySelector('#uspacy-forms [contenteditable="true"]'); if (ed) { fillEditor(ed, text, 0); return; } var ta = $('fbTxt'); if (ta) { ta.value = text; return; } if (tries < 40) setTimeout(function () { fill(tries + 1); }, 250); })(0);
+    if (window.blitzOpenForm) { window.blitzOpenForm({ message: text, source: 'outdoor' }); return; }
+    try { if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text); } catch (e) { /* текст лишається в полі «Текст замовлення» */ }
   }
   function ctx(tag) { return { kind: KIND, tag: tag, num: kpNumber(), client: clientOut(), r: compute(), o: optsOf(), taxName: taxName(), date: new Date(), hy: S.hy }; }
   // mode: 'kp' — компанія, контакт, телефон; 'order' — контакт і телефон (компанія необов'язкова для приватних осіб); без mode — лише згода
@@ -632,12 +625,12 @@
       .then(function (res) { if (timer) clearTimeout(timer); return res; });
   }
   function setBusy(on) { S.sending = on; Array.prototype.forEach.call(app.querySelectorAll('[data-act="send"],[data-act="kp"]'), function (b) { b.disabled = on; }); }
-  // Підсумок відправки для клієнта: чесно про успіх або про запасний шлях (форма Uspacy)
+  // Підсумок відправки для клієнта: чесно про успіх або про запасний шлях (вікно заявки)
   function afterSend(x, res, okMsg) {
     setBusy(false);
     if (res.ok) { sent(okMsg + (res.delivered ? '' : ' Заявку збережено, менеджер отримає її трохи згодом.')); return; }
     pushToForm(requestText(x), true);
-    sent('Автоматично надіслати не вдалося' + (res.error ? ' (' + res.error + ')' : '') + '. Ваш вибір підготовлено у формі нижче: натисніть «Надіслати», або зателефонуйте нам: ' + CO.phones[0] + '. ' + (x.tag === 'Замовлення' ? 'Замовлення ' : 'Комерційна пропозиція ') + x.num + (x.tag === 'Замовлення' ? ' підготовлено у формі.' : ' уже відкрита у вікні.'));
+    sent('Автоматично надіслати не вдалося' + (res.error ? ' (' + res.error + ')' : '') + '. Ваш вибір підготовлено у формі заявки, що відкрилась: перевірте дані й натисніть «Надіслати», або зателефонуйте нам: ' + CO.phones[0] + '. ' + (x.tag === 'Замовлення' ? 'Замовлення ' : 'Комерційна пропозиція ') + x.num + (x.tag === 'Замовлення' ? ' підготовлено у формі.' : ' уже відкрита у вікні.'));
   }
   function send() {
     if (S.sending || !need('order')) return;

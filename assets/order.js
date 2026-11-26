@@ -1,4 +1,4 @@
-/* «Хочу» — кошик заявки на сторінках Послуг. Дані літають у форму Uspacy (Суть запиту). */
+/* «Хочу» — кошик заявки на сторінках Послуг. Кнопка «До заявки» відкриває вікно заявки (assets/site-form.js → BOS), вибір потрапляє в поле «Суть запиту». */
 (function () {
   var KEY = 'blitzWant:' + location.pathname;
   var cards = document.querySelectorAll('.product-card, .promo-card');
@@ -57,53 +57,12 @@
     return lines.join('\n');
   }
 
-  /* Редактор Uspacy (Lexical) приймає вставку лише після синхронізації виділення,
-     тому: виділяємо вміст -> чекаємо -> вставляємо -> перевіряємо -> повторюємо; як запасний варіант дописуємо в кінець. */
-  function fillEditor(ed, want, tries, onDone) {
-    function sel(toEnd) {
-      ed.focus();
-      var r = document.createRange(); r.selectNodeContents(ed); if (toEnd) r.collapse(false);
-      var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
-    }
-    var head = want.slice(0, 12);
-    if (ed.textContent.indexOf(want) > -1 && ed.textContent.length <= want.length + 3) { if (onDone) onDone(); return; }
-    var append = tries >= 4;
-    sel(append);
-    setTimeout(function () {
-      document.execCommand('insertText', false, append ? (ed.textContent.trim() ? ' | ' : '') + want : want);
-      setTimeout(function () {
-        if (ed.textContent.indexOf(head) > -1) { if (onDone) onDone(); }
-        else if (tries < 8) { ed.blur(); setTimeout(function () { fillEditor(ed, want, tries + 1, onDone); }, 100); }
-      }, 400);
-    }, 150);
-  }
-
-  function fill(text, tries) {
-    tries = tries || 0;
-    var ed = document.querySelector('#uspacy-forms [contenteditable="true"]');
-    if (ed) { fillEditor(ed, text.replace(/\n+/g, ' | '), 0); return; }
-    var ta = document.getElementById('fbTxt');
-    if (ta) { ta.value = text; return; }
-    if (tries < 40) setTimeout(function () { fill(text, tries + 1); }, 250);
-  }
-
   bar.querySelector('.want-go').addEventListener('click', function () {
-    if (window.blitzOpenForm) { window.blitzOpenForm({ message: buildText(), source: 'want' }); return; }   /* сторінка з вікном заявки (site-form.js): форма відкривається вікном, текст кошика — у «Суть запиту» */
-    var sec = document.getElementById('radio-order-section');
-    if (sec) sec.hidden = false;
-    var t = sec || document.getElementById('contact-form-target') || document.getElementById('uspacy-forms');
-    if (t) t.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    fill(buildText());
+    if (window.blitzOpenForm) { window.blitzOpenForm({ message: buildText(), source: 'want' }); return; }   /* вікно заявки (site-form.js): текст кошика — у «Суть запиту» */
+    location.href = '/kontakty.html#zayavka';   /* запасний шлях, якщо site-form.js не завантажився */
   });
   bar.querySelector('.want-clear').addEventListener('click', function () { cart = {}; save(); refresh(); });
-  /* Коли форма на екрані — ховаємо панель «Обрано», щоб вона не закривала кнопку «Надіслати» */
-  var formEl = document.getElementById('contact-form-target') || document.getElementById('radio-order-section');
-  if (formEl && 'IntersectionObserver' in window) {
-    new IntersectionObserver(function (en) {
-      bar.classList.toggle('want-away', en[0].isIntersecting);
-    }, { threshold: 0.05 }).observe(formEl);
-  }
-  /* Заявка з картки акції: одна позиція → у форму → прокрутка */
+  /* Заявка з картки акції: одна позиція → вікно заявки */
   window.blitzLead = function (name, price) {
     cart = {}; cart[name] = { price: price || '', qty: '' };
     save(); refresh();

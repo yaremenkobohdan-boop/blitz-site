@@ -18,7 +18,7 @@
 :root{--bg:#fff;--bg2:#FAF8F4;--fg:#1A1A1A;--fg2:#2E2E2E;--fg3:#505050;--line:#E8E5E0;--acc:#EA580C;--acc2:#F8A900;--accsoft:#FFF1DC;--hl:#FFE3B8;--grad:linear-gradient(95deg,#EA580C 0%,#EF7700 38%,#F39200 70%,#F8A900 100%);--shadow:0 8px 24px rgba(234,88,12,.12);--ph:#FFF8EE;--phline:#F39200;--warn:#B45309;--font:'Montserrat',system-ui,-apple-system,'Segoe UI',sans-serif}
 *{box-sizing:border-box}
 html{background:var(--bg);color:var(--fg);color-scheme:only light}body{background:var(--bg);color:var(--fg);min-height:100vh;font-family:var(--font);margin:0;line-height:1.55;font-size:16px;font-weight:500;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}
-html body,#radio-order-form-mount,#radio-order-form-mount *{font-family:var(--font)!important}
+html body{font-family:var(--font)!important}
 button,input,select,textarea{font-family:inherit}
 .wrap{max-width:1120px;margin:0 auto;padding-inline:20px}
 section{padding-block:52px}
@@ -142,6 +142,7 @@ footer h4{margin:0 0 8px;color:var(--fg)}footer a{color:var(--acc);text-decorati
 .aud-note{font-size:12.5px;color:var(--fg3);margin-top:14px;max-width:90ch}
 .bf26{background:var(--accsoft);border-bottom:1px solid var(--line)}.bf26[hidden]{display:none}.bf26.noimg .wrap{grid-template-columns:1fr}.bf26 .wrap{display:grid;grid-template-columns:minmax(0,340px) 1fr;gap:36px;align-items:center;padding-block:28px}.bf26 .bf-img{display:block}.bf26 img{display:block;width:100%;height:auto;border-radius:20px;box-shadow:0 8px 24px rgba(234,88,12,.18)}.bf26 .bf-tag{display:inline-block;font:800 11px var(--font);letter-spacing:.1em;text-transform:uppercase;color:#fff;background:var(--grad);padding:6px 14px;border-radius:9999px;margin-bottom:14px}.bf26 h2{font:900 clamp(26px,4vw,40px)/1.1 var(--font);margin:0 0 12px;text-wrap:balance}.bf26 p{margin:0 0 18px;max-width:560px}.bf26 .bf-fine{font-size:12.5px;color:var(--fg3);margin:16px 0 0}@media(max-width:720px){.bf26 .wrap{grid-template-columns:1fr;gap:20px;padding-block:20px}.bf26 .bf-img{max-width:340px}}</style>
 <script src="https://blitz.com.ua/assets/analytics.js" defer></script>
+<script src="https://blitz.com.ua/assets/site-form.js?v=20261126b" data-form="request" defer></script>
 </head>
 <body data-city="__CITY__">
 
@@ -158,7 +159,7 @@ footer h4{margin:0 0 8px;color:var(--fg)}footer a{color:var(--acc);text-decorati
 <div class="crumbs" id="crumbs"></div>
 <h1 class="stack"><span class="v">Розміщуємо</span><span class="k">рекламу</span><span class="o" id="heroCity"></span></h1>
 <p class="lead" style="margin-bottom:0">Пакетні ціни, прозорий калькулятор і звіт про виходи в ефір. Замовити можна на будь-які станції мережі, не лише в цьому місті.</p>
-<div class="cta"><a class="btn" href="#order">Замовити</a><a class="btn ghost" href="#calc">Порахувати вартість</a></div>
+<div class="cta"><a class="btn" href="#order" data-open-form="hero-city">Замовити</a><a class="btn ghost" href="#calc">Порахувати вартість</a></div>
 <div class="lab" style="margin-top:22px">Реклама на радіо в інших містах</div><div class="cities" id="cityLinks"></div>
 </div>
 <div class="freq"><div class="fq-top"><img src="https://blitz.com.ua/assets/logo-blitz-fm.png" alt="БЛІЦ ФМ"><div><small id="fqLabel"></small><strong id="fqCity"></strong></div></div><div class="fq-num"><b id="fqNum"></b><span>FM</span></div><div class="fq-slogan">Головне радіо міста!</div></div>
@@ -229,7 +230,7 @@ footer h4{margin:0 0 8px;color:var(--fg)}footer a{color:var(--acc);text-decorati
 <section id="order"><div class="wrap formwrap">
 <div><h2>Залишити заявку</h2><p class="lead">Менеджер зателефонує в робочий час, Пн–Пт 9:00–17:00, і уточнить деталі: станції, термін, текст ролика.</p>
 <p id="orderNote" class="lead" style="font-size:15px"></p></div>
-<div><div id="radio-order-form-mount"></div><div id="fm" style="min-height:22px;margin-top:10px;font-weight:600;color:var(--acc)"></div><pre id="fbTxt" hidden style="white-space:pre-wrap;background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:14px;font:500 13px var(--font)"></pre></div>
+<div><button type="button" class="btn" id="orderOpen" data-open-form="order-city">Залишити заявку</button><div id="fm" style="min-height:22px;margin-top:10px;font-weight:600;color:var(--acc)"></div><pre id="fbTxt" hidden style="white-space:pre-wrap;background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:14px;font:500 13px var(--font)"></pre></div>
 </div></section>
 
 <footer><div class="wrap">
@@ -464,19 +465,6 @@ function calc(){
  bindCopy()
 }
 function bindCopy(){var b=$('reqBtn');if(!b)return;b.onclick=sendRequest}
-function fillEditor(ed,want,tries){
- function sel(toEnd){ed.focus();var r=document.createRange();r.selectNodeContents(ed);if(toEnd)r.collapse(false);var s=window.getSelection();s.removeAllRanges();s.addRange(r)}
- var head=want.slice(0,12);
- if(ed.textContent.indexOf(want)>-1&&ed.textContent.length<=want.length+3)return;
- var append=tries>=4;sel(append);
- setTimeout(function(){document.execCommand('insertText',false,append?(ed.textContent.trim()?' | ':'')+want:want);
-  setTimeout(function(){if(ed.textContent.indexOf(head)<0&&tries<8){ed.blur();setTimeout(function(){fillEditor(ed,want,tries+1)},100)}},400)},150)}
-function fillDesc(txt,n){
- var ce=document.querySelector('#uspacy-forms [contenteditable="true"]');
- if(!ce){ if(n<40){setTimeout(function(){fillDesc(txt,n+1)},250);return}
-  $('fbTxt').hidden=false;$('fbTxt').textContent=txt;$('fm').textContent='Форма ще завантажується. Скопіюйте розрахунок нижче й вставте в поле «Суть запиту».';return }
- fillEditor(ce,txt.replace(/\n+/g,' | '),0);
- $('fm').textContent='Розрахунок додано в поле «Суть запиту». Вкажіть ім\'я й телефон та натисніть кнопку відправки форми.'}
 document.addEventListener('click',function(e){
  var b=e.target.closest&&e.target.closest('[data-fmt]');if(!b)return;
  var v=PRICES.video.filter(function(x){return x[0]===b.dataset.fmt})[0];if(!v)return;
@@ -484,8 +472,9 @@ document.addEventListener('click',function(e){
  sendRequest()});
 function sendRequest(){
  var txt=(lastText||'Запит на рекламу на радіо')+'\n\nСторінка: '+CITIES[cur].n+' ('+location.hostname+')'+(window.blitzUtmText?window.blitzUtmText():'');
+ if(window.blitzOpenForm){$('fm').textContent='';$('fbTxt').hidden=true;window.blitzOpenForm({message:txt,source:'calc'});return}
  $('order').scrollIntoView({behavior:'smooth',block:'start'});
- fillDesc(txt,0)}
+ $('fbTxt').hidden=false;$('fbTxt').textContent=txt;$('fm').innerHTML='Форма заявки не завантажилась. Скопіюйте розрахунок нижче й надішліть його нам або зателефонуйте: <a href="tel:+380672804030">+380 67 280 40 30</a>.'}
 function money(n){return fmt(n)+' грн'}
 function cityStations(k){
  if(k==='bt')return PRICES.bc.stations.map(function(s){return s[0]+' '+s[1]});
@@ -532,7 +521,7 @@ function fillTexts(){
  $('faq').innerHTML=q.map(function(x,i){return '<details'+(i===0?' open':'')+'><summary>'+x[0]+'</summary><p>'+x[1]+'</p></details>'}).join('');
  var ld={'@context':'https://schema.org','@type':'FAQPage',mainEntity:q.map(function(x){return {'@type':'Question',name:x[0],acceptedAnswer:{'@type':'Answer',text:x[1]}}})};
  var old=document.getElementById('ldFaq');if(old)old.remove();var s=document.createElement('script');s.type='application/ld+json';s.id='ldFaq';s.textContent=JSON.stringify(ld);document.head.appendChild(s);
- $('orderNote').textContent='Залишіть заявку, і ми підготуємо розрахунок реклами на радіо '+c.l+'. Усе, що ви обрали в калькуляторі, потрапить у поле «Опис».';
+ $('orderNote').textContent='Залишіть заявку, і ми підготуємо розрахунок реклами на радіо '+c.l+'. Усе, що ви обрали в калькуляторі, потрапить у поле «Суть запиту» у вікні заявки.';
  $('footCities').innerHTML=Object.keys(CITIES).map(function(k){return '<a data-k="'+k+'" href="https://'+CITIES[k].h+'.blitz.com.ua/">'+CITIES[k].n+'</a>'}).join(' · ');
 }
 function fillStatic(){
@@ -579,9 +568,6 @@ document.addEventListener('input',function(e){
  else if(t.id==='spSel'){S.sp=+t.value;calc()}
 });
 
-(function(){var mount=document.getElementById('radio-order-form-mount');if(!mount)return;
- new MutationObserver(function(){var w=document.getElementById('uspacy-forms');if(w&&w.parentNode!==mount)mount.appendChild(w)}).observe(document.body,{childList:true,subtree:true});
- var s=document.createElement('script');s.async=true;s.src='https://forms-cdn.uspa.cy/6a/60/6a60cd562704e3c3a69dd0f2/forms.js?v='+Date.now();document.head.appendChild(s)})();
 resetState();fillStatic();render();promoBanner();promoFromHash();
 </script>
 </body>

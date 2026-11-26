@@ -108,14 +108,13 @@ origin/main` у хмарі → прибрати клон і patch на Маку 
 - Відео головної (`assets/logo_prezent_compressed.mp4`) віддається через jsDelivr CDN, бо
   Workers Assets не підтримує HTTP Range requests — не переводити назад на прямий asset.
 - Хмарний контейнер скидається між сесіями; джерело правди — тільки GitHub-репо.
-- Uspacy-форми: «Контактні дані» (id `6a46e46b1c3ee6c629091b0d`) на kontakty.html у
-  `#contact-form-target`; «Замовлення реклами на радіо» (id `6a60cd562704e3c3a69dd0f2`) на
-  сторінках категорій. Віджет Uspacy самопримонтовується в кінець `<body>` — тому є JS
-  (`assets/main.js` + inline-скрипт на kontakty.html), що переносить `#uspacy-forms` у
-  контейнер, і cache-busting `?v=Date.now()` на `forms.js`. Відомий баг на боці Uspacy
-  (сирий ключ `textPlaceholder.editor.newsfeed` у редакторі) — не виправний з нашого боку.
-- Каталог радіо: `poslugy/radio.html` (8 станцій, групування по містах, модалка, форма
-  замовлення прихована до кліку). Ціни/частоти — з регіонального прайсу БЛІЦ-ФМ (діє з
+- Форми заявок (з 26.11.2026): ВСІ форми сайту — одне власне вікно `assets/site-form.js` → `POST https://bos.blitz.com.ua/api/public/site-lead`
+  (BOS сам дублює лід у Uspacy). Віджет Uspacy (`forms.js`, `#uspacy-forms`, `#contact-form-target`) із сайту прибрано. Підключення:
+  `<script src="assets/site-form.js?v=…" data-form="request" defer></script>` (на kontakty.html — `data-form="contacts"`); відкривають вікно кнопки з
+  `data-open-form="<мітка-джерела>"`, посилання `#zayavka` і `window.blitzOpenForm({message, source})` (так роблять `order.js` «Хочу»/«До заявки»,
+  `outdoor-public.js`, калькулятор міст). Код `form` у BOS лише `request`/`contacts`, тому розділ видно за `page` і шляхом відвідувача; мітка кнопки йде в `src`.
+  При збої BOS вікно показує «Не вдалося надіслати. Зателефонуйте…» і кнопку «Спробувати ще раз» (той самий id, без дубля). Тест без ліда в Uspacy: `?sf_test=1`.
+- Каталог радіо: `poslugy/radio.html` (8 станцій, групування по містах, модалка станції; «Замовити»/ціна відкривають вікно заявки). Ціни/частоти — з регіонального прайсу БЛІЦ-ФМ (діє з
   01.07.2026); перед зміною цін/частот звіряти з власником.
 
 ## Наступна задача: піддомени (ще не розпочата)
@@ -191,7 +190,7 @@ schema.org (`url`, `sameAs`), перелінковка з головного с�
 - Папка `cities/`: `city.tpl.html` (шаблон), `build.js` (генератор: `PLAYWRIGHT_PATH=... CHROMIUM_PATH=... node cities/build.js`), `sites/<slug>/` (згенеровані сторінки, robots, sitemap), `src/index.js` + `wrangler.toml` (один Worker `blitz-cities`, піддомен -> папка).
 - Ціни редагуються в калькуляторі: calc.blitz.com.ua → Налаштування → «Ціни на радіо» (зберігаються в Cloudflare KV, віддаються як `https://calc.blitz.com.ua/prices.js`). Лендінги міст і `poslugy/radio.html` читають їх звідти. `assets/radio-prices.js` — лише запасна копія (на випадок недоступності калькулятора) і джерело для prerender у `build.js`; після великої зміни цін синхронізувати її з калькулятором. Після зміни шаблону запустити `build.js` і закомітити `cities/sites/`.
 - Кореневий `.assetsignore` ховає `cities/` від основного сайту (щоб не було дублів).
-- Приклади роликів: `assets/radio-examples/*.mp3`. Форма заявки — Uspacy `6a60cd562704e3c3a69dd0f2`; кнопка «Надіслати запит» вставляє розрахунок у поле «Суть запиту» (contenteditable).
+- Приклади роликів: `assets/radio-examples/*.mp3`. Форма заявки — вікно `assets/site-form.js` з blitz.com.ua (cross-origin, BOS приймає Origin `*.blitz.com.ua`); кнопка «Надіслати запит» калькулятора відкриває вікно з розрахунком у полі «Суть запиту».
 - Деплой: Cloudflare Workers Builds, Root directory `cities`.
 
 

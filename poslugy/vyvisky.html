@@ -34,7 +34,7 @@
         <a href="https://www.instagram.com/ra_blitz/" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24"><path d="M12 2c2.72 0 3.06.01 4.12.06 1.06.05 1.79.22 2.43.47.66.26 1.22.6 1.77 1.15.55.55.89 1.11 1.15 1.77.25.64.42 1.37.47 2.43.05 1.06.06 1.4.06 4.12s-.01 3.06-.06 4.12c-.05 1.06-.22 1.79-.47 2.43a4.9 4.9 0 0 1-1.15 1.77 4.9 4.9 0 0 1-1.77 1.15c-.64.25-1.37.42-2.43.47-1.06.05-1.4.06-4.12.06s-3.06-.01-4.12-.06c-1.06-.05-1.79-.22-2.43-.47a4.9 4.9 0 0 1-1.77-1.15 4.9 4.9 0 0 1-1.15-1.77c-.25-.64-.42-1.37-.47-2.43C2.01 15.06 2 14.72 2 12s.01-3.06.06-4.12c.05-1.06.22-1.79.47-2.43.26-.66.6-1.22 1.15-1.77A4.9 4.9 0 0 1 5.45.53c.64-.25 1.37-.42 2.43-.47C8.94.01 9.28 0 12 0Zm0 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10Zm0 8.25A3.25 3.25 0 1 1 12 6.75a3.25 3.25 0 0 1 0 6.5ZM17.5 6.75a1.17 1.17 0 1 0 0-2.33 1.17 1.17 0 0 0 0 2.33Z" transform="translate(0 2)"/></svg></a>
       </div>
       <a href="tel:+380672804030" class="nav-phone">+38 (067) 280-40-30</a>
-      <a href="../kontakty.html" class="btn btn-primary btn-sm">Замовити</a>
+      <a href="../kontakty.html" class="btn btn-primary btn-sm" data-open-form="header-vyvisky">Замовити</a>
       <button class="burger" id="burgerBtn" aria-label="Меню"><span></span><span></span><span></span></button>
     </div>  </div>
 </header>
@@ -160,17 +160,17 @@
     <div class="cta-band" style="margin-top:24px;">
       <h3>Замовити: Вивіски</h3>
       <p style="color:rgba(255,255,255,0.9); margin-top:-8px;">Залиште заявку — менеджер уточнить деталі та розрахує вартість.</p>
+      <div class="btns"><button type="button" class="btn btn-invert" data-open-form="order-vyvisky">Залишити заявку</button></div>
     </div>
-    <div id="contact-form-target" style="margin-top:16px;"></div>
     <div class="cta-band" style="margin-top:24px;">
       <h3>Не знайшли потрібну позицію?</h3>
       <div class="btns">
-        <a href="../kontakty.html" class="btn btn-invert">Зробити індивідуальний запит</a>
+        <a href="../kontakty.html" class="btn btn-invert" data-open-form="custom-vyvisky">Зробити індивідуальний запит</a>
       </div>
     </div>
   </div>
 </section>
-<script type="text/javascript" src="https://forms-cdn.uspa.cy/6a/60/6a60cd562704e3c3a69dd0f2/forms.js?v=1787862875698"></script>
+<script src="../assets/site-form.js?v=20261126b" data-form="request" defer></script>
 
 <footer class="site-footer">
   <div class="wrap">
@@ -210,6 +210,6 @@
 </footer>
 <div class="mobile-call"><a href="tel:+380672804030">📞 Замовити дзвінок</a></div>
 <script src="../assets/main.js"></script>
-<script src="../assets/order.js"></script>
+<script src="../assets/order.js?v=20261126"></script>
 </body>
 </html>
